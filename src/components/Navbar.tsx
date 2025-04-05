@@ -1,14 +1,22 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { Menu, X, MapPin, CloudRain, DropletIcon, Building, BarChart3, FileEdit, User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, MapPin, CloudRain, DropletIcon, Building, BarChart3, FileEdit, User, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
   };
 
   const navItems = [
@@ -47,10 +55,24 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
-            <Button variant="outline" className="ml-4 flex items-center">
-              <User className="w-4 h-4 mr-2" />
-              Login
-            </Button>
+            {user ? (
+              <div className="flex items-center">
+                <span className="text-sm text-gray-700 dark:text-gray-300 mr-2">
+                  {user.email}
+                </span>
+                <Button variant="outline" className="ml-2 flex items-center" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Link to="/auth">
+                <Button variant="outline" className="ml-4 flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Login
+                </Button>
+              </Link>
+            )}
           </div>
           
           {/* Mobile menu button */}
@@ -85,10 +107,28 @@ const Navbar = () => {
               {item.name}
             </Link>
           ))}
-          <Button variant="outline" className="w-full justify-start mt-2 flex items-center">
-            <User className="w-4 h-4 mr-2" />
-            Login
-          </Button>
+          {user ? (
+            <div className="pt-2 pb-1">
+              <span className="block px-3 py-1 text-sm text-gray-700 dark:text-gray-300">
+                {user.email}
+              </span>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start mt-2 flex items-center"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <Link to="/auth" onClick={() => setIsOpen(false)}>
+              <Button variant="outline" className="w-full justify-start mt-2 flex items-center">
+                <User className="w-4 h-4 mr-2" />
+                Login
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

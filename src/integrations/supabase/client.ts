@@ -10,3 +10,15 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+// Helper function to check if user is authenticated
+export const isAuthenticated = async () => {
+  const { data } = await supabase.auth.getSession();
+  return !!data.session;
+};
+
+// Helper function to get current user
+export const getCurrentUser = async () => {
+  const { data } = await supabase.auth.getUser();
+  return data.user;
+};
