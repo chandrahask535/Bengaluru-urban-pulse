@@ -9,7 +9,144 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      flood_predictions: {
+        Row: {
+          area_name: string
+          created_at: string
+          id: string
+          location: unknown
+          prediction_date: string
+          rainfall_forecast: number | null
+          risk_level: string
+        }
+        Insert: {
+          area_name: string
+          created_at?: string
+          id?: string
+          location: unknown
+          prediction_date: string
+          rainfall_forecast?: number | null
+          risk_level: string
+        }
+        Update: {
+          area_name?: string
+          created_at?: string
+          id?: string
+          location?: unknown
+          prediction_date?: string
+          rainfall_forecast?: number | null
+          risk_level?: string
+        }
+        Relationships: []
+      }
+      issues: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          description: string | null
+          id: string
+          images: string[] | null
+          issue_type: string
+          location: string
+          location_coordinates: unknown | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          issue_type: string
+          location: string
+          location_coordinates?: unknown | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          issue_type?: string
+          location?: string
+          location_coordinates?: unknown | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      lakes: {
+        Row: {
+          area_sqkm: number | null
+          current_water_level: number | null
+          encroachment_status: string | null
+          id: string
+          last_updated: string
+          location: unknown
+          name: string
+          pollution_level: string | null
+        }
+        Insert: {
+          area_sqkm?: number | null
+          current_water_level?: number | null
+          encroachment_status?: string | null
+          id?: string
+          last_updated?: string
+          location: unknown
+          name: string
+          pollution_level?: string | null
+        }
+        Update: {
+          area_sqkm?: number | null
+          current_water_level?: number | null
+          encroachment_status?: string | null
+          id?: string
+          last_updated?: string
+          location?: unknown
+          name?: string
+          pollution_level?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          is_admin: boolean | null
+          last_name: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id: string
+          is_admin?: boolean | null
+          last_name?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          is_admin?: boolean | null
+          last_name?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
