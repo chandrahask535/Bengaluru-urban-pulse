@@ -1,1 +1,5 @@
+
 project_id = "myrteuqoeettnpunxoyt"
+
+[functions.ml-prediction]
+verify_jwt = false
