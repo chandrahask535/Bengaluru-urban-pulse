@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,21 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Karnataka Urban theme colors
+				karnataka: {
+					'rain-dark': '#403E43', // dark rain color
+					'rain-medium': '#8E9196', // medium rain color
+					'rain-light': '#D3E4FD', // light rain color
+					'park-dark': '#2E7D32', // dark park green
+					'park-medium': '#4CAF50', // medium park green
+					'park-light': '#A5D6A7', // light park green
+					'metro-dark': '#6E59A5', // dark metro purple
+					'metro-medium': '#9b87f5', // medium metro purple
+					'metro-light': '#D6BCFA', // light metro purple
+					'lake-dark': '#1565C0', // dark lake blue
+					'lake-medium': '#1976D2', // medium lake blue
+					'lake-light': '#90CAF9', // light lake blue
 				}
 			},
 			borderRadius: {
@@ -84,11 +100,26 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					from: { opacity: '0', transform: 'translateY(10px)' },
+					to: { opacity: '1', transform: 'translateY(0)' }
+				},
+				'fade-out': {
+					from: { opacity: '1', transform: 'translateY(0)' },
+					to: { opacity: '0', transform: 'translateY(10px)' }
+				},
+				'slide-in': {
+					from: { transform: 'translateX(-100%)' },
+					to: { transform: 'translateX(0)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'fade-out': 'fade-out 0.3s ease-out',
+				'slide-in': 'slide-in 0.3s ease-out'
 			}
 		}
 	},
