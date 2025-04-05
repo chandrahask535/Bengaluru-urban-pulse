@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -75,7 +74,6 @@ const Report = () => {
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
     setPreviewUrls((prev) => {
-      // Revoke object URL to avoid memory leaks
       URL.revokeObjectURL(prev[index]);
       return prev.filter((_, i) => i !== index);
     });
@@ -95,7 +93,6 @@ const Report = () => {
     setIsSubmitting(true);
 
     try {
-      // Upload images if any
       const uploadedImageUrls: string[] = [];
 
       if (images.length > 0) {
@@ -117,7 +114,6 @@ const Report = () => {
         }
       }
 
-      // Insert issue data into the database
       const { data, error } = await supabase
         .from("issues")
         .insert({
@@ -140,7 +136,6 @@ const Report = () => {
         description: "Thank you for your contribution to improving Bangalore!",
       });
 
-      // Clear form and images
       form.reset();
       setImages([]);
       setPreviewUrls((prev) => {
@@ -148,7 +143,6 @@ const Report = () => {
         return [];
       });
       
-      // Navigate to dashboard after successful submission
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error submitting report:", error);
