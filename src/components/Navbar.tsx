@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Menu, X, MapPin, CloudRain, DropletIcon, Buildings, BarChart3, FileEdit, User } from "lucide-react";
+import { Menu, X, MapPin, CloudRain, DropletIcon, Building, BarChart3, FileEdit, User } from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,7 +15,7 @@ const Navbar = () => {
     { name: "Home", path: "/", icon: <MapPin className="w-4 h-4 mr-2" /> },
     { name: "Flood Prediction", path: "/flood-prediction", icon: <CloudRain className="w-4 h-4 mr-2" /> },
     { name: "Lake Monitoring", path: "/lake-monitoring", icon: <DropletIcon className="w-4 h-4 mr-2" /> },
-    { name: "Urban Planning", path: "/urban-planning", icon: <Buildings className="w-4 h-4 mr-2" /> },
+    { name: "Urban Planning", path: "/urban-planning", icon: <Building className="w-4 h-4 mr-2" /> },
     { name: "Dashboard", path: "/dashboard", icon: <BarChart3 className="w-4 h-4 mr-2" /> },
     { name: "Report Issue", path: "/report", icon: <FileEdit className="w-4 h-4 mr-2" /> },
   ];

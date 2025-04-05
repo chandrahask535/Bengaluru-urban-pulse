@@ -1,5 +1,5 @@
 
-import { CloudRain, Droplet, Buildings, BarChart3, Upload, Smartphone } from "lucide-react";
+import { CloudRain, Droplet, Building, BarChart3, Upload, Smartphone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Features = () => {
@@ -22,7 +22,7 @@ const Features = () => {
       name: "Urban Planning",
       description:
         "Analyze zoning maps and identify safe zones for sustainable development.",
-      icon: Buildings,
+      icon: Building,
       color: "bg-karnataka-park-light text-karnataka-park-dark",
     },
     {
