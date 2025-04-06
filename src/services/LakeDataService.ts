@@ -1,6 +1,20 @@
-import axios, { AxiosError } from 'axios';
 
-interface WaterQualityData {
+import axios from "axios";
+import { supabase } from "@/integrations/supabase/client";
+
+// Define base API URL for weather and other services
+const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5";
+const API_KEY = process.env.VITE_WEATHER_API_KEY || "default_api_key";
+
+// Service response type
+export interface ServiceResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+// Types for lake data
+export interface WaterQualityData {
   ph: number;
   do: number;
   bod: number;
@@ -8,177 +22,195 @@ interface WaterQualityData {
   temperature: number;
 }
 
-interface EncroachmentData {
+export interface EncroachmentData {
   percentage: number;
   hotspots: number;
   area_lost: number;
 }
 
-interface HistoricalData {
+export interface HistoricalData {
   dates: string[];
   ph: number[];
   do: number[];
   encroachment: number[];
 }
 
-interface ServiceResponse<T> {
-  data: T | null;
-  error: string | null;
-  status: 'success' | 'error';
-}
-
-const DEFAULT_WATER_QUALITY: WaterQualityData = {
-  ph: 7,
-  do: 0,
-  bod: 0,
-  turbidity: 0,
-  temperature: 25
-};
-
-const DEFAULT_ENCROACHMENT: EncroachmentData = {
-  percentage: 0,
-  hotspots: 0,
-  area_lost: 0
-};
-
-const DEFAULT_HISTORICAL: HistoricalData = {
-  dates: [],
-  ph: [],
-  do: [],
-  encroachment: []
-};
-
-const OPENWEATHER_API_KEY = process.env.VITE_OPENWEATHER_API_KEY || '';
-const KSPCB_API_ENDPOINT = 'https://kspcb.gov.in/api/v1';
-
-const handleServiceError = (error: unknown): string => {
-  if (error instanceof AxiosError) {
-    return error.response?.data?.message || error.message;
-  }
-  return error instanceof Error ? error.message : 'An unknown error occurred';
-};
-
+// LakeDataService class for handling lake-related API calls
 export class LakeDataService {
+  // Get water quality data for a specific lake
   static async getWaterQuality(lakeId: string): Promise<ServiceResponse<WaterQualityData>> {
     try {
-      // In production, this would call the KSPCB API
-      const response = await axios.get(`${KSPCB_API_ENDPOINT}/water-quality/${lakeId}`);
+      // In a real app, this would fetch from your backend API
+      // For now, we'll simulate with random data
+      const mockData: WaterQualityData = {
+        ph: 5.5 + Math.random() * 3,
+        do: 2 + Math.random() * 6,
+        bod: 5 + Math.random() * 20,
+        turbidity: 2 + Math.random() * 8,
+        temperature: 22 + Math.random() * 8
+      };
+      
       return {
-        data: response.data,
-        error: null,
-        status: 'success'
+        success: true,
+        data: mockData
       };
     } catch (error) {
-      console.error('Error fetching water quality data:', error);
+      console.error("Error fetching water quality data:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       return {
-        data: DEFAULT_WATER_QUALITY,
-        error: handleServiceError(error),
-        status: 'error'
+        success: false,
+        error: errorMessage,
+        data: {
+          ph: 7,
+          do: 4,
+          bod: 10,
+          turbidity: 5,
+          temperature: 25
+        }
       };
     }
   }
 
+  // Get encroachment data for a specific lake
   static async getEncroachmentData(lakeId: string): Promise<ServiceResponse<EncroachmentData>> {
     try {
-      // In production, this would call the government land records API
-      const response = await axios.get(`${KSPCB_API_ENDPOINT}/encroachment/${lakeId}`);
+      // Simulated data
+      const mockData: EncroachmentData = {
+        percentage: Math.floor(Math.random() * 40),
+        hotspots: Math.floor(Math.random() * 5),
+        area_lost: Math.floor(Math.random() * 200)
+      };
+      
       return {
-        data: response.data,
-        error: null,
-        status: 'success'
+        success: true,
+        data: mockData
       };
     } catch (error) {
-      console.error('Error fetching encroachment data:', error);
+      console.error("Error fetching encroachment data:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       return {
-        data: DEFAULT_ENCROACHMENT,
-        error: handleServiceError(error),
-        status: 'error'
+        success: false,
+        error: errorMessage,
+        data: {
+          percentage: 0,
+          hotspots: 0,
+          area_lost: 0
+        }
       };
     }
   }
 
+  // Get historical data for a specific lake
   static async getHistoricalData(lakeId: string): Promise<ServiceResponse<HistoricalData>> {
     try {
-      // In production, this would fetch historical data from KSPCB database
-      const response = await axios.get(`${KSPCB_API_ENDPOINT}/historical/${lakeId}`);
+      // Simulated data
+      const dates = Array.from({ length: 10 }, (_, i) => {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        return date.toISOString().split('T')[0];
+      }).reverse();
+      
+      const mockData: HistoricalData = {
+        dates,
+        ph: Array.from({ length: 10 }, () => 5.5 + Math.random() * 3),
+        do: Array.from({ length: 10 }, () => 2 + Math.random() * 6),
+        encroachment: Array.from({ length: 10 }, (_, i) => 10 + i * 2 + Math.random() * 5)
+      };
+      
       return {
-        data: response.data,
-        error: null,
-        status: 'success'
+        success: true,
+        data: mockData
       };
     } catch (error) {
-      console.error('Error fetching historical data:', error);
+      console.error("Error fetching historical data:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       return {
-        data: DEFAULT_HISTORICAL,
-        error: handleServiceError(error),
-        status: 'error'
+        success: false,
+        error: errorMessage,
+        data: {
+          dates: [],
+          ph: [],
+          do: [],
+          encroachment: []
+        }
       };
     }
   }
 
-  static async getCurrentRainfall(lat: number, lon: number): Promise<ServiceResponse<number>> {
+  // Get current rainfall data for a location
+  static async getCurrentRainfall(lat: number, lon: number): Promise<number> {
     try {
-      const response = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`
-      );
-      return {
-        data: response.data.rain?.['1h'] || 0,
-        error: null,
-        status: 'success'
-      };
+      const response = await axios.get(`${WEATHER_API_URL}/weather`, {
+        params: {
+          lat,
+          lon,
+          appid: API_KEY,
+          units: 'metric'
+        }
+      });
+      
+      // Extract rainfall data if available
+      const rainfall = response.data.rain ? 
+        (response.data.rain['1h'] || response.data.rain['3h'] || 0) : 
+        0;
+      
+      return rainfall;
     } catch (error) {
-      console.error('Error fetching rainfall data:', error);
-      return {
-        data: 0,
-        error: handleServiceError(error),
-        status: 'error'
-      };
+      console.error("Error fetching rainfall data:", error);
+      return 0; // Default to 0 mm if there's an error
     }
   }
 
-  static async getFloodRiskPrediction(lat: number, lon: number): Promise<ServiceResponse<{
-    risk_level: 'Low' | 'Moderate' | 'High' | 'Critical';
-    probability: number;
-  }>> {
+  // Get flood risk prediction for a location
+  static async getFloodRiskPrediction(lat: number, lon: number): Promise<{ risk_level: "Critical" | "High" | "Moderate" | "Low"; probability: number }> {
     try {
-      // This would integrate with your ML model API in production
-      const weatherData = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`
-      );
+      // In a real app, this would call your ML model API
+      // For now, we'll use weather data to simulate a risk level
+      const response = await axios.get(`${WEATHER_API_URL}/forecast`, {
+        params: {
+          lat,
+          lon,
+          appid: API_KEY,
+          units: 'metric'
+        }
+      });
       
-      // Process weather forecast data to determine flood risk
-      const rainfall24h = weatherData.data.list
-        .slice(0, 8)
-        .reduce((acc: number, item: any) => acc + (item.rain?.['3h'] || 0), 0);
+      // Calculate average rainfall from forecast
+      const forecasts = response.data.list.slice(0, 8); // Next 24 hours
+      const totalRainfall = forecasts.reduce((sum: number, item: any) => {
+        const rain = item.rain ? (item.rain['3h'] || 0) : 0;
+        return sum + rain;
+      }, 0);
       
-      let risk_level: 'Low' | 'Moderate' | 'High' | 'Critical';
-      let probability: number;
-
-      if (rainfall24h > 100) {
-        risk_level = 'Critical';
-        probability = 90;
-      } else if (rainfall24h > 50) {
-        risk_level = 'High';
-        probability = 75;
-      } else if (rainfall24h > 25) {
-        risk_level = 'Moderate';
-        probability = 50;
+      const avgRainfall = totalRainfall / forecasts.length;
+      
+      // Determine risk level based on rainfall
+      let riskLevel: "Critical" | "High" | "Moderate" | "Low" = "Low";
+      let probability = 0;
+      
+      if (avgRainfall > 15) {
+        riskLevel = "Critical";
+        probability = 80 + Math.random() * 20;
+      } else if (avgRainfall > 10) {
+        riskLevel = "High";
+        probability = 60 + Math.random() * 20;
+      } else if (avgRainfall > 5) {
+        riskLevel = "Moderate";
+        probability = 30 + Math.random() * 30;
       } else {
-        risk_level = 'Low';
-        probability = 25;
+        riskLevel = "Low";
+        probability = Math.random() * 30;
       }
-
+      
       return {
-        data: { risk_level, probability },
-        error: null,
-        status: 'success'
+        risk_level: riskLevel,
+        probability: Math.round(probability)
       };
     } catch (error) {
-      console.error('Error predicting flood risk:', error);
+      console.error("Error predicting flood risk:", error);
       return {
-        data: { risk_level: 'Low', probability: 0 },
-        error: handleServiceError(error),
-        status: 'error'
+        risk_level: "Low",
+        probability: 0
       };
     }
   }

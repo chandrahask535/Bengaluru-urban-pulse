@@ -25,22 +25,6 @@ const DEFAULT_ENCROACHMENT: EncroachmentData = {
   hotspots: 0,
   area_lost: 0
 };
-import type { WaterQualityData, EncroachmentData } from "@/services/LakeDataService";
-
-// Default values for when API fails
-const DEFAULT_WATER_QUALITY: WaterQualityData = {
-  ph: 7,
-  do: 4,
-  bod: 10,
-  turbidity: 5,
-  temperature: 25
-};
-
-const DEFAULT_ENCROACHMENT: EncroachmentData = {
-  percentage: 0,
-  hotspots: 0,
-  area_lost: 0
-};
 
 interface LakeData {
   waterLevel: number;
@@ -77,7 +61,7 @@ const LakeMonitoring = () => {
         const waterQuality = waterQualityRes.data || DEFAULT_WATER_QUALITY;
         const encroachment = encroachmentRes.data || DEFAULT_ENCROACHMENT;
 
-        setLakeData({
+        const newLakeData: LakeData = {
           waterLevel: Math.min(100, Math.max(0, Math.round((waterQuality.do / 8) * 100))), // Normalize DO to water level with bounds
           encroachment: Math.min(100, Math.max(0, encroachment.percentage)), // Ensure percentage is within bounds
           waterQuality: waterQuality.bod > 20 ? "Poor" : waterQuality.bod > 10 ? "Moderate" : "Good",
@@ -87,12 +71,14 @@ const LakeMonitoring = () => {
           waterLevelAlert: waterQuality.do < 4,
           qualityAlert: waterQuality.bod > 20,
           isHealthy: waterQuality.do >= 4 && waterQuality.bod <= 10 && encroachment.percentage <= 20
-        });
+        };
+        
+        setLakeData(newLakeData);
       } catch (error) {
         console.error("Error fetching lake data:", error);
         setError(error instanceof Error ? error.message : 'Failed to fetch lake data');
         // Fallback to sample data if API fails
-        setLakeData(lakeHealthData[selectedLake as keyof typeof lakeHealthData]);
+        setLakeData(lakeHealthData[selectedLake as keyof typeof lakeHealthData] as LakeData);
       } finally {
         setLoading(false);
       }
@@ -176,7 +162,6 @@ const LakeMonitoring = () => {
 
   const selectedLakeData = loading ? lakeHealthData[selectedLake as keyof typeof lakeHealthData] : (lakeData || lakeHealthData[selectedLake as keyof typeof lakeHealthData]);
 
-  // Early return for loading state
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen">

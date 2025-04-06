@@ -22,10 +22,10 @@ const FloodPrediction = () => {
         // Using Bengaluru coordinates
         const lat = 12.9716;
         const lon = 77.5946;
-        const [rainfall, risk] = await Promise.all([
-          LakeDataService.getCurrentRainfall(lat, lon),
-          LakeDataService.getFloodRiskPrediction(lat, lon)
-        ]);
+        
+        const rainfall = await LakeDataService.getCurrentRainfall(lat, lon);
+        const risk = await LakeDataService.getFloodRiskPrediction(lat, lon);
+        
         setCurrentRainfall(rainfall);
         setFloodRisk(risk);
       } catch (error) {
@@ -153,7 +153,7 @@ const FloodPrediction = () => {
                   iconColor="text-karnataka-metro-medium"
                 >
                   <div className="text-center">
-                    <div className={`inline-flex items-center justify-center h-16 w-16 rounded-full ${getStatusColor(floodRisk?.risk_level || 'Low')}`}>
+                    <div className={`inline-flex items-center justify-center h-16 w-16 rounded-full ${floodRisk ? getStatusColor(floodRisk.risk_level) : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}`}>
                       <span className="text-xl font-bold">{floodRisk?.risk_level || 'LOW'}</span>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
