@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Define base API URL for weather and other services
 const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5";
-const API_KEY = process.env.VITE_WEATHER_API_KEY || "default_api_key";
+const API_KEY = import.meta.env.VITE_WEATHER_API_KEY || "default_api_key";
 
 // Service response type
 export interface ServiceResponse<T> {
@@ -33,6 +33,30 @@ export interface HistoricalData {
   ph: number[];
   do: number[];
   encroachment: number[];
+}
+
+// Types for weather API responses
+interface WeatherResponse {
+  rain?: {
+    '1h'?: number;
+    '3h'?: number;
+  };
+  main: {
+    temp: number;
+    humidity: number;
+  };
+}
+
+interface ForecastResponse {
+  list: Array<{
+    rain?: {
+      '3h'?: number;
+    };
+    main: {
+      temp: number;
+      humidity: number;
+    };
+  }>;
 }
 
 // LakeDataService class for handling lake-related API calls
@@ -150,8 +174,9 @@ export class LakeDataService {
       });
       
       // Extract rainfall data if available
-      const rainfall = response.data.rain ? 
-        (response.data.rain['1h'] || response.data.rain['3h'] || 0) : 
+      const data = response.data as WeatherResponse;
+      const rainfall = data.rain ? 
+        (data.rain['1h'] || data.rain['3h'] || 0) : 
         0;
       
       return rainfall;
@@ -176,7 +201,8 @@ export class LakeDataService {
       });
       
       // Calculate average rainfall from forecast
-      const forecasts = response.data.list.slice(0, 8); // Next 24 hours
+      const data = response.data as ForecastResponse;
+      const forecasts = data.list.slice(0, 8); // Next 24 hours
       const totalRainfall = forecasts.reduce((sum: number, item: any) => {
         const rain = item.rain ? (item.rain['3h'] || 0) : 0;
         return sum + rain;
