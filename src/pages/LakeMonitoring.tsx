@@ -91,12 +91,12 @@ const LakeMonitoring = () => {
   }, [selectedLake]);
 
   const lakes = [
-    { id: "bellandur", name: "Bellandur Lake", coordinates: [12.9373, 77.6402] },
-    { id: "varthur", name: "Varthur Lake", coordinates: [12.9417, 77.7341] },
-    { id: "hebbal", name: "Hebbal Lake", coordinates: [13.0450, 77.5950] },
-    { id: "ulsoor", name: "Ulsoor Lake", coordinates: [12.9825, 77.6203] },
-    { id: "sankey", name: "Sankey Tank", coordinates: [13.0070, 77.5730] },
-    { id: "agara", name: "Agara Lake", coordinates: [12.9236, 77.6336] },
+    { id: "bellandur", name: "Bellandur Lake", coordinates: [12.9373, 77.6402] as [number, number] },
+    { id: "varthur", name: "Varthur Lake", coordinates: [12.9417, 77.7341] as [number, number] },
+    { id: "hebbal", name: "Hebbal Lake", coordinates: [13.0450, 77.5950] as [number, number] },
+    { id: "ulsoor", name: "Ulsoor Lake", coordinates: [12.9825, 77.6203] as [number, number] },
+    { id: "sankey", name: "Sankey Tank", coordinates: [13.0070, 77.5730] as [number, number] },
+    { id: "agara", name: "Agara Lake", coordinates: [12.9236, 77.6336] as [number, number] },
   ];
 
   // Sample lake health data (only used as fallback when API fails)
