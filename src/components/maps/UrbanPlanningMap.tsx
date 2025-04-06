@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+
+import { useEffect, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card } from '@/components/ui/card';
@@ -35,11 +36,12 @@ const UrbanPlanningMap = ({
 }: UrbanPlanningMapProps) => {
   const [map, setMap] = useState<L.Map | null>(null);
   const [markers, setMarkers] = useState<L.Marker[]>([]);
+  const mapContainerRef = useState<string>(`urban-planning-map-${Math.random().toString(36).substring(2, 9)}`)[0];
 
   useEffect(() => {
     if (!map) {
       // Initialize map centered on Bengaluru
-      const newMap = L.map('urban-planning-map').setView([12.9716, 77.5946], 11);
+      const newMap = L.map(mapContainerRef).setView([12.9716, 77.5946], 11);
 
       // Add Mapbox tiles using environment variable
       L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}`, {
@@ -52,9 +54,10 @@ const UrbanPlanningMap = ({
     return () => {
       if (map) {
         map.remove();
+        setMap(null);
       }
     };
-  }, []);
+  }, [mapContainerRef]);
 
   useEffect(() => {
     if (map) {
@@ -95,11 +98,11 @@ const UrbanPlanningMap = ({
         onLocationSelect(locationId);
       };
     }
-  }, [map, locations, selectedLocation]);
+  }, [map, locations, selectedLocation, onLocationSelect]);
 
   return (
     <Card className="p-4">
-      <div id="urban-planning-map" className={className} />
+      <div id={mapContainerRef} className={className} />
     </Card>
   );
 };
