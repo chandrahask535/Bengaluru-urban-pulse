@@ -101,11 +101,13 @@ class PredictionService {
   // Get health assessment for a specific lake
   async getLakeHealth(lakeId: string): Promise<LakeHealthResponse> {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const response = await fetch(`${EDGE_FUNCTION_URL}/lake-health`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabase.auth.session()?.access_token || ""}`,
+          "Authorization": `Bearer ${session?.access_token || ""}`,
         },
         body: JSON.stringify({
           lake_id: lakeId,
@@ -127,11 +129,13 @@ class PredictionService {
   // Get urban planning insights for a region
   async getUrbanInsights(region: { lat: number; lng: number; radius: number }): Promise<UrbanInsightsResponse> {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const response = await fetch(`${EDGE_FUNCTION_URL}/urban-insights`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabase.auth.session()?.access_token || ""}`,
+          "Authorization": `Bearer ${session?.access_token || ""}`,
         },
         body: JSON.stringify({
           region,
