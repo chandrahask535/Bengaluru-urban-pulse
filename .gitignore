@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
@@ -22,4 +23,30 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-urbanplan/Lib/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+urbanplan/
+venv/
+env/
+.env
+
+# Distribution / packaging
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
