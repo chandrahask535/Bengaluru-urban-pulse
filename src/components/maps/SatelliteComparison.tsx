@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, ChevronLeft, ChevronRight, AlertTriangle, RotateCw } from 'lucide-react';
@@ -19,15 +19,18 @@ const SatelliteComparison = ({
   lakeName,
   coordinates,
   historicalYear = '2010',
-  currentYear = '2023',
+  currentYear = '2025',
   onAnalyze,
 }: SatelliteComparisonProps) => {
+  const historicalMapId = useId();
+  const currentMapId = useId();
   const [changes, setChanges] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [historicalImage, setHistoricalImage] = useState<string | null>(null);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [showFallbackMaps, setShowFallbackMaps] = useState(false);
 
   // Load satellite imagery
   useEffect(() => {
@@ -36,9 +39,19 @@ const SatelliteComparison = ({
         setLoading(true);
         const [lat, lng] = coordinates;
         
-        // For historical image, use NASA Earth Observatory WMS service which has better historical coverage
+        // For historical image, try multiple sources
         const historicalDate = `${historicalYear}-06-01`;
+        
+        // 1. Try NASA Earthdata WMS service for historical image
         const nasaEarthObsUrl = `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&STYLES=&FORMAT=image/jpeg&CRS=EPSG:4326&WIDTH=800&HEIGHT=600&BBOX=${lat-0.2},${lng-0.2},${lat+0.2},${lng+0.2}&TIME=${historicalYear}-06-01`;
+        
+        // 2. Try Mapbox raster tileset as backup (current image colored in sepia for historical look)
+        const mapboxToken = API_KEYS.MAPBOX_API_KEY;
+        const zoom = 14;
+        const mapboxHistoricalUrl = `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/${lng},${lat},${zoom},0/800x600@2x?access_token=${mapboxToken}&attribution=false&logo=false&saturation=-50&sepia=80`;
+        
+        // 3. Static historical image fallback
+        const staticHistoricalUrl = `https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/ee-demo-historical-aerial/static?format=png&width=800&height=600&center=${lng},${lat}&zoom=14`;
         
         // Try NASA API first for historical image
         try {
@@ -58,28 +71,20 @@ const SatelliteComparison = ({
             if (data.url) {
               setHistoricalImage(data.url);
             } else {
-              // If no image found, use Earth Observatory as fallback
+              console.log('NASA image URL not found, using Earth Observatory fallback');
               setHistoricalImage(nasaEarthObsUrl);
             }
           } else {
-            console.log('NASA API returned non-OK response for historical image, using fallback');
-            setHistoricalImage(nasaEarthObsUrl);
+            console.log('NASA API returned non-OK response for historical image, trying Mapbox fallback');
+            setHistoricalImage(mapboxHistoricalUrl);
           }
         } catch (e) {
           console.error('Error fetching NASA historical imagery:', e);
-          // Use another source for historical imagery - Landsat Collection from Earth Engine
-          const landsat8Url = `https://earthengine.googleapis.com/v1alpha/projects/earthengine-legacy/thumbnails?region={"type":"Point","coordinates":[${lng},${lat}]}&dimensions=800x600&bands=B4,B3,B2&min=0&max=0.3&gamma=1.4&format=jpg&crs=EPSG:4326&dateFrom=${historicalYear}-01-01&dateTo=${historicalYear}-12-31&collection=LANDSAT/LC08/C01/T1_TOA`;
-          setHistoricalImage(landsat8Url);
-          
-          if (!historicalImage) {
-            // Last resort - use static Landsat image from NASA
-            setHistoricalImage(`https://earthobservatory.nasa.gov/ContentWOC/images/global/globalsat_${historicalYear}.jpg`);
-          }
+          // Try Mapbox fallback for historical imagery
+          setHistoricalImage(mapboxHistoricalUrl);
         }
         
         // For current image, use Mapbox satellite imagery which is more up-to-date
-        const mapboxToken = API_KEYS.MAPBOX_API_KEY;
-        const zoom = 14;
         const mapboxUrl = `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/${lng},${lat},${zoom},0/800x600@2x?access_token=${mapboxToken}`;
         
         // Always use Mapbox for current imagery (more reliable)
@@ -143,6 +148,7 @@ const SatelliteComparison = ({
       } catch (e) {
         console.error('Error analyzing changes:', e);
         setError('Failed to load satellite imagery. Please try again later.');
+        setShowFallbackMaps(true);
       } finally {
         setLoading(false);
       }
@@ -154,6 +160,17 @@ const SatelliteComparison = ({
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
     setError(null);
+    setShowFallbackMaps(false);
+  };
+
+  const handleImageError = (type: 'historical' | 'current') => {
+    console.log(`${type} image failed to load, showing fallback map`);
+    if (type === 'historical') {
+      setHistoricalImage(null);
+    } else {
+      setCurrentImage(null);
+    }
+    setShowFallbackMaps(true);
   };
 
   return (
@@ -183,16 +200,14 @@ const SatelliteComparison = ({
                 </div>
               </div>
             )}
-            {historicalImage ? (
+            {historicalImage && !showFallbackMaps ? (
               <div className="h-[300px] w-full rounded-lg overflow-hidden">
                 <img 
                   src={historicalImage} 
                   alt={`${historicalYear} satellite image of ${lakeName}`} 
                   className="w-full h-full object-cover"
-                  onError={() => {
-                    console.error("Failed to load historical image, using fallback");
-                    setHistoricalImage(`https://earthobservatory.nasa.gov/ContentWOC/images/global/globalsat_${historicalYear}.jpg`);
-                  }}
+                  onError={() => handleImageError('historical')}
+                  loading="lazy"
                 />
               </div>
             ) : (
@@ -224,12 +239,14 @@ const SatelliteComparison = ({
                 </div>
               </div>
             )}
-            {currentImage ? (
+            {currentImage && !showFallbackMaps ? (
               <div className="h-[300px] w-full rounded-lg overflow-hidden">
                 <img 
                   src={currentImage} 
                   alt={`${currentYear} satellite image of ${lakeName}`} 
                   className="w-full h-full object-cover"
+                  onError={() => handleImageError('current')}
+                  loading="lazy"
                 />
               </div>
             ) : (

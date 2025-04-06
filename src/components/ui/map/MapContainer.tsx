@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+
+import { useEffect, useRef, useState, useId } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -22,6 +23,9 @@ const MapContainer = ({
 }: MapContainerProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapContainerId = useId();
+  const [isMapInitialized, setIsMapInitialized] = useState(false);
+  const markerRefs = useRef<L.Marker[]>([]);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -29,6 +33,7 @@ const MapContainer = ({
     // Initialize map
     const map = L.map(mapContainerRef.current).setView(center, zoom);
     mapRef.current = map;
+    setIsMapInitialized(true);
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -43,43 +48,46 @@ const MapContainer = ({
       });
     }
 
-    // Cleanup
+    // Cleanup function
     return () => {
-      map.remove();
-      mapRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        setIsMapInitialized(false);
+      }
     };
   }, []);
 
-  // Update markers
+  // Update markers when they change
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !isMapInitialized) return;
 
     // Clear existing markers
-    map.eachLayer((layer) => {
-      if (layer instanceof L.Marker) {
-        layer.remove();
-      }
+    markerRefs.current.forEach(marker => {
+      marker.remove();
     });
+    markerRefs.current = [];
 
     // Add new markers
     markers.forEach(({ position, popup }) => {
       const marker = L.marker(position).addTo(map);
+      markerRefs.current.push(marker);
       if (popup) {
         marker.bindPopup(popup);
       }
     });
-  }, [markers]);
+  }, [markers, isMapInitialized]);
 
-  // Update center and zoom
+  // Update center and zoom when they change
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !isMapInitialized) return;
 
     map.setView(center, zoom);
-  }, [center, zoom]);
+  }, [center, zoom, isMapInitialized]);
 
-  return <div ref={mapContainerRef} className={className} />;
+  return <div id={mapContainerId} ref={mapContainerRef} className={className} />;
 };
 
 export default MapContainer;

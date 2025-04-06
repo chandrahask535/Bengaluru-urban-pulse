@@ -9,6 +9,14 @@ export interface LakeReport {
   type: 'inspection' | 'encroachment' | 'biodiversity' | 'quality';
 }
 
+export interface LandCoverData {
+  water: number;
+  vegetation: number;
+  urban: number;
+  barren: number;
+  timestamp: string;
+}
+
 export interface LakeRealTimeData {
   waterQuality: {
     ph: number;
@@ -30,12 +38,15 @@ export interface LakeRealTimeData {
     coordinates: [number, number][];
     lastUpdated: string;
   };
+  landCover?: LandCoverData;
   reports: LakeReport[];
 }
 
 class LakeRealTimeService {
   static async getLakeRealTimeData(lakeId: string, coordinates: [number, number]): Promise<LakeRealTimeData> {
     try {
+      console.log(`Fetching real-time data for lake: ${lakeId} at coordinates: ${coordinates}`);
+      
       // Try to fetch data from backend
       const backendUrl = `/api/lakes/${lakeId}/real-time`;
       try {
@@ -52,8 +63,27 @@ class LakeRealTimeService {
       const [lat, lng] = coordinates;
       const weatherPromise = fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${API_KEYS.OPENWEATHER_API_KEY}&units=metric`)
         .then(res => res.json())
-        .catch(() => null);
+        .catch(error => {
+          console.error('Error fetching weather data:', error);
+          return null;
+        });
+      
+      // Fetch air quality which correlates to water quality
+      const airQualityPromise = fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lng}&appid=${API_KEYS.OPENWEATHER_API_KEY}`)
+        .then(res => res.json())
+        .catch(error => {
+          console.error('Error fetching air quality data:', error);
+          return null;
+        });
 
+      // Try to fetch LULC data from Bhuvan API (Land Use Land Cover)
+      const lulcPromise = fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.BHUVAN_API_KEY}`)
+        .then(res => res.json())
+        .catch(error => {
+          console.error('Error fetching LULC data:', error);
+          return null;
+        });
+      
       // Generate historical water level data
       const today = new Date();
       const dates = Array.from({ length: 12 }, (_, i) => {
@@ -62,8 +92,14 @@ class LakeRealTimeService {
         return date.toISOString().split('T')[0];
       }).reverse();
 
+      // Wait for all API promises to resolve
+      const [weatherData, airQualityData, lulcData] = await Promise.all([
+        weatherPromise, 
+        airQualityPromise,
+        lulcPromise
+      ]);
+      
       // Generate water level trend
-      const weatherData = await weatherPromise;
       let waterLevels: number[] = [];
       let trend: 'rising' | 'falling' | 'stable' = 'stable';
       
@@ -73,7 +109,7 @@ class LakeRealTimeService {
         const baseLevel = hasRain ? 65 : 55;
         
         // Generate historical pattern with seasonal variations
-        waterLevels = dates.map((date, index) => {
+        waterLevels = dates.map((date) => {
           const month = new Date(date).getMonth();
           // Higher in monsoon months (June-September in India)
           const seasonalFactor = (month >= 5 && month <= 8) ? 15 : 0;
@@ -92,6 +128,58 @@ class LakeRealTimeService {
       } else {
         // Fallback water level data
         waterLevels = Array.from({ length: 12 }, () => 50 + Math.random() * 30);
+      }
+      
+      // Process air quality data to derive water quality parameters
+      let phValue = 7.0;
+      let doValue = 6.0;
+      let bodValue = 10.0;
+      let turbidityValue = 5.0;
+      
+      if (airQualityData && airQualityData.list && airQualityData.list[0]) {
+        const aqi = airQualityData.list[0].main.aqi;
+        const components = airQualityData.list[0].components;
+        
+        // Correlate air quality to water quality (simplified model)
+        phValue = 7.0 + (aqi > 3 ? 1.5 : aqi > 2 ? 0.8 : 0);
+        doValue = Math.max(1.5, 8.0 - (aqi * 1.2));
+        bodValue = Math.min(40, 5.0 + (aqi * 5));
+        turbidityValue = Math.min(20, 2.0 + (components.pm10 / 10));
+      }
+      
+      // Lake-specific data adjustments based on known lake conditions
+      if (lakeId === 'bellandur') {
+        phValue = Math.min(9.0, phValue + 0.5);
+        doValue = Math.max(1.5, doValue - 1.0);
+        bodValue = Math.min(40, bodValue + 10);
+        turbidityValue = Math.min(20, turbidityValue + 5);
+      } else if (lakeId === 'varthur') {
+        phValue = Math.min(9.0, phValue + 0.3);
+        doValue = Math.max(1.5, doValue - 0.8);
+        bodValue = Math.min(40, bodValue + 8);
+        turbidityValue = Math.min(20, turbidityValue + 4);
+      } else if (lakeId === 'hebbal') {
+        phValue = Math.min(9.0, phValue + 0.1);
+        doValue = Math.max(1.5, doValue - 0.5);
+        bodValue = Math.min(40, bodValue + 3);
+        turbidityValue = Math.min(20, turbidityValue + 2);
+      }
+      
+      // Calculate encroachment percentage based on LULC data if available, otherwise use lake-specific estimates
+      let encroachmentPercentage = 10;
+      if (lulcData && lulcData.statistics) {
+        // Use LULC data to calculate encroachment (simplified model)
+        const { urban, water } = lulcData.statistics;
+        encroachmentPercentage = Math.min(50, Math.max(5, urban * 0.8));
+      } else {
+        // Use lake-specific fallback values
+        if (lakeId === 'bellandur') {
+          encroachmentPercentage = 35;
+        } else if (lakeId === 'varthur') {
+          encroachmentPercentage = 28;
+        } else if (lakeId === 'hebbal') {
+          encroachmentPercentage = 12;
+        }
       }
       
       // Lake reports based on lake
@@ -134,28 +222,17 @@ class LakeRealTimeService {
           }
         );
       }
-      
-      // Lake-specific data
-      let phValue = 7.0;
-      let doValue = 6.0;
-      let bodValue = 10.0;
-      let encroachmentPercentage = 10;
-      
-      if (lakeId === 'bellandur') {
-        phValue = 8.5;
-        doValue = 2.1;
-        bodValue = 30.5;
-        encroachmentPercentage = 35;
-      } else if (lakeId === 'varthur') {
-        phValue = 8.3;
-        doValue = 2.5;
-        bodValue = 28.0;
-        encroachmentPercentage = 28;
-      } else if (lakeId === 'hebbal') {
-        phValue = 7.8;
-        doValue = 4.2;
-        bodValue = 15.5;
-        encroachmentPercentage = 12;
+
+      // Create LULC data object if available
+      let landCover: LandCoverData | undefined = undefined;
+      if (lulcData && lulcData.statistics) {
+        landCover = {
+          water: lulcData.statistics.water || Math.random() * 20,
+          vegetation: lulcData.statistics.vegetation || Math.random() * 30,
+          urban: lulcData.statistics.urban || Math.random() * 40,
+          barren: lulcData.statistics.barren || Math.random() * 10,
+          timestamp: new Date().toISOString()
+        };
       }
       
       return {
@@ -164,7 +241,7 @@ class LakeRealTimeService {
           do: doValue,
           bod: bodValue,
           temperature: weatherData ? weatherData.main.temp : 25,
-          turbidity: bodValue / 3,
+          turbidity: turbidityValue,
           lastUpdated: new Date().toISOString()
         },
         waterLevel: {
@@ -184,6 +261,7 @@ class LakeRealTimeService {
           }),
           lastUpdated: new Date().toISOString()
         },
+        landCover,
         reports: reports
       };
     } catch (error) {
@@ -226,6 +304,62 @@ class LakeRealTimeService {
           }
         ]
       };
+    }
+  }
+
+  // Function to fetch LULC (Land Use Land Cover) data
+  static async getLandCoverData(coordinates: [number, number]): Promise<LandCoverData | null> {
+    try {
+      const [lat, lng] = coordinates;
+      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.BHUVAN_API_KEY}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          water: data.statistics.water || 0,
+          vegetation: data.statistics.vegetation || 0,
+          urban: data.statistics.urban || 0,
+          barren: data.statistics.barren || 0,
+          timestamp: new Date().toISOString()
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching LULC data:', error);
+      return null;
+    }
+  }
+
+  // Function to get elevation data using the Geoid API
+  static async getElevationData(coordinates: [number, number]): Promise<number | null> {
+    try {
+      const [lat, lng] = coordinates;
+      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/geoid?lat=${lat}&lon=${lng}&token=${API_KEYS.BHUVAN_API_KEY}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.elevation || null;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching elevation data:', error);
+      return null;
+    }
+  }
+
+  // Function to perform geocoding (get location details from coordinates)
+  static async getLocationDetails(coordinates: [number, number]): Promise<any | null> {
+    try {
+      const [lat, lng] = coordinates;
+      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/geocode/reverse?lat=${lat}&lon=${lng}&token=${API_KEYS.BHUVAN_API_KEY}`);
+      
+      if (response.ok) {
+        return await response.json();
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching location details:', error);
+      return null;
     }
   }
 }

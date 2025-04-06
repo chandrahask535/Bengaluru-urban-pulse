@@ -35,6 +35,8 @@ export class AIAnalysisService {
     coordinates: [number, number]
   ): Promise<AnalysisResponse> {
     try {
+      console.log(`Analyzing lake health for: ${lakeName} (${lakeId}) at [${coordinates}]`);
+      
       // Try to fetch real data from backend
       const backendUrl = '/api/analyze-lake';
       try {
@@ -64,17 +66,33 @@ export class AIAnalysisService {
       // Get water quality parameters from environment APIs
       const waterQualityPromise = fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lng}&appid=${API_KEYS.OPENWEATHER_API_KEY}`)
         .then(res => res.json())
-        .catch(() => null);
+        .catch(error => {
+          console.error('Error fetching air quality data:', error);
+          return null;
+        });
 
-      // Get satellite imagery analysis
-      const satelliteDataPromise = fetch(`https://api.nasa.gov/planetary/earth/assets?lon=${lng}&lat=${lat}&date=NOW&dim=0.15&api_key=${API_KEYS.NASA_EARTH_API_KEY}`)
+      // Get satellite imagery analysis - use correctly formatted date for NASA API
+      const currentDate = new Date().toISOString().split('T')[0]; // format: YYYY-MM-DD
+      const satelliteDataPromise = fetch(`https://api.nasa.gov/planetary/earth/assets?lon=${lng}&lat=${lat}&date=${currentDate}&dim=0.15&api_key=${API_KEYS.NASA_EARTH_API_KEY}`)
         .then(res => res.json())
-        .catch(() => null);
+        .catch(error => {
+          console.error('Error fetching satellite data:', error);
+          return null;
+        });
+      
+      // Try to get LULC data from Bhuvan API
+      const lulcDataPromise = fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.BHUVAN_API_KEY}`)
+        .then(res => res.json())
+        .catch(error => {
+          console.error('Error fetching LULC data:', error);
+          return null;
+        });
       
       // Wait for all API calls to complete
-      const [waterQualityData, satelliteData] = await Promise.all([
+      const [waterQualityData, satelliteData, lulcData] = await Promise.all([
         waterQualityPromise,
-        satelliteDataPromise
+        satelliteDataPromise,
+        lulcDataPromise
       ]);
       
       // Generate risk assessment based on available data
@@ -189,6 +207,24 @@ export class AIAnalysisService {
         }
         
         confidenceScore = 0.68;
+      }
+
+      // Incorporate LULC data into insights and recommendations if available
+      if (lulcData && lulcData.statistics) {
+        const { urban, water, vegetation } = lulcData.statistics;
+        
+        // Add LULC insights
+        if (urban > 40) {
+          insights.push("High urban density surrounding the lake increases pollution risk");
+          recommendations.push("Create urban runoff management solutions at key drainage points");
+        }
+        
+        if (vegetation < 20) {
+          insights.push("Low vegetation cover around lake reduces natural filtration");
+          recommendations.push("Increase greenery and planting around lake perimeter");
+        }
+        
+        confidenceScore = Math.min(0.95, confidenceScore + 0.08);
       }
       
       return {
