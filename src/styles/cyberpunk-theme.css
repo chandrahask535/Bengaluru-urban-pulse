@@ -1,0 +1,107 @@
+:root {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+
+    --primary: 195 100% 50%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+
+    --secondary: 280 100% 50%;
+    --secondary-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 216 34% 17%;
+
+    --radius: 0.5rem;
+
+    /* Cyberpunk theme colors */
+    --neon-blue: 195, 100%, 50%;
+    --neon-purple: 280, 100%, 50%;
+    --neon-pink: 320, 100%, 50%;
+    --cyber-yellow: 60, 100%, 50%;
+    
+    /* Cyberpunk effects */
+    --glow-strength: 0.15;
+    --blur-strength: 12px;
+  }
+
+/* Cyberpunk theme styles */
+.dark {
+  background: linear-gradient(to bottom right, rgba(2, 8, 23, 0.95), rgba(10, 10, 40, 0.95));
+  color: rgb(var(--foreground));
+}
+
+.dark .card,
+.dark .navbar,
+.dark [data-radix-popper-content-wrapper],
+.dark .select-content {
+  background: rgba(16, 24, 39, 0.7);
+  backdrop-filter: blur(var(--blur-strength));
+  border: 1px solid hsla(var(--neon-blue), 0.3);
+  box-shadow: 0 0 20px hsla(var(--neon-blue), var(--glow-strength));
+  transition: all 0.3s ease;
+}
+
+.dark .card:hover,
+.dark .button:hover {
+  border-color: hsla(var(--neon-purple), 0.5);
+  box-shadow: 0 0 30px hsla(var(--neon-purple), var(--glow-strength));
+}
+
+.dark .button,
+.dark .btn-primary {
+  background: linear-gradient(45deg, hsla(var(--neon-blue), 0.8), hsla(var(--neon-purple), 0.8));
+  border: 1px solid hsla(var(--neon-blue), 0.3);
+  color: white;
+  text-shadow: 0 0 8px hsla(var(--neon-blue), 0.5);
+  transition: all 0.3s ease;
+}
+
+.dark .nav {
+  background: rgba(16, 24, 39, 0.9);
+  backdrop-filter: blur(var(--blur-strength));
+  border-bottom: 1px solid hsla(var(--neon-blue), 0.3);
+  box-shadow: 0 0 20px hsla(var(--neon-blue), var(--glow-strength));
+}
+
+/* Cyberpunk text effects */
+.dark .heading,
+.dark h1,
+.dark h2,
+.dark h3 {
+  color: white;
+  text-shadow: 0 0 10px hsla(var(--neon-blue), 0.5);
+}
+
+/* Cyberpunk form elements */
+.dark input,
+.dark select,
+.dark textarea {
+  background: rgba(16, 24, 39, 0.7);
+  border: 1px solid hsla(var(--neon-blue), 0.3);
+  color: white;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: hsla(var(--neon-purple), 0.5);
+  box-shadow: 0 0 15px hsla(var(--neon-purple), var(--glow-strength));
+  outline: none;
+}

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle, Droplet, CloudRain, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFloodPrediction } from "@/hooks/usePredictionData";
+import MapContainer from "@/components/ui/map/MapContainer";
 
 const FloodPredictionCard = () => {
   const { toast } = useToast();
@@ -108,6 +109,16 @@ const FloodPredictionCard = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          <div className="w-full h-[300px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+            <MapContainer
+              center={[parseFloat(inputLat), parseFloat(inputLng)]}
+              markers={[{ position: [parseFloat(inputLat), parseFloat(inputLng)], popup: inputAreaName }]}
+              onMapClick={(latlng) => {
+                setInputLat(latlng.lat.toFixed(6));
+                setInputLng(latlng.lng.toFixed(6));
+              }}
+            />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="latitude">Latitude</Label>

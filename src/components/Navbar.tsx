@@ -1,13 +1,15 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, MapPin, CloudRain, DropletIcon, Building, BarChart3, FileEdit, User, LogOut } from "lucide-react";
+import { Menu, X, MapPin, CloudRain, DropletIcon, Building, BarChart3, FileEdit, User, LogOut, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const toggleMenu = () => {
@@ -45,11 +47,23 @@ const Navbar = () => {
           
           {/* Desktop navigation */}
           <div className="hidden md:flex items-center space-x-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="mr-2"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5 text-yellow-500" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </Button>
             {navItems.map((item) => (
               <Link
                 key={item.name}
                 to={item.path}
-                className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-karnataka-metro-medium hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800 flex items-center"
+                className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-karnataka-metro-medium hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-primary flex items-center transition-colors duration-200"
               >
                 {item.icon}
                 {item.name}
@@ -100,7 +114,7 @@ const Navbar = () => {
             <Link
               key={item.name}
               to={item.path}
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-karnataka-metro-medium hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800 flex items-center"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-karnataka-metro-medium hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-primary flex items-center transition-colors duration-200"
               onClick={() => setIsOpen(false)}
             >
               {item.icon}

@@ -77,6 +77,13 @@ export default {
 					'lake-dark': '#1565C0', // dark lake blue
 					'lake-medium': '#1976D2', // medium lake blue
 					'lake-light': '#90CAF9', // light lake blue
+				},
+				// Cyberpunk theme colors
+				cyber: {
+					'blue': 'hsl(195, 100%, 50%)',
+					'purple': 'hsl(280, 100%, 50%)',
+					'pink': 'hsl(320, 100%, 50%)',
+					'yellow': 'hsl(60, 100%, 50%)'
 				}
 			},
 			borderRadius: {
@@ -112,6 +119,14 @@ export default {
 				'slide-in': {
 					from: { transform: 'translateX(-100%)' },
 					to: { transform: 'translateX(0)' }
+				},
+				'glow': {
+					'0%, 100%': {
+						'box-shadow': '0 0 10px hsl(195, 100%, 50%), 0 0 20px hsl(280, 100%, 50%)'
+					},
+					'50%': {
+						'box-shadow': '0 0 20px hsl(195, 100%, 50%), 0 0 30px hsl(280, 100%, 50%)'
+					}
 				}
 			},
 			animation: {

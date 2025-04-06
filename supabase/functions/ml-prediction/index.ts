@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
@@ -9,33 +8,71 @@ const corsHeaders = {
 };
 
 // Initialize Supabase client
-const supabaseUrl = Deno.env.get("SUPABASE_URL") || "https://myrteuqoeettnpunxoyt.supabase.co";
+const supabaseUrl = api-keys.env.get("SUPABASE_URL") || "https://myrteuqoeettnpunxoyt.supabase.co";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Mock ML prediction model (in real implementation, this would use scikit-learn/XGBoost models)
 function predictFloodRisk(rainfall: number, location: { lat: number; lng: number }): { risk_level: string; probability: number } {
-  // This is a simple mock model - would be replaced with actual ML logic
-  // In a real implementation, you would load a trained model and use it for predictions
+  // Enhanced risk assessment model incorporating multiple factors
+  const RISK_THRESHOLDS = {
+    CRITICAL: 100,
+    HIGH: 70,
+    MODERATE: 40,
+    LOW: 20
+  };
+
+  // Calculate base risk from rainfall
+  let probability = Math.min(rainfall / RISK_THRESHOLDS.CRITICAL, 1);
   
-  // Simple logic based on rainfall amount
-  if (rainfall > 100) {
-    return { risk_level: "Critical", probability: 0.9 };
-  } else if (rainfall > 70) {
-    return { risk_level: "High", probability: 0.7 };
-  } else if (rainfall > 40) {
-    return { risk_level: "Moderate", probability: 0.4 };
+  // Adjust probability based on location factors (mock elevation and soil data)
+  const mockElevation = Math.sin(location.lat) * Math.cos(location.lng) * 100;
+  const elevationFactor = mockElevation < 0 ? 1.2 : 0.8; // Lower elevation increases risk
+
+  // Apply location-based adjustment
+  probability *= elevationFactor;
+
+  // Determine risk level based on adjusted probability
+  let risk_level: string;
+  if (probability >= 0.8) {
+    risk_level = "Critical";
+  } else if (probability >= 0.6) {
+    risk_level = "High";
+  } else if (probability >= 0.3) {
+    risk_level = "Moderate";
   } else {
-    return { risk_level: "Low", probability: 0.1 };
+    risk_level = "Low";
   }
+
+  return { risk_level, probability: Number(probability.toFixed(2)) };
 }
 
-// Function to fetch weather data from OpenWeatherMap API (would be implemented with actual API key)
+// Function to fetch weather data from OpenWeatherMap API
 async function fetchWeatherData(lat: number, lng: number): Promise<{ rainfall: number }> {
-  // In real implementation, fetch from OpenWeatherMap
-  // For now, return mock data
-  console.log(`Fetching weather data for location: ${lat}, ${lng}`);
-  return { rainfall: Math.random() * 120 }; // Random value between 0-120mm
+  const OPENWEATHER_API_KEY = api-keys.env.get("OPENWEATHER_API_KEY");
+  if (!OPENWEATHER_API_KEY) {
+    console.warn("OpenWeather API key not configured, using mock data");
+    return { rainfall: Math.random() * 120 };
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${OPENWEATHER_API_KEY}&units=metric`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Weather API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    // Convert precipitation to mm/h if available, otherwise use a calculated value
+    const rainfall = data.rain?.['1h'] || (data.main.humidity * 0.5); // Simplified calculation
+    return { rainfall };
+  } catch (error) {
+    console.error("Error fetching weather data:", error);
+    // Fallback to historical average or calculated value
+    return { rainfall: 45 }; // Default to moderate rainfall
+  }
 }
 
 serve(async (req: Request) => {

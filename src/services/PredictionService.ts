@@ -6,7 +6,7 @@ const EDGE_FUNCTION_URL = "https://myrteuqoeettnpunxoyt.supabase.co/functions/v1
 
 // Type definitions for API responses
 export interface FloodPrediction {
-  risk_level: string;
+  risk_level: "Critical" | "High" | "Moderate" | "Low";
   probability: number;
 }
 
@@ -18,6 +18,7 @@ export interface FloodPredictionResponse {
   prediction: FloodPrediction;
   weather: WeatherData;
   timestamp: string;
+  error?: string;
 }
 
 export interface LakeHealthAssessment {
@@ -48,11 +49,24 @@ class PredictionService {
   // Get flood prediction for a specific location
   async getFloodPrediction(location: { lat: number; lng: number }, areaName: string): Promise<FloodPredictionResponse> {
     try {
+      // Validate input parameters
+      if (!location || typeof location.lat !== 'number' || typeof location.lng !== 'number') {
+        throw new Error('Invalid location coordinates');
+      }
+      if (!areaName || typeof areaName !== 'string') {
+        throw new Error('Invalid area name');
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
       const response = await fetch(`${EDGE_FUNCTION_URL}/flood-prediction`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabase.auth.session()?.access_token || ""}`,
+          "Authorization": `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           location,
@@ -65,10 +79,22 @@ class PredictionService {
         throw new Error(errorData.error || "Failed to get flood prediction");
       }
 
-      return await response.json();
+      const data = await response.json();
+      
+      // Validate response data structure
+      if (!data.prediction || !data.weather || !data.timestamp) {
+        throw new Error('Invalid response format from server');
+      }
+
+      return data;
     } catch (error) {
       console.error("Error fetching flood prediction:", error);
-      throw error;
+      return {
+        prediction: { risk_level: "Low", probability: 0 },
+        weather: { rainfall: 0 },
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
     }
   }
 

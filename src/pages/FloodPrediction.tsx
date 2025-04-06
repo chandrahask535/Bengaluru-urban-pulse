@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardCard from "@/components/dashboard/DashboardCard";
@@ -8,10 +8,36 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FloodPredictionCard from "@/components/prediction/FloodPredictionCard";
 import { useRecentFloodPredictions } from "@/hooks/usePredictionData";
+import { LakeDataService } from "@/services/LakeDataService";
 
 const FloodPrediction = () => {
   const [activeTab, setActiveTab] = useState("current");
+  const [currentRainfall, setCurrentRainfall] = useState<number>(0);
+  const [floodRisk, setFloodRisk] = useState<{ risk_level: string; probability: number } | null>(null);
   const { data: recentPredictions, isLoading } = useRecentFloodPredictions(10);
+
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      try {
+        // Using Bengaluru coordinates
+        const lat = 12.9716;
+        const lon = 77.5946;
+        const [rainfall, risk] = await Promise.all([
+          LakeDataService.getCurrentRainfall(lat, lon),
+          LakeDataService.getFloodRiskPrediction(lat, lon)
+        ]);
+        setCurrentRainfall(rainfall);
+        setFloodRisk(risk);
+      } catch (error) {
+        console.error('Error fetching weather data:', error);
+      }
+    };
+
+    fetchWeatherData();
+    // Refresh data every 15 minutes
+    const interval = setInterval(fetchWeatherData, 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
@@ -92,12 +118,14 @@ const FloodPrediction = () => {
                   iconColor="text-karnataka-rain-medium"
                 >
                   <div className="flex items-end space-x-2">
-                    <span className="text-3xl font-bold">28.4</span>
+                    <span className="text-3xl font-bold">{currentRainfall.toFixed(1)}</span>
                     <span className="text-gray-500 dark:text-gray-400 mb-1">mm/hr</span>
                   </div>
-                  <p className="text-sm text-red-500 mt-1">
-                    86% above average for June
-                  </p>
+                  {currentRainfall > 10 && (
+                    <p className="text-sm text-red-500 mt-1">
+                      Heavy rainfall detected
+                    </p>
+                  )}
                 </DashboardCard>
 
                 <DashboardCard
@@ -125,11 +153,14 @@ const FloodPrediction = () => {
                   iconColor="text-karnataka-metro-medium"
                 >
                   <div className="text-center">
-                    <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                      <span className="text-xl font-bold">HIGH</span>
+                    <div className={`inline-flex items-center justify-center h-16 w-16 rounded-full ${getStatusColor(floodRisk?.risk_level || 'Low')}`}>
+                      <span className="text-xl font-bold">{floodRisk?.risk_level || 'LOW'}</span>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                      Based on current weather conditions and drainage capacity
+                      Probability: {floodRisk?.probability || 0}%
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      Based on real-time weather data and ML predictions
                     </p>
                   </div>
                 </DashboardCard>

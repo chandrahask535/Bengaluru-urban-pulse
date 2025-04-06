@@ -2,20 +2,25 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardCard from "@/components/dashboard/DashboardCard";
-import { Building, Map, AlertTriangle, CloudRain, Layers, Home } from "lucide-react";
+import { Building, Map, AlertTriangle, CloudRain, Layers, Home, IndianRupee, TrendingUp, Target } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import MapComponent from "@/components/maps/MapComponent";
+import { Card } from "@/components/ui/card";
+import LandPricePrediction from "@/components/prediction/LandPricePrediction";
+import GovernmentProjects from "@/components/prediction/GovernmentProjects";
+import InvestmentInsights from "@/components/prediction/InvestmentInsights";
 
 const UrbanPlanning = () => {
   const [selectedZone, setSelectedZone] = useState("bengaluru-central");
   
   const zones = [
-    { id: "bengaluru-central", name: "Bengaluru Central" },
-    { id: "bengaluru-east", name: "Bengaluru East" },
-    { id: "bengaluru-west", name: "Bengaluru West" },
-    { id: "bengaluru-south", name: "Bengaluru South" },
-    { id: "bengaluru-north", name: "Bengaluru North" },
+    { id: "bengaluru-central", name: "Bengaluru Central", coordinates: [12.9716, 77.5946] },
+    { id: "bengaluru-east", name: "Bengaluru East", coordinates: [12.9850, 77.6700] },
+    { id: "bengaluru-west", name: "Bengaluru West", coordinates: [12.9716, 77.5200] },
+    { id: "bengaluru-south", name: "Bengaluru South", coordinates: [12.9100, 77.5946] },
+    { id: "bengaluru-north", name: "Bengaluru North", coordinates: [13.0500, 77.5946] },
   ];
 
   const zoneDetails = {
@@ -188,15 +193,45 @@ const UrbanPlanning = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="zoning" className="mb-8">
+          <Tabs defaultValue="price-prediction" className="mb-8">
             <TabsList className="mb-6 w-full sm:w-auto">
+              <TabsTrigger value="price-prediction">Land Price</TabsTrigger>
+              <TabsTrigger value="government-projects">Government Projects</TabsTrigger>
+              <TabsTrigger value="investment">Investment Insights</TabsTrigger>
               <TabsTrigger value="zoning">Zoning Analysis</TabsTrigger>
-              <TabsTrigger value="flood">Flood Risk</TabsTrigger>
-              <TabsTrigger value="infrastructure">Infrastructure</TabsTrigger>
-              <TabsTrigger value="development">Development</TabsTrigger>
             </TabsList>
             
             <TabsContent value="zoning" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Zone Map</h3>
+                  <MapComponent
+                    center={zones.find(zone => zone.id === selectedZone)?.coordinates as [number, number]}
+                    zoom={12}
+                    markers={[{
+                      position: zones.find(zone => zone.id === selectedZone)?.coordinates as [number, number],
+                      popup: zones.find(zone => zone.id === selectedZone)?.name
+                    }]}
+                  />
+                </Card>
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Zone Analysis</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                        <h4 className="font-medium mb-2">Population Density</h4>
+                        <p className="text-2xl font-bold">12,450/km²</p>
+                        <p className="text-sm text-gray-500">Urban Core</p>
+                      </div>
+                      <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                        <h4 className="font-medium mb-2">Development Index</h4>
+                        <p className="text-2xl font-bold text-blue-600">0.82</p>
+                        <p className="text-sm text-gray-500">Urban Development Score</p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <DashboardCard
                   title="Land Use Distribution"
@@ -321,6 +356,39 @@ const UrbanPlanning = () => {
               </DashboardCard>
             </TabsContent>
             
+            <TabsContent value="price-prediction" className="space-y-6">
+              <DashboardCard
+                title="Land Price Prediction"
+                description="Predict land prices based on location and proximity factors"
+                icon={IndianRupee}
+                iconColor="text-karnataka-metro-medium"
+              >
+                <LandPricePrediction />
+              </DashboardCard>
+            </TabsContent>
+
+            <TabsContent value="government-projects" className="space-y-6">
+              <DashboardCard
+                title="Government Infrastructure Projects"
+                description="Track ongoing and upcoming government projects"
+                icon={Building}
+                iconColor="text-karnataka-metro-medium"
+              >
+                <GovernmentProjects />
+              </DashboardCard>
+            </TabsContent>
+
+            <TabsContent value="investment" className="space-y-6">
+              <DashboardCard
+                title="Premium Investment Insights"
+                description="Analyze investment opportunities and market trends"
+                icon={TrendingUp}
+                iconColor="text-karnataka-metro-medium"
+              >
+                <InvestmentInsights />
+              </DashboardCard>
+            </TabsContent>
+
             <TabsContent value="flood">
               <DashboardCard
                 title="Detailed Flood Risk Analysis"
