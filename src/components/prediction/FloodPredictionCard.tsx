@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle, Droplet, CloudRain, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFloodPrediction } from "@/hooks/usePredictionData";
-import MapContainer from "@/components/ui/map/MapContainer";
+import MapComponent from "@/components/maps/MapComponent";
 
 const FloodPredictionCard = () => {
   const { toast } = useToast();
   const [location, setLocation] = useState({ lat: 12.9716, lng: 77.5946 }); // Default to Bangalore
   const [areaName, setAreaName] = useState("Bangalore Central");
   const [isPredicting, setIsPredicting] = useState(false);
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
 
   // States for user input
   const [inputLat, setInputLat] = useState(location.lat.toString());
@@ -69,23 +70,66 @@ const FloodPredictionCard = () => {
   // Function to use user's current location
   const useCurrentLocation = () => {
     if (navigator.geolocation) {
+      setIsLocationLoading(true);
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setInputLat(position.coords.latitude.toString());
-          setInputLng(position.coords.longitude.toString());
-          setInputAreaName("Current Location");
-          toast({
-            title: "Location Updated",
-            description: "Using your current location for prediction",
-          });
+          const { latitude, longitude } = position.coords;
+          setInputLat(latitude.toString());
+          setInputLng(longitude.toString());
+          
+          // Try to get location name using reverse geocoding
+          fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.features && data.features.length > 0) {
+                const placeName = data.features[0].place_name;
+                setInputAreaName(placeName);
+              } else {
+                setInputAreaName("Current Location");
+              }
+              
+              toast({
+                title: "Location Updated",
+                description: "Using your current location for prediction"
+              });
+              setIsLocationLoading(false);
+            })
+            .catch(err => {
+              console.error("Geocoding error:", err);
+              setInputAreaName("Current Location");
+              setIsLocationLoading(false);
+              
+              toast({
+                title: "Location Updated",
+                description: "Using your current location for prediction"
+              });
+            });
         },
         (error) => {
+          setIsLocationLoading(false);
+          let errorMessage = "Unable to get your location";
+          
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage += ": Permission denied. Please enable location services in your browser.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage += ": Position unavailable. Try again later.";
+              break;
+            case error.TIMEOUT:
+              errorMessage += ": Request timed out. Try again.";
+              break;
+            default:
+              errorMessage += `: ${error.message}`;
+          }
+          
           toast({
             title: "Location Error",
-            description: "Unable to get your location: " + error.message,
+            description: errorMessage,
             variant: "destructive",
           });
-        }
+        },
+        { timeout: 10000, enableHighAccuracy: true }
       );
     } else {
       toast({
@@ -110,13 +154,25 @@ const FloodPredictionCard = () => {
       <CardContent>
         <div className="space-y-4">
           <div className="w-full h-[300px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-            <MapContainer
+            <MapComponent
               center={[parseFloat(inputLat), parseFloat(inputLng)]}
               markers={[{ position: [parseFloat(inputLat), parseFloat(inputLng)], popup: inputAreaName }]}
-              onMapClick={(latlng) => {
-                setInputLat(latlng.lat.toFixed(6));
-                setInputLng(latlng.lng.toFixed(6));
+              onMapClick={(e) => {
+                setInputLat(e.latlng.lat.toFixed(6));
+                setInputLng(e.latlng.lng.toFixed(6));
+                
+                // Try to get location name using reverse geocoding
+                fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${e.latlng.lng},${e.latlng.lat}.json?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}`)
+                  .then(response => response.json())
+                  .then(data => {
+                    if (data.features && data.features.length > 0) {
+                      const placeName = data.features[0].place_name;
+                      setInputAreaName(placeName);
+                    }
+                  })
+                  .catch(err => console.error("Geocoding error:", err));
               }}
+              zoom={12}
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -160,11 +216,12 @@ const FloodPredictionCard = () => {
             <Button 
               variant="outline" 
               onClick={useCurrentLocation}
+              disabled={isLocationLoading}
               type="button"
               className="flex items-center"
             >
               <MapPin className="h-4 w-4 mr-2" />
-              Use My Location
+              {isLocationLoading ? "Getting Location..." : "Use My Location"}
             </Button>
           </div>
         </div>

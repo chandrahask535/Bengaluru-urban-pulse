@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,6 +10,8 @@ import MapComponent from "@/components/maps/MapComponent";
 import SatelliteComparison from "@/components/maps/SatelliteComparison";
 import { Card } from "@/components/ui/card";
 import { LakeDataService } from "@/services/LakeDataService";
+import LakeHistoricalData from "@/components/lake/LakeHistoricalData";
+import LakeAnalysisCard from "@/components/lake/LakeAnalysisCard";
 import type { WaterQualityData, EncroachmentData } from "@/services/LakeDataService";
 
 // Default values for when API fails
@@ -96,7 +99,7 @@ const LakeMonitoring = () => {
     { id: "agara", name: "Agara Lake", coordinates: [12.9236, 77.6336] },
   ];
 
-  // Sample lake health data
+  // Sample lake health data (only used as fallback when API fails)
   const lakeHealthData = {
     bellandur: {
       waterLevel: 65,
@@ -107,6 +110,7 @@ const LakeMonitoring = () => {
       encroachmentAlert: true,
       waterLevelAlert: true,
       qualityAlert: true,
+      isHealthy: false
     },
     varthur: {
       waterLevel: 78,
@@ -117,6 +121,7 @@ const LakeMonitoring = () => {
       encroachmentAlert: true,
       waterLevelAlert: false,
       qualityAlert: true,
+      isHealthy: false
     },
     hebbal: {
       waterLevel: 82,
@@ -127,6 +132,7 @@ const LakeMonitoring = () => {
       encroachmentAlert: false,
       waterLevelAlert: false,
       qualityAlert: false,
+      isHealthy: true
     },
     ulsoor: {
       waterLevel: 90,
@@ -137,6 +143,7 @@ const LakeMonitoring = () => {
       encroachmentAlert: false,
       waterLevelAlert: false,
       qualityAlert: false,
+      isHealthy: true
     },
     sankey: {
       waterLevel: 95,
@@ -147,6 +154,7 @@ const LakeMonitoring = () => {
       encroachmentAlert: false,
       waterLevelAlert: false,
       qualityAlert: false,
+      isHealthy: true
     },
     agara: {
       waterLevel: 72,
@@ -157,10 +165,12 @@ const LakeMonitoring = () => {
       encroachmentAlert: false,
       waterLevelAlert: false,
       qualityAlert: false,
+      isHealthy: true
     },
   };
 
   const selectedLakeData = loading ? lakeHealthData[selectedLake as keyof typeof lakeHealthData] : (lakeData || lakeHealthData[selectedLake as keyof typeof lakeHealthData]);
+  const selectedLakeInfo = lakes.find(lake => lake.id === selectedLake);
 
   if (loading) {
     return (
@@ -331,19 +341,29 @@ const LakeMonitoring = () => {
                 </DashboardCard>
               </div>
 
-              <DashboardCard
-                title="Lake Overview"
-                description="Satellite comparison of current vs. historical data"
-                icon={Calendar}
-                iconColor="text-karnataka-rain-medium"
-              >
-                <SatelliteComparison
-                  lakeName={lakes.find(lake => lake.id === selectedLake)?.name || ''}
-                  coordinates={lakes.find(lake => lake.id === selectedLake)?.coordinates as [number, number] || [12.9716, 77.5946] as [number, number]}
-                  historicalYear="2010"
-                  currentYear="2025"
-                />
-              </DashboardCard>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <DashboardCard
+                  title="Lake Overview"
+                  description="Satellite comparison of current vs. historical data"
+                  icon={Calendar}
+                  iconColor="text-karnataka-rain-medium"
+                >
+                  <SatelliteComparison
+                    lakeName={selectedLakeInfo?.name || ''}
+                    coordinates={selectedLakeInfo?.coordinates as [number, number] || [12.9716, 77.5946] as [number, number]}
+                    historicalYear="2010"
+                    currentYear="2025"
+                  />
+                </DashboardCard>
+                
+                {selectedLakeInfo && (
+                  <LakeAnalysisCard 
+                    lakeId={selectedLake}
+                    lakeName={selectedLakeInfo.name}
+                    coordinates={selectedLakeInfo.coordinates}
+                  />
+                )}
+              </div>
             </TabsContent>
             
             <TabsContent value="satellite" className="space-y-6">
@@ -351,11 +371,11 @@ const LakeMonitoring = () => {
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Lake Location</h3>
                   <MapComponent
-                    center={lakes.find(lake => lake.id === selectedLake)?.coordinates as [number, number] || [12.9716, 77.5946]}
+                    center={selectedLakeInfo?.coordinates as [number, number] || [12.9716, 77.5946]}
                     zoom={13}
                     markers={[{
-                      position: lakes.find(lake => lake.id === selectedLake)?.coordinates as [number, number],
-                      popup: lakes.find(lake => lake.id === selectedLake)?.name
+                      position: selectedLakeInfo?.coordinates as [number, number],
+                      popup: selectedLakeInfo?.name
                     }]}
                   />
                 </Card>
@@ -363,7 +383,7 @@ const LakeMonitoring = () => {
                   <h3 className="text-lg font-semibold mb-4">Satellite Analysis</h3>
                   <div className="space-y-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Latest satellite imagery analysis for {lakes.find(lake => lake.id === selectedLake)?.name}
+                      Latest satellite imagery analysis for {selectedLakeInfo?.name}
                     </p>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
@@ -380,61 +400,54 @@ const LakeMonitoring = () => {
                   </div>
                 </Card>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <DashboardCard
-                  title="2010 Satellite Image"
-                  description="Historical satellite view"
-                  icon={Calendar}
-                  iconColor="text-karnataka-park-medium"
-                >
-                  <div className="aspect-video rounded-lg overflow-hidden">
-                    <MapComponent
-                      center={[12.9342, 77.6339]}
-                      zoom={13}
-                    />
-                  </div>
-                </DashboardCard>
-
-                <DashboardCard
-                  title="Current Satellite Image"
-                  description="Latest satellite view"
-                  icon={Calendar}
-                  iconColor="text-karnataka-park-medium"
-                >
-                  <div className="aspect-video rounded-lg overflow-hidden">
-                    <MapComponent
-                      center={[12.9342, 77.6339]}
-                      zoom={13}
-                    />
-                  </div>
-                </DashboardCard>
-              </div>
             </TabsContent>
             
-            <TabsContent value="trends">
-              <DashboardCard
-                title="Water Level Trends"
-                description="Historical water level data"
-              >
-                <div className="text-center py-12">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    This feature will be available in the next release.
-                  </p>
-                </div>
-              </DashboardCard>
+            <TabsContent value="trends" className="space-y-6">
+              {selectedLakeInfo && (
+                <LakeHistoricalData 
+                  lakeId={selectedLake}
+                  lakeName={selectedLakeInfo.name}
+                />
+              )}
             </TabsContent>
             
-            <TabsContent value="reports">
-              <DashboardCard
-                title="Reports & Documentation"
-                description="Lake health reports and documentation"
-              >
-                <div className="text-center py-12">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    This feature will be available in the next release.
-                  </p>
+            <TabsContent value="reports" className="space-y-6">
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Lake Health Reports</h3>
+                <div className="space-y-4">
+                  <div className="border-b pb-4">
+                    <h4 className="font-medium mb-2 text-karnataka-metro-medium">Lake Inspection Report - {selectedLakeInfo?.name}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      Latest comprehensive assessment of water quality, boundary integrity, and ecosystem health.
+                    </p>
+                    <p className="text-sm text-gray-500">June 15, 2025</p>
+                  </div>
+                  
+                  <div className="border-b pb-4">
+                    <h4 className="font-medium mb-2 text-karnataka-metro-medium">Encroachment Action Plan</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      Strategic plan to address identified encroachments and prevent future issues.
+                    </p>
+                    <p className="text-sm text-gray-500">May 30, 2025</p>
+                  </div>
+                  
+                  <div className="border-b pb-4">
+                    <h4 className="font-medium mb-2 text-karnataka-metro-medium">Biodiversity Survey</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      Assessment of plant and animal species in and around the lake ecosystem.
+                    </p>
+                    <p className="text-sm text-gray-500">April 10, 2025</p>
+                  </div>
+                  
+                  <div className="pb-4">
+                    <h4 className="font-medium mb-2 text-karnataka-metro-medium">Water Quality Monitoring Results</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      Monthly analysis of key water quality parameters and pollution levels.
+                    </p>
+                    <p className="text-sm text-gray-500">March 25, 2025</p>
+                  </div>
                 </div>
-              </DashboardCard>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
