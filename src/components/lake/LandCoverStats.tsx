@@ -1,9 +1,8 @@
-
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useLandCoverData } from '@/hooks/useLandCoverData';
-import { Forest, Building2, Droplets, Mountain } from 'lucide-react';
+import { Trees, Building2, Droplets, Mountain } from 'lucide-react';
 
 interface LandCoverStatsProps {
   coordinates: [number, number];
@@ -23,7 +22,6 @@ const LandCoverStats = ({ coordinates, lakeId }: LandCoverStatsProps) => {
         { name: 'Barren', value: landCoverData.barren, color: '#ca8a04' }
       ]);
     } else {
-      // Fallback data if API fails
       setChartData([
         { name: 'Water', value: lakeId === 'bellandur' ? 18 : lakeId === 'varthur' ? 15 : 25, color: '#2563eb' },
         { name: 'Vegetation', value: lakeId === 'bellandur' ? 22 : lakeId === 'varthur' ? 20 : 40, color: '#16a34a' },
@@ -76,7 +74,7 @@ const LandCoverStats = ({ coordinates, lakeId }: LandCoverStatsProps) => {
                 <span>Water: {chartData.find(d => d.name === 'Water')?.value || 0}%</span>
               </div>
               <div className="flex items-center">
-                <Forest className="h-4 w-4 text-green-600 mr-2" />
+                <Trees className="h-4 w-4 text-green-600 mr-2" />
                 <span>Vegetation: {chartData.find(d => d.name === 'Vegetation')?.value || 0}%</span>
               </div>
               <div className="flex items-center">
