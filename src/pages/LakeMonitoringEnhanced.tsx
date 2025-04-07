@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardCard from "@/components/dashboard/DashboardCard";
-import { Droplet, Calendar, AlertTriangle, MapPin, TrendingUp, Filter, FileText } from "lucide-react";
+import { Droplet, Calendar, AlertTriangle, MapPin, TrendingUp, Filter, FileText, Building, Eye } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MapComponent from "@/components/maps/MapComponent";
@@ -14,6 +13,10 @@ import LakeAnalysisCard from "@/components/lake/LakeAnalysisCard";
 import LakeRealTimeService from "@/services/LakeRealTimeService";
 import LandCoverStats from "@/components/lake/LandCoverStats";
 import LakeReportDetails from "@/components/lake/LakeReportDetails";
+import LakeWaterQualityCard from "@/components/lake/LakeWaterQualityCard";
+import LakeWaterLevelCard from "@/components/lake/LakeWaterLevelCard";
+import LakeEncroachmentCard from "@/components/lake/LakeEncroachmentCard";
+import { toast } from "sonner";
 
 interface LakeData {
   waterLevel: number;
@@ -45,7 +48,6 @@ const LakeMonitoringEnhanced = () => {
           throw new Error("Selected lake information not found");
         }
 
-        // Fetch real-time data using the LakeRealTimeService
         const realTimeData = await LakeRealTimeService.getLakeRealTimeData(
           selectedLake,
           selectedLakeInfo.coordinates
@@ -53,7 +55,6 @@ const LakeMonitoringEnhanced = () => {
         
         setRealtimeData(realTimeData);
 
-        // Convert real-time data into the format used by the UI
         const newLakeData: LakeData = {
           waterLevel: Math.min(100, Math.max(0, Math.round(realTimeData.waterLevel.current))),
           encroachment: Math.min(100, Math.max(0, realTimeData.encroachment.percentage)),
@@ -76,7 +77,6 @@ const LakeMonitoringEnhanced = () => {
         console.error("Error fetching lake data:", error);
         setError(error instanceof Error ? error.message : 'Failed to fetch lake data');
         
-        // Fallback to sample data if real-time service fails
         const fallbackData = lakeHealthData[selectedLake as keyof typeof lakeHealthData] as LakeData;
         setLakeData(fallbackData);
       } finally {
@@ -96,7 +96,6 @@ const LakeMonitoringEnhanced = () => {
     { id: "agara", name: "Agara Lake", coordinates: [12.9236, 77.6336] as [number, number] },
   ];
 
-  // Sample lake health data (only used as fallback when API fails)
   const lakeHealthData = {
     bellandur: {
       waterLevel: 65,
@@ -246,6 +245,7 @@ const LakeMonitoringEnhanced = () => {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="satellite">Satellite Data</TabsTrigger>
               <TabsTrigger value="trends">Trends</TabsTrigger>
+              <TabsTrigger value="water-quality">Water Quality</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
             
@@ -351,6 +351,14 @@ const LakeMonitoringEnhanced = () => {
                     coordinates={selectedLakeInfo?.coordinates as [number, number] || [12.9716, 77.5946] as [number, number]}
                     historicalYear="2010"
                     currentYear="2025"
+                    onAnalyze={(changes) => {
+                      console.log("Analysis results:", changes);
+                      if (changes.area.difference < -100) {
+                        toast.warning(`Significant reduction in ${selectedLakeInfo?.name || 'lake'} surface area detected`, {
+                          description: "Historical analysis shows encroachment may be affecting water capacity"
+                        });
+                      }
+                    }}
                   />
                 </DashboardCard>
                 
@@ -367,7 +375,10 @@ const LakeMonitoringEnhanced = () => {
             <TabsContent value="satellite" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Lake Location</h3>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <MapPin className="h-5 w-5 mr-2 text-karnataka-metro-medium" />
+                    Lake Location
+                  </h3>
                   <MapComponent
                     center={selectedLakeInfo?.coordinates as [number, number] || [12.9716, 77.5946]}
                     zoom={13}
@@ -385,6 +396,22 @@ const LakeMonitoringEnhanced = () => {
                   />
                 )}
               </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center">
+                  <Eye className="h-5 w-5 mr-2 text-karnataka-lake-medium" />
+                  Historical Comparison
+                </h3>
+                
+                {selectedLakeInfo && (
+                  <SatelliteComparison
+                    lakeName={selectedLakeInfo?.name || ''}
+                    coordinates={selectedLakeInfo?.coordinates as [number, number] || [12.9716, 77.5946] as [number, number]}
+                    historicalYear="2010"
+                    currentYear="2025"
+                  />
+                )}
+              </div>
             </TabsContent>
             
             <TabsContent value="trends" className="space-y-6">
@@ -395,78 +422,44 @@ const LakeMonitoringEnhanced = () => {
                 />
               )}
               
-              {realtimeData && realtimeData.waterLevel && (
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center">
-                    <TrendingUp className="h-5 w-5 mr-2 text-karnataka-lake-medium" />
-                    Water Level Trends
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                        <h4 className="text-sm font-medium text-gray-500 uppercase mb-2">Current Level</h4>
-                        <div className="flex items-end">
-                          <span className="text-2xl font-bold">{Math.round(realtimeData.waterLevel.current)}%</span>
-                          <span className={`ml-2 text-sm ${realtimeData.waterLevel.trend === 'rising' 
-                            ? 'text-green-600' 
-                            : realtimeData.waterLevel.trend === 'falling' 
-                              ? 'text-red-600' 
-                              : 'text-blue-600'}`}
-                          >
-                            {realtimeData.waterLevel.trend === 'rising' 
-                              ? '↑ Rising' 
-                              : realtimeData.waterLevel.trend === 'falling' 
-                                ? '↓ Falling' 
-                                : '→ Stable'}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                        <h4 className="text-sm font-medium text-gray-500 uppercase mb-2">Lake pH Level</h4>
-                        <div className="flex items-end">
-                          <span className="text-2xl font-bold">{realtimeData.waterQuality.ph.toFixed(1)}</span>
-                          <span className="ml-2 text-sm text-gray-500">
-                            {realtimeData.waterQuality.ph > 8.0 
-                              ? '(Alkaline)' 
-                              : realtimeData.waterQuality.ph < 6.5 
-                                ? '(Acidic)' 
-                                : '(Neutral)'}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                        <h4 className="text-sm font-medium text-gray-500 uppercase mb-2">Dissolved Oxygen</h4>
-                        <div className="flex items-end">
-                          <span className="text-2xl font-bold">{realtimeData.waterQuality.do.toFixed(1)}</span>
-                          <span className="ml-2 text-sm text-gray-500">mg/L</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-500 uppercase mb-2">Monthly Historical Levels</h4>
-                      <div className="h-64">
-                        {/* This would typically be a chart component, but for simplicity we'll represent it with a flex layout */}
-                        <div className="h-full flex items-end space-x-1">
-                          {realtimeData.waterLevel.historic.map((level: number, index: number) => (
-                            <div key={index} className="flex-1 flex flex-col items-center">
-                              <div 
-                                className={`w-full ${getProgressBarColor(level)}`} 
-                                style={{height: `${level}%`}}
-                              ></div>
-                              <span className="text-xs mt-1 text-gray-500 transform -rotate-45 origin-top-left">
-                                {realtimeData.waterLevel.dates[index].split('-')[1]}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
+              {selectedLakeInfo && realtimeData && realtimeData.waterLevel && (
+                <LakeWaterLevelCard
+                  lakeId={selectedLake}
+                  lakeName={selectedLakeInfo.name}
+                  waterLevelData={realtimeData.waterLevel}
+                />
               )}
+            </TabsContent>
+
+            <TabsContent value="water-quality" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {selectedLakeInfo && realtimeData && realtimeData.waterQuality && (
+                  <LakeWaterQualityCard
+                    lakeId={selectedLake}
+                    lakeName={selectedLakeInfo.name}
+                    waterQualityData={realtimeData.waterQuality}
+                  />
+                )}
+
+                {selectedLakeInfo && realtimeData && realtimeData.encroachment && (
+                  <LakeEncroachmentCard
+                    lakeId={selectedLake}
+                    lakeName={selectedLakeInfo.name}
+                    encroachmentData={realtimeData.encroachment}
+                  />
+                )}
+              </div>
+
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Building className="h-5 w-5 mr-2 text-karnataka-metro-medium" />
+                  Development Impact Analysis
+                </h3>
+                <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                  <p>Detailed analysis of urban development impact on lake water quality will be displayed here.</p>
+                  <p className="mt-2 text-sm">This feature is coming soon.</p>
+                </div>
+              </Card>
             </TabsContent>
             
             <TabsContent value="reports" className="space-y-6">

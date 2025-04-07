@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import SatelliteImageryService from '@/services/SatelliteImageryService';
 import { API_KEYS } from '@/config/api-keys';
+import { toast } from 'sonner';
 
 export interface ChangeStats {
   area: {
@@ -89,7 +90,7 @@ export const useSatelliteImagery = (
           
           // Try to fetch from NASA Earth Observatory
           const nasaEoResponse = await fetch(nasaEarthObsUrl, { method: 'HEAD' })
-            .catch(() => ({ ok: false }));
+            .catch(() => ({ ok: false } as Response));
           
           if (nasaEoResponse.ok) {
             setHistoricalImage(nasaEarthObsUrl);
@@ -98,7 +99,7 @@ export const useSatelliteImagery = (
             
             // Try Google Earth Engine
             const geeResponse = await fetch(geeHistoricalUrl, { method: 'HEAD' })
-              .catch(() => ({ ok: false }));
+              .catch(() => ({ ok: false } as Response));
             
             if (geeResponse.ok) {
               setHistoricalImage(geeHistoricalUrl);
@@ -117,7 +118,7 @@ export const useSatelliteImagery = (
       // For current image, try Sentinel Hub first then Mapbox
       try {
         const sentinelResponse = await fetch(sentinelCurrentUrl, { method: 'HEAD' })
-          .catch(() => ({ ok: false }));
+          .catch(() => ({ ok: false } as Response));
         
         if (sentinelResponse.ok) {
           setCurrentImage(sentinelCurrentUrl);
@@ -185,6 +186,7 @@ export const useSatelliteImagery = (
     } catch (e) {
       console.error('Error in satellite imagery processing:', e);
       setError('Failed to load satellite imagery. Please try again later.');
+      toast.error('Could not load satellite imagery');
     } finally {
       setLoading(false);
     }
@@ -196,6 +198,7 @@ export const useSatelliteImagery = (
 
   const handleRetry = useCallback(() => {
     setRetryCount(prev => prev + 1);
+    toast.info('Retrying to load satellite imagery...');
     setError(null);
   }, []);
 

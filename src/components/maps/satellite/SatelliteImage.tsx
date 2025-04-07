@@ -1,8 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, ZoomIn } from 'lucide-react';
 import MapComponent from '@/components/maps/MapComponent';
 import { Button } from '@/components/ui/button';
+import { 
+  Dialog,
+  DialogContent,
+  DialogTrigger
+} from "@/components/ui/dialog";
 
 interface SatelliteImageProps {
   imageUrl: string | null;
@@ -81,18 +86,34 @@ const SatelliteImage = ({
       
       {imageUrl && !showFallbackMap && !hasImageError ? (
         <div className="h-[300px] w-full rounded-lg overflow-hidden relative group">
-          <img 
-            src={`${imageUrl}${tryCount > 0 ? `&t=${Date.now()}` : ''}`}
-            alt={altText} 
-            className="w-full h-full object-cover transition-opacity duration-300"
-            onError={handleImageError}
-            loading="lazy"
-          />
-          {year && (
-            <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-              {year}
-            </div>
-          )}
+          <Dialog>
+            <DialogTrigger asChild>
+              <div className="cursor-pointer relative">
+                <img 
+                  src={`${imageUrl}${tryCount > 0 ? `&t=${Date.now()}` : ''}`}
+                  alt={altText} 
+                  className="w-full h-[300px] object-cover transition-opacity duration-300 group-hover:opacity-90"
+                  onError={handleImageError}
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <ZoomIn className="h-8 w-8 text-white drop-shadow-lg" />
+                </div>
+                {year && (
+                  <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                    {year}
+                  </div>
+                )}
+              </div>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl p-1 bg-black/90">
+              <img 
+                src={`${imageUrl}${tryCount > 0 ? `&t=${Date.now()}` : ''}`}
+                alt={altText} 
+                className="w-full max-h-[80vh] object-contain"
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       ) : (
         <div className="h-[300px] w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 relative">
