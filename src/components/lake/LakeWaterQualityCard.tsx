@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Droplet, Info, AlertTriangle, Waves, Activity } from 'lucide-react';
@@ -45,7 +44,6 @@ const LakeWaterQualityCard = ({
 }: LakeWaterQualityCardProps) => {
   const [activeTab, setActiveTab] = useState('parameters');
   
-  // If no data provided, use sample data
   const data = waterQualityData || {
     bod: 15.2,
     do: 6.8,
@@ -56,7 +54,6 @@ const LakeWaterQualityCard = ({
     lastUpdated: '2025-04-06T09:30:00'
   };
   
-  // Process parameters to include status information
   const parameters: WaterQualityParameter[] = [
     {
       name: 'Dissolved Oxygen',
@@ -116,7 +113,6 @@ const LakeWaterQualityCard = ({
   };
   
   const getProgressValue = (param: WaterQualityParameter) => {
-    // Normalize values to percentages
     if (param.name === 'Dissolved Oxygen') {
       return Math.min(100, (param.value / 10) * 100);
     } else if (param.name === 'Biochemical Oxygen Demand') {
@@ -223,11 +219,11 @@ const LakeWaterQualityCard = ({
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs font-medium capitalize px-2 py-1 rounded-full bg-opacity-20 dark:bg-opacity-20 
-                    ${param.status === 'good' ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' :
+                  <div className={`text-xs font-medium capitalize px-2 py-1 rounded-full ${
+                    param.status === 'good' ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' :
                     param.status === 'moderate' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-400' :
-                    'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400'}"
-                  >
+                    'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400'
+                  }`}>
                     {param.status}
                   </div>
                 </div>
