@@ -90,7 +90,6 @@ const UrbanPlanning = () => {
   const [locations, setLocations] = useState<Location[]>(mockLocations);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   
-  // Add new state variables for lake data
   const [nearbyLakes, setNearbyLakes] = useState<{
     id: string;
     name: string;
@@ -101,7 +100,6 @@ const UrbanPlanning = () => {
   const [selectedLake, setSelectedLake] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate fetching locations from an API
     setTimeout(() => {
       setLocations(mockLocations);
     }, 500);
@@ -111,16 +109,13 @@ const UrbanPlanning = () => {
     setSelectedLocation(locationId);
   };
   
-  // Add new useEffect to load nearby lakes based on selected location
   useEffect(() => {
     if (selectedLocation) {
-      // In a real app, this would be an API call
       setTimeout(() => {
         const location = locations.find(loc => loc.id === selectedLocation);
         if (location) {
           const [lat, lng] = location.coordinates;
           
-          // Mock data - in a real app, this would come from your backend
           setNearbyLakes([
             {
               id: "bellandur",
@@ -208,7 +203,6 @@ const UrbanPlanning = () => {
                     </h3>
                     {selectedLocation ? (
                       <div className="h-[400px] relative">
-                        {/* Urban growth visualization would go here */}
                         <div className="flex items-center justify-center h-full">
                           <p className="text-gray-500 dark:text-gray-400">Urban growth visualization for selected location</p>
                         </div>

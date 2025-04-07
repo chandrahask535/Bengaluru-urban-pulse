@@ -143,70 +143,69 @@ const LakeEncroachmentCard = ({
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left" className="max-w-80">
-              <p className="text-sm">Encroachment refers to unauthorized structures, development, or activities 
-              within the designated lake area or buffer zone. This analysis identifies hotspots of concern that 
-              may impact the lake's ecological health and capacity.</p>
+              <p className="text-sm">Encroachment refers to unauthorized structures or development that reduces lake area or affects water quality.</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
       
-      <div className="flex items-start space-x-4 mb-6">
-        <div className="relative">
-          <div className={`h-20 w-20 rounded-full flex items-center justify-center text-2xl font-bold
-            ${data.percentage > 25 ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200' : 
-              data.percentage > 15 ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200' :
-              data.percentage > 5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200' :
-              'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
-            }`}
-          >
-            {data.percentage}%
-          </div>
-          {data.percentage > 15 && (
-            <div className="absolute -top-1 -right-1">
-              <AlertTriangle className="h-6 w-6 text-red-500" />
-            </div>
-          )}
+      <div className="flex items-center space-x-2 mb-4">
+        <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center relative">
+          <span className={`text-xl font-bold ${getEncroachmentColor()}`}>{data.percentage}%</span>
+          <svg className="absolute inset-0" width="64" height="64" viewBox="0 0 64 64">
+            <circle
+              cx="32"
+              cy="32"
+              r="28"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeDasharray={`${data.percentage * 1.76} 176`}
+              strokeLinecap="round"
+              className={getEncroachmentColor()}
+              transform="rotate(-90 32 32)"
+            />
+          </svg>
         </div>
-        
         <div>
-          <h4 className="text-lg font-medium">
-            <span className={getEncroachmentColor()}>{getEncroachmentLevel()}</span> Encroachment
-          </h4>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {data.percentage}% of the lake area ({(data.totalArea * data.percentage / 100).toLocaleString()} sq m) has been 
-            encroached upon, with {data.hotspots.length} identified hotspot{data.hotspots.length !== 1 ? 's' : ''}.
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            Last updated: {new Date(data.lastUpdated).toLocaleDateString()}
+          <div className="flex items-center">
+            <h4 className="font-medium">{getEncroachmentLevel()} Encroachment</h4>
+            {data.percentage > 15 && (
+              <AlertTriangle className="h-4 w-4 ml-2 text-amber-500" />
+            )}
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {data.percentage}% of lake area affected ({(data.totalArea * data.percentage / 100).toFixed(0)} sq. m)
           </p>
         </div>
       </div>
       
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-        <h4 className="text-sm font-medium mb-3">Encroachment Hotspots</h4>
-        <div className="space-y-3">
-          {data.hotspots.map(hotspot => (
-            <div key={hotspot.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-              <div className="flex justify-between items-start mb-2">
+      <div className="h-px bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
+      
+      <h4 className="text-sm font-medium mb-3">Encroachment Hotspots:</h4>
+      <div className="space-y-3">
+        {data.hotspots.map(hotspot => (
+          <div key={hotspot.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="flex justify-between items-start">
+              <div>
                 <div className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 text-karnataka-metro-medium" />
-                  <h5 className="font-medium">{hotspot.name}</h5>
+                  <MapPin className="h-3.5 w-3.5 mr-1.5 text-karnataka-metro-light" />
+                  <h5 className="font-medium text-sm">{hotspot.name}</h5>
                 </div>
-                <Badge className={getSeverityColor(hotspot.severity)}>
-                  {hotspot.severity.charAt(0).toUpperCase() + hotspot.severity.slice(1)}
-                </Badge>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{hotspot.description}</p>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                {hotspot.description}
-              </p>
-              <div className="flex justify-between items-center text-xs text-gray-500">
-                <span>Area: {hotspot.area.toLocaleString()} sq m</span>
-                <span>Coordinates: {hotspot.coordinates[0].toFixed(4)}, {hotspot.coordinates[1].toFixed(4)}</span>
-              </div>
+              <Badge className={getSeverityColor(hotspot.severity)}>
+                {hotspot.severity.charAt(0).toUpperCase() + hotspot.severity.slice(1)}
+              </Badge>
             </div>
-          ))}
-        </div>
+            <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <span>Area: {hotspot.area.toLocaleString()} sq. m</span>
+              <span>
+                {hotspot.coordinates[0].toFixed(4)}, {hotspot.coordinates[1].toFixed(4)}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </Card>
   );

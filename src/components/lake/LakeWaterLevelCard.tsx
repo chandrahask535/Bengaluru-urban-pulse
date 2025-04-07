@@ -1,250 +1,192 @@
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Droplet, TrendingUp, TrendingDown, CalendarDays, BarChart3 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Droplet, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts';
 
-interface LakeWaterLevelProps {
-  lakeId: string;
-  lakeName: string;
-  waterLevelData?: {
-    current: number;
-    historic: number[];
-    dates: string[];
-    trend: 'rising' | 'falling' | 'stable';
-    capacity: number;
-    lastUpdated: string;
+interface WaterLevelData {
+  current: number;
+  historical: number[];
+  capacity: number;
+  threshold: {
+    low: number;
+    critical: number;
   };
-  loading?: boolean;
+  trend: 'rising' | 'falling' | 'stable';
+  lastUpdated: string;
 }
 
-const LakeWaterLevelCard = ({ 
-  lakeId, 
-  lakeName,
-  waterLevelData,
-  loading = false 
-}: LakeWaterLevelProps) => {
-  const [timeRange, setTimeRange] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
-  
-  // If no data provided, use sample data
-  const data = waterLevelData || {
-    current: 65,
-    historic: [45, 48, 52, 58, 62, 65, 68, 72, 75, 70, 68, 65],
-    dates: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    trend: 'stable' as const,
-    capacity: 85,
-    lastUpdated: '2025-04-06T09:30:00'
-  };
-  
-  // Process data for chart
-  const chartData = data.historic.map((level, index) => ({
-    name: data.dates[index],
-    level: level
-  }));
+interface LakeWaterLevelCardProps {
+  lakeId: string;
+  lakeName: string;
+  waterLevelData?: WaterLevelData;
+}
 
-  const getProgressColor = (value: number) => {
-    if (value < 30) return 'bg-red-500';
-    if (value < 60) return 'bg-yellow-500';
-    return 'bg-green-500';
+const LakeWaterLevelCard = ({ lakeId, lakeName, waterLevelData }: LakeWaterLevelCardProps) => {
+  // Sample data if none provided
+  const data = waterLevelData || {
+    current: 72,
+    historical: [75, 73, 71, 70, 72],
+    capacity: 100,
+    threshold: {
+      low: 50,
+      critical: 30
+    },
+    trend: 'rising' as const,
+    lastUpdated: '2025-04-05T10:30:00'
+  };
+
+  const getStatusColor = (level: number) => {
+    if (level < data.threshold.critical) return "bg-red-500";
+    if (level < data.threshold.low) return "bg-yellow-500";
+    return "bg-green-500";
   };
   
-  const getTrendIcon = () => {
-    switch (data.trend) {
-      case 'rising':
-        return <TrendingUp className="h-5 w-5 text-green-500" />;
-      case 'falling':
-        return <TrendingDown className="h-5 w-5 text-red-500" />;
-      default:
-        return <BarChart3 className="h-5 w-5 text-blue-500" />;
-    }
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
   
-  const getTrendColor = () => {
-    switch (data.trend) {
-      case 'rising':
-        return 'text-green-600 dark:text-green-400';
-      case 'falling':
-        return 'text-red-600 dark:text-red-400';
-      default:
-        return 'text-blue-600 dark:text-blue-400';
-    }
-  };
-  
-  const getTrendText = () => {
-    switch (data.trend) {
-      case 'rising':
-        return 'Rising';
-      case 'falling':
-        return 'Falling';
-      default:
-        return 'Stable';
-    }
-  };
-  
-  if (loading) {
-    return (
-      <Card className="p-4 animate-pulse">
-        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-6"></div>
-        <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
-        <div className="grid grid-cols-3 gap-2">
-          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        </div>
-      </Card>
-    );
-  }
+  const renderWaterLevelBar = (level: number, showLabels = true) => (
+    <div className="relative h-48 w-6 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto overflow-hidden">
+      <div 
+        className={`absolute bottom-0 w-full transition-all duration-500 ${getStatusColor(level)}`} 
+        style={{ height: `${level}%` }}
+      ></div>
+      {showLabels && (
+        <>
+          <div className="absolute w-full border-t border-dashed border-red-500 dark:border-red-400" style={{ bottom: `${data.threshold.critical}%` }}>
+            <span className="absolute text-xs text-red-600 dark:text-red-400 left-8 -translate-y-3">Critical</span>
+          </div>
+          <div className="absolute w-full border-t border-dashed border-yellow-500 dark:border-yellow-400" style={{ bottom: `${data.threshold.low}%` }}>
+            <span className="absolute text-xs text-yellow-600 dark:text-yellow-400 left-8 -translate-y-3">Low</span>
+          </div>
+        </>
+      )}
+    </div>
+  );
   
   return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-medium text-lg flex items-center">
+    <Card className="p-4 border-t-4 border-t-karnataka-lake-medium">
+      <CardHeader className="p-4 pb-0">
+        <CardTitle className="text-lg flex items-center">
           <Droplet className="h-5 w-5 mr-2 text-karnataka-lake-medium" />
           Water Level: {lakeName}
-        </h3>
-        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-          <CalendarDays className="h-4 w-4 mr-1" />
-          Last updated: {new Date(data.lastUpdated).toLocaleDateString()}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col items-center">
+            <div className="relative">
+              {renderWaterLevelBar(data.current)}
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 shadow-md rounded-full w-12 h-12 flex items-center justify-center">
+                <Droplet className={`h-6 w-6 ${getStatusColor(data.current)}`} />
+              </div>
+            </div>
+            <div className="mt-4 text-center">
+              <div className="text-3xl font-bold">{data.current}%</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Current Level</div>
+              <div className="mt-1 flex items-center justify-center text-sm">
+                {data.trend === 'rising' ? (
+                  <span className="text-green-600 dark:text-green-400 flex items-center">
+                    Rising <TrendingUp className="h-4 w-4 ml-1" />
+                  </span>
+                ) : data.trend === 'falling' ? (
+                  <span className="text-red-600 dark:text-red-400 flex items-center">
+                    Falling <TrendingDown className="h-4 w-4 ml-1" />
+                  </span>
+                ) : (
+                  <span className="text-gray-600 dark:text-gray-400">Stable</span>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+              <h3 className="text-sm font-medium mb-3">Historical Levels</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <span>Last 5 Readings</span>
+                  <span>Current</span>
+                </div>
+                <div className="h-24 flex items-end justify-between space-x-1">
+                  {data.historical.map((level, index) => (
+                    <div key={index} className="flex-1 flex flex-col items-center">
+                      <div className="w-full">
+                        <div 
+                          className={`w-full rounded-t-sm ${getStatusColor(level)}`}
+                          style={{ height: `${level*0.22}px` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs mt-1">{level}%</span>
+                    </div>
+                  ))}
+                  <div className="flex-1 flex flex-col items-center">
+                    <div className="w-full">
+                      <div 
+                        className={`w-full rounded-t-sm ${getStatusColor(data.current)}`}
+                        style={{ height: `${data.current*0.22}px` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs mt-1 font-bold">{data.current}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+              <h3 className="text-sm font-medium mb-2">Capacity</h3>
+              <Progress 
+                value={data.current} 
+                className="h-3 bg-gray-200 dark:bg-gray-700" 
+                indicatorClassName={getStatusColor(data.current)}
+              />
+              <div className="flex justify-between mt-2">
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  Last updated: {formatDate(data.lastUpdated)}
+                </div>
+                <div className="text-xs font-medium">{data.current}% of {data.capacity}%</div>
+              </div>
+            </div>
+            
+            {data.current < data.threshold.low && (
+              <div className={`p-3 rounded-lg border flex items-start ${
+                data.current < data.threshold.critical
+                  ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                  : "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
+              }`}>
+                <AlertTriangle className={`h-4 w-4 mt-0.5 mr-2 flex-shrink-0 ${
+                  data.current < data.threshold.critical
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-yellow-600 dark:text-yellow-400"
+                }`} />
+                <div>
+                  <p className={`text-xs font-medium ${
+                    data.current < data.threshold.critical
+                      ? "text-red-800 dark:text-red-200"
+                      : "text-yellow-800 dark:text-yellow-200"
+                  }`}>
+                    {data.current < data.threshold.critical ? "Critical" : "Low"} Water Level
+                  </p>
+                  <p className={`text-xs mt-1 ${
+                    data.current < data.threshold.critical
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-yellow-600 dark:text-yellow-400"
+                  }`}>
+                    {data.current < data.threshold.critical
+                      ? "Water level is critically low. Conservation measures needed immediately."
+                      : "Water level is below recommended threshold. Monitor closely."}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-      
-      <Tabs defaultValue="current" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="current">Current</TabsTrigger>
-          <TabsTrigger value="historic">Historic</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="current">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              <h4 className="text-sm text-gray-500 mb-2">Current Level</h4>
-              <div className="text-3xl font-bold mb-2">{data.current}%</div>
-              <Progress value={data.current} className="h-2" indicatorClassName={getProgressColor(data.current)} />
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-xs text-gray-500">Min: 0%</span>
-                <span className="text-xs text-gray-500">Max: 100%</span>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              <h4 className="text-sm text-gray-500 mb-2">Trend</h4>
-              <div className="flex items-center">
-                {getTrendIcon()}
-                <span className={`text-xl font-bold ml-2 ${getTrendColor()}`}>{getTrendText()}</span>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                {data.trend === 'rising' ? 'Water level is increasing' : 
-                 data.trend === 'falling' ? 'Water level is decreasing' :
-                 'Water level is stable'}
-              </p>
-            </div>
-            
-            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              <h4 className="text-sm text-gray-500 mb-2">Capacity Status</h4>
-              <div className="text-3xl font-bold mb-2">{data.capacity}%</div>
-              <Progress value={data.capacity} className="h-2" indicatorClassName={getProgressColor(data.capacity)} />
-              <p className="text-sm text-gray-500 mt-2">
-                {data.capacity > 80 ? 'Lake is near full capacity' : 
-                 data.capacity > 50 ? 'Lake is at moderate capacity' :
-                 'Lake is at low capacity'}
-              </p>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="historic">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Historical Water Levels</h4>
-              <div className="flex space-x-1">
-                <Button 
-                  variant={timeRange === 'weekly' ? 'default' : 'outline'} 
-                  size="sm" 
-                  onClick={() => setTimeRange('weekly')}
-                  className="text-xs"
-                >
-                  Weekly
-                </Button>
-                <Button 
-                  variant={timeRange === 'monthly' ? 'default' : 'outline'} 
-                  size="sm" 
-                  onClick={() => setTimeRange('monthly')}
-                  className="text-xs"
-                >
-                  Monthly
-                </Button>
-                <Button 
-                  variant={timeRange === 'yearly' ? 'default' : 'outline'} 
-                  size="sm" 
-                  onClick={() => setTimeRange('yearly')}
-                  className="text-xs"
-                >
-                  Yearly
-                </Button>
-              </div>
-            </div>
-            
-            <div className="h-72 w-full bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={chartData}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis 
-                    dataKey="name"
-                    tick={{ fontSize: 12 }}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }}
-                    domain={[0, 100]}
-                    tickFormatter={(value) => `${value}%`}
-                  />
-                  <Tooltip 
-                    formatter={(value) => [`${value}%`, 'Water Level']}
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)', 
-                      borderRadius: '8px', 
-                      border: 'none', 
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)' 
-                    }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="level" 
-                    stroke="#3b82f6" 
-                    fill="url(#colorLevel)" 
-                    strokeWidth={2}
-                  />
-                  <defs>
-                    <linearGradient id="colorLevel" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                    </linearGradient>
-                  </defs>
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div className="text-xs text-gray-500 text-center">
-              Data shown for {timeRange === 'weekly' ? 'the last week' : timeRange === 'monthly' ? 'the last month' : 'the last year'}
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+      </CardContent>
     </Card>
   );
 };

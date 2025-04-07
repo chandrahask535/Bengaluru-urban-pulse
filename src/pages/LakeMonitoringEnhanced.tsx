@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -16,10 +17,12 @@ import {
   LakeWaterQualityCard, 
   LakeWaterLevelCard, 
   LakeEncroachmentCard,
-  UrbanSprawlAnalysis,
-  AdvancedSatelliteViewer,
-  WaterQualityMonitor
+  UrbanSprawlAnalysis
 } from "@/components/lake";
+import { 
+  AdvancedSatelliteViewer, 
+  WaterQualityMonitor 
+} from "@/components/maps/satellite";
 import LakeRealTimeService from "@/services/LakeRealTimeService";
 import { toast } from "sonner";
 
