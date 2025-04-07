@@ -42,7 +42,7 @@ const SatelliteComparison = ({
     console.log(`${type} image failed to load, showing fallback map`);
     setShowFallbackMaps(true);
   };
-
+  
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -66,6 +66,8 @@ const SatelliteComparison = ({
             coordinates={coordinates}
             onImageError={() => handleImageError('historical')}
             showFallbackMap={showFallbackMaps}
+            onRetry={handleRetry}
+            year={historicalYear}
           />
         </Card>
 
@@ -82,6 +84,8 @@ const SatelliteComparison = ({
             coordinates={coordinates}
             onImageError={() => handleImageError('current')}
             showFallbackMap={showFallbackMaps}
+            onRetry={handleRetry}
+            year={currentYear}
           />
         </Card>
       </div>
@@ -91,6 +95,7 @@ const SatelliteComparison = ({
         lakeName={lakeName}
         historicalYear={historicalYear}
         currentYear={currentYear}
+        loading={loading}
       />
     </div>
   );
