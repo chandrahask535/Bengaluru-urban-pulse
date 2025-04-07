@@ -1,431 +1,328 @@
-
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import DashboardCard from "@/components/dashboard/DashboardCard";
-import { Building, Map, AlertTriangle, CloudRain, Layers, Home, IndianRupee, TrendingUp, Target } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useEffect } from "react";
-import MapComponent from "@/components/maps/MapComponent";
 import { Card } from "@/components/ui/card";
-import LandPricePrediction from "@/components/prediction/LandPricePrediction";
-import GovernmentProjects from "@/components/prediction/GovernmentProjects";
-import InvestmentInsights from "@/components/prediction/InvestmentInsights";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Building, MapPin, TrendingUp, AlertTriangle, Info, Droplet } from "lucide-react";
+import UrbanPlanningMap from "@/components/maps/UrbanPlanningMap";
+import { UrbanSprawlAnalysis } from "@/components/lake";
+import { AdvancedSatelliteViewer } from "@/components/maps/satellite";
+import { Button } from "@/components/ui/button";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
 
-const UrbanPlanning = () => {
-  const [selectedZone, setSelectedZone] = useState("bengaluru-central");
-  
-  const zones = [
-    { id: "bengaluru-central", name: "Bengaluru Central", coordinates: [12.9716, 77.5946] },
-    { id: "bengaluru-east", name: "Bengaluru East", coordinates: [12.9850, 77.6700] },
-    { id: "bengaluru-west", name: "Bengaluru West", coordinates: [12.9716, 77.5200] },
-    { id: "bengaluru-south", name: "Bengaluru South", coordinates: [12.9100, 77.5946] },
-    { id: "bengaluru-north", name: "Bengaluru North", coordinates: [13.0500, 77.5946] },
-  ];
+interface Location {
+  id: string;
+  name: string;
+  coordinates: [number, number];
+  details: {
+    floodRisk: string;
+    floodRiskValue: number;
+    greenCoverage: number;
+    infrastructureScore: number;
+    landUseTypes: Array<{
+      type: string;
+      percentage: number;
+    }>;
+    issues: string[];
+  };
+}
 
-  const zoneDetails = {
-    "bengaluru-central": {
-      floodRisk: "Moderate",
-      floodRiskValue: 45,
-      greenCoverage: 12,
-      infrastructureScore: 78,
-      landUseTypes: [
-        { type: "Residential", percentage: 55 },
-        { type: "Commercial", percentage: 30 },
-        { type: "Industrial", percentage: 5 },
-        { type: "Green Space", percentage: 8 },
-        { type: "Others", percentage: 2 },
-      ],
-      issues: [
-        "Heavy traffic congestion",
-        "Limited green spaces",
-        "Aging drainage systems",
-      ],
-    },
-    "bengaluru-east": {
-      floodRisk: "High",
-      floodRiskValue: 75,
-      greenCoverage: 18,
-      infrastructureScore: 65,
-      landUseTypes: [
-        { type: "Residential", percentage: 60 },
-        { type: "Commercial", percentage: 20 },
-        { type: "Industrial", percentage: 8 },
-        { type: "Green Space", percentage: 10 },
-        { type: "Others", percentage: 2 },
-      ],
-      issues: [
-        "Frequent flooding in low-lying areas",
-        "Rapid development without proper planning",
-        "Water scarcity during summer",
-      ],
-    },
-    "bengaluru-west": {
+const mockLocations: Location[] = [
+  {
+    id: "location1",
+    name: "Central Business District",
+    coordinates: [12.9716, 77.5946],
+    details: {
       floodRisk: "Low",
       floodRiskValue: 25,
-      greenCoverage: 20,
-      infrastructureScore: 70,
+      greenCoverage: 15,
+      infrastructureScore: 85,
       landUseTypes: [
-        { type: "Residential", percentage: 50 },
-        { type: "Commercial", percentage: 15 },
-        { type: "Industrial", percentage: 20 },
-        { type: "Green Space", percentage: 12 },
-        { type: "Others", percentage: 3 },
+        { type: "Commercial", percentage: 60 },
+        { type: "Residential", percentage: 30 },
+        { type: "Parks", percentage: 10 },
       ],
-      issues: [
-        "Industrial pollution",
-        "Inadequate public transportation",
-        "Unplanned development in certain pockets",
-      ],
+      issues: ["Traffic congestion", "Air pollution"],
     },
-    "bengaluru-south": {
+  },
+  {
+    id: "location2",
+    name: "Residential Suburb",
+    coordinates: [13.0287, 77.5854],
+    details: {
       floodRisk: "Moderate",
       floodRiskValue: 55,
-      greenCoverage: 15,
-      infrastructureScore: 82,
+      greenCoverage: 40,
+      infrastructureScore: 60,
       landUseTypes: [
-        { type: "Residential", percentage: 65 },
-        { type: "Commercial", percentage: 25 },
-        { type: "Industrial", percentage: 2 },
-        { type: "Green Space", percentage: 6 },
-        { type: "Others", percentage: 2 },
+        { type: "Residential", percentage: 70 },
+        { type: "Parks", percentage: 20 },
+        { type: "Commercial", percentage: 10 },
       ],
-      issues: [
-        "Traffic congestion during peak hours",
-        "Encroachment of lake beds",
-        "Inadequate waste management",
-      ],
+      issues: ["Water scarcity", "Inadequate public transport"],
     },
-    "bengaluru-north": {
-      floodRisk: "Low",
-      floodRiskValue: 30,
-      greenCoverage: 25,
-      infrastructureScore: 68,
+  },
+  {
+    id: "location3",
+    name: "Industrial Area",
+    coordinates: [12.9539, 77.7104],
+    details: {
+      floodRisk: "High",
+      floodRiskValue: 75,
+      greenCoverage: 5,
+      infrastructureScore: 50,
       landUseTypes: [
-        { type: "Residential", percentage: 55 },
+        { type: "Industrial", percentage: 80 },
         { type: "Commercial", percentage: 15 },
-        { type: "Industrial", percentage: 5 },
-        { type: "Green Space", percentage: 22 },
-        { type: "Others", percentage: 3 },
+        { type: "Residential", percentage: 5 },
       ],
-      issues: [
-        "Rapid urbanization affecting green cover",
-        "Water supply issues in certain areas",
-        "Need for better connectivity to the city center",
-      ],
+      issues: ["Water pollution", "Soil contamination"],
     },
+  },
+];
+
+const UrbanPlanning = () => {
+  const [locations, setLocations] = useState<Location[]>(mockLocations);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  
+  // Add new state variables for lake data
+  const [nearbyLakes, setNearbyLakes] = useState<{
+    id: string;
+    name: string;
+    coordinates: [number, number];
+    affectedBy: string[];
+  }[]>([]);
+  
+  const [selectedLake, setSelectedLake] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Simulate fetching locations from an API
+    setTimeout(() => {
+      setLocations(mockLocations);
+    }, 500);
+  }, []);
+
+  const handleLocationSelect = (locationId: string) => {
+    setSelectedLocation(locationId);
   };
-
-  const selectedZoneData = zoneDetails[selectedZone as keyof typeof zoneDetails];
-
-  const getFloodRiskColor = (risk: string) => {
-    switch (risk) {
-      case "Low":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "Moderate":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "High":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
+  
+  // Add new useEffect to load nearby lakes based on selected location
+  useEffect(() => {
+    if (selectedLocation) {
+      // In a real app, this would be an API call
+      setTimeout(() => {
+        const location = locations.find(loc => loc.id === selectedLocation);
+        if (location) {
+          const [lat, lng] = location.coordinates;
+          
+          // Mock data - in a real app, this would come from your backend
+          setNearbyLakes([
+            {
+              id: "bellandur",
+              name: "Bellandur Lake",
+              coordinates: [12.9373, 77.6402],
+              affectedBy: ["runoff", "sewage", "encroachment"]
+            },
+            {
+              id: "varthur",
+              name: "Varthur Lake",
+              coordinates: [12.9417, 77.7341],
+              affectedBy: ["runoff", "industrial waste"]
+            },
+            {
+              id: "hebbal",
+              name: "Hebbal Lake",
+              coordinates: [13.0450, 77.5950],
+              affectedBy: ["encroachment"]
+            }
+          ]);
+        }
+      }, 1000);
+    } else {
+      setNearbyLakes([]);
     }
-  };
-
-  const getProgressBarColor = (value: number, metric: string) => {
-    if (metric === "floodRisk") {
-      if (value > 60) return "bg-red-500";
-      if (value > 30) return "bg-yellow-500";
-      return "bg-green-500";
-    } else if (metric === "greenCoverage") {
-      if (value < 10) return "bg-red-500";
-      if (value < 20) return "bg-yellow-500";
-      return "bg-green-500";
-    } else if (metric === "infrastructureScore") {
-      if (value < 60) return "bg-red-500";
-      if (value < 75) return "bg-yellow-500";
-      return "bg-green-500";
-    }
-    return "bg-blue-500";
-  };
-
-  const getLandUseColor = (type: string) => {
-    switch (type) {
-      case "Residential":
-        return "bg-karnataka-metro-light";
-      case "Commercial":
-        return "bg-karnataka-lake-light";
-      case "Industrial":
-        return "bg-karnataka-rain-light";
-      case "Green Space":
-        return "bg-karnataka-park-light";
-      default:
-        return "bg-gray-200 dark:bg-gray-700";
-    }
-  };
+  }, [selectedLocation]);
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow pt-16 pb-12 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                Urban Planning Insights
-              </h1>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Analyze zoning maps and identify safe zones for sustainable development
-              </p>
-            </div>
-            <div className="w-full sm:w-auto">
-              <Select value={selectedZone} onValueChange={setSelectedZone}>
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <SelectValue placeholder="Select a zone" />
-                </SelectTrigger>
-                <SelectContent>
-                  {zones.map((zone) => (
-                    <SelectItem key={zone.id} value={zone.id}>
-                      {zone.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Urban Planning & Development</h1>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Plan sustainable urban development while preserving water bodies
+            </p>
           </div>
 
-          <Tabs defaultValue="price-prediction" className="mb-8">
-            <TabsList className="mb-6 w-full sm:w-auto">
-              <TabsTrigger value="price-prediction">Land Price</TabsTrigger>
-              <TabsTrigger value="government-projects">Government Projects</TabsTrigger>
-              <TabsTrigger value="investment">Investment Insights</TabsTrigger>
-              <TabsTrigger value="zoning">Zoning Analysis</TabsTrigger>
+          <Tabs defaultValue="map" className="mb-8">
+            <TabsList className="mb-6">
+              <TabsTrigger value="map">City Map</TabsTrigger>
+              <TabsTrigger value="analysis">Analysis</TabsTrigger>
+              <TabsTrigger value="environment">Environmental Impact</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="zoning" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Zone Map</h3>
-                  <MapComponent
-                    center={zones.find(zone => zone.id === selectedZone)?.coordinates as [number, number]}
-                    zoom={12}
-                    markers={[{
-                      position: zones.find(zone => zone.id === selectedZone)?.coordinates as [number, number],
-                      popup: zones.find(zone => zone.id === selectedZone)?.name
-                    }]}
-                  />
-                </Card>
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Zone Analysis</h3>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                        <h4 className="font-medium mb-2">Population Density</h4>
-                        <p className="text-2xl font-bold">12,450/km²</p>
-                        <p className="text-sm text-gray-500">Urban Core</p>
+
+            <TabsContent value="map">
+              <UrbanPlanningMap
+                locations={locations}
+                selectedLocation={selectedLocation || ""}
+                onLocationSelect={handleLocationSelect}
+              />
+              
+              {selectedLocation && (
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="p-6">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center">
+                      <Building className="h-5 w-5 mr-2 text-karnataka-metro-medium" />
+                      Location Details
+                    </h3>
+                    <p>Name: {locations.find((loc) => loc.id === selectedLocation)?.name}</p>
+                    <p>Flood Risk: {locations.find((loc) => loc.id === selectedLocation)?.details.floodRisk}</p>
+                    <p>Green Coverage: {locations.find((loc) => loc.id === selectedLocation)?.details.greenCoverage}%</p>
+                  </Card>
+
+                  <Card className="p-6">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center">
+                      <TrendingUp className="h-5 w-5 mr-2 text-karnataka-metro-medium" />
+                      Development Projections
+                    </h3>
+                    <p>Projected Population Growth: 15% in the next 5 years</p>
+                    <p>Infrastructure Investment: $20 million</p>
+                  </Card>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="analysis">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card className="col-span-1 md:col-span-2">
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center">
+                      <TrendingUp className="h-5 w-5 mr-2 text-karnataka-metro-medium" />
+                      Urban Growth Pattern
+                    </h3>
+                    {selectedLocation ? (
+                      <div className="h-[400px] relative">
+                        {/* Urban growth visualization would go here */}
+                        <div className="flex items-center justify-center h-full">
+                          <p className="text-gray-500 dark:text-gray-400">Urban growth visualization for selected location</p>
+                        </div>
                       </div>
-                      <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                        <h4 className="font-medium mb-2">Development Index</h4>
-                        <p className="text-2xl font-bold text-blue-600">0.82</p>
-                        <p className="text-sm text-gray-500">Urban Development Score</p>
+                    ) : (
+                      <div className="flex items-center justify-center h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg">
+                        <p className="text-gray-500 dark:text-gray-400">Select a location to view urban growth patterns</p>
                       </div>
-                    </div>
+                    )}
                   </div>
+                </Card>
+
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <AlertTriangle className="h-5 w-5 mr-2 text-karnataka-metro-medium" />
+                    Risk Factors
+                  </h3>
+                  {selectedLocation ? (
+                    <div>
+                      <ul>
+                        {locations.find((loc) => loc.id === selectedLocation)?.details.issues.map((issue, index) => (
+                          <li key={index} className="mb-2">
+                            {issue}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-[300px] bg-gray-100 dark:bg-gray-800 rounded-lg">
+                      <p className="text-gray-500 dark:text-gray-400">Select a location to view risk factors</p>
+                    </div>
+                  )}
                 </Card>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <DashboardCard
-                  title="Land Use Distribution"
-                  description="Current zoning allocation"
-                  icon={Map}
-                  iconColor="text-karnataka-park-medium"
-                >
-                  <div className="space-y-3 mt-2">
-                    {selectedZoneData.landUseTypes.map((item) => (
-                      <div key={item.type} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>{item.type}</span>
-                          <span>{item.percentage}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${getLandUseColor(item.type)}`}
-                            style={{ width: `${item.percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </DashboardCard>
+            </TabsContent>
 
-                <DashboardCard
-                  title="Green Coverage"
-                  description="Parks, lakes, and open spaces"
-                  icon={Layers}
-                  iconColor="text-karnataka-park-dark"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-3xl font-bold">{selectedZoneData.greenCoverage}%</span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        of total area
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                      <div
-                        className={`h-2.5 rounded-full ${getProgressBarColor(selectedZoneData.greenCoverage, "greenCoverage")}`}
-                        style={{ width: `${selectedZoneData.greenCoverage}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {selectedZoneData.greenCoverage < 15 ? (
-                        <div className="flex items-center space-x-1 text-yellow-600 dark:text-yellow-400">
-                          <AlertTriangle className="h-4 w-4" />
-                          <span>Below recommended minimum (15%)</span>
+            <TabsContent value="environment">
+              <div className="mb-6">
+                <Card className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold flex items-center">
+                      <MapPin className="h-5 w-5 mr-2 text-karnataka-lake-medium" />
+                      Nearby Water Bodies
+                    </h3>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <Info className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="left" className="max-w-80">
+                          <p className="text-sm">
+                            Water bodies near urban development areas that may be affected by the development.
+                            Select a water body to view detailed analysis.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  
+                  {selectedLocation ? (
+                    <div>
+                      {nearbyLakes.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {nearbyLakes.map(lake => (
+                            <div 
+                              key={lake.id}
+                              className={`p-4 rounded-lg border-2 transition-colors cursor-pointer ${
+                                selectedLake === lake.id 
+                                  ? 'border-karnataka-lake-medium bg-karnataka-lake-light/20' 
+                                  : 'border-gray-200 dark:border-gray-700 hover:border-karnataka-lake-light'
+                              }`}
+                              onClick={() => setSelectedLake(lake.id)}
+                            >
+                              <div className="flex items-center mb-2">
+                                <Droplet className="h-4 w-4 mr-2 text-karnataka-lake-medium" />
+                                <h4 className="font-medium">{lake.name}</h4>
+                              </div>
+                              <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
+                                <p>Coordinates: {lake.coordinates[0].toFixed(4)}, {lake.coordinates[1].toFixed(4)}</p>
+                                <p>Affected by: {lake.affectedBy.join(', ')}</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       ) : (
-                        <span>Target: Maintain or increase current level</span>
-                      )}
-                    </div>
-                  </div>
-                </DashboardCard>
-
-                <DashboardCard
-                  title="Flood Risk Assessment"
-                  description="Based on topography and drainage"
-                  icon={CloudRain}
-                  iconColor="text-karnataka-rain-medium"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold">{selectedZoneData.floodRiskValue}%</span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getFloodRiskColor(selectedZoneData.floodRisk)}`}>
-                        {selectedZoneData.floodRisk} Risk
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                      <div
-                        className={`h-2.5 rounded-full ${getProgressBarColor(selectedZoneData.floodRiskValue, "floodRisk")}`}
-                        style={{ width: `${selectedZoneData.floodRiskValue}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {selectedZoneData.floodRisk === "High" && (
-                        <div className="flex items-center space-x-1 text-red-600 dark:text-red-400">
-                          <AlertTriangle className="h-4 w-4" />
-                          <span>Special drainage measures required</span>
+                        <div className="flex items-center justify-center h-32 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                          <p className="text-gray-500 dark:text-gray-400">No water bodies found near this location</p>
                         </div>
                       )}
                     </div>
-                  </div>
-                </DashboardCard>
-              </div>
-
-              <DashboardCard
-                title="Urban Planning Challenges"
-                description="Key issues identified in this zone"
-                icon={Building}
-                iconColor="text-karnataka-metro-medium"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      Key Issues
-                    </h3>
-                    <ul className="space-y-2">
-                      {selectedZoneData.issues.map((issue, index) => (
-                        <li key={index} className="flex items-center space-x-2">
-                          <div className="h-2 w-2 rounded-full bg-karnataka-metro-medium"></div>
-                          <span className="text-gray-600 dark:text-gray-400">{issue}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      Zone Map
-                    </h3>
-                    <div className="bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden aspect-video">
-                      <img
-                        src="https://via.placeholder.com/600x400?text=Zone+Map"
-                        alt="Zone Map"
-                        className="w-full h-full object-cover"
-                      />
+                  ) : (
+                    <div className="flex items-center justify-center h-32 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                      <p className="text-gray-500 dark:text-gray-400">Select a location to view nearby water bodies</p>
                     </div>
-                  </div>
+                  )}
+                </Card>
+              </div>
+              
+              {selectedLake && (
+                <div className="space-y-6">
+                  <UrbanSprawlAnalysis 
+                    lakeId={selectedLake}
+                    lakeName={nearbyLakes.find(lake => lake.id === selectedLake)?.name || ""}
+                    coordinates={nearbyLakes.find(lake => lake.id === selectedLake)?.coordinates || [12.9716, 77.5946]}
+                  />
+                  
+                  <AdvancedSatelliteViewer
+                    lakeName={nearbyLakes.find(lake => lake.id === selectedLake)?.name || ""}
+                    coordinates={nearbyLakes.find(lake => lake.id === selectedLake)?.coordinates || [12.9716, 77.5946]}
+                  />
                 </div>
-              </DashboardCard>
-            </TabsContent>
-            
-            <TabsContent value="price-prediction" className="space-y-6">
-              <DashboardCard
-                title="Land Price Prediction"
-                description="Predict land prices based on location and proximity factors"
-                icon={IndianRupee}
-                iconColor="text-karnataka-metro-medium"
-              >
-                <LandPricePrediction />
-              </DashboardCard>
-            </TabsContent>
-
-            <TabsContent value="government-projects" className="space-y-6">
-              <DashboardCard
-                title="Government Infrastructure Projects"
-                description="Track ongoing and upcoming government projects"
-                icon={Building}
-                iconColor="text-karnataka-metro-medium"
-              >
-                <GovernmentProjects />
-              </DashboardCard>
-            </TabsContent>
-
-            <TabsContent value="investment" className="space-y-6">
-              <DashboardCard
-                title="Premium Investment Insights"
-                description="Analyze investment opportunities and market trends"
-                icon={TrendingUp}
-                iconColor="text-karnataka-metro-medium"
-              >
-                <InvestmentInsights />
-              </DashboardCard>
-            </TabsContent>
-
-            <TabsContent value="flood">
-              <DashboardCard
-                title="Detailed Flood Risk Analysis"
-                description="Flood risk assessment and predictive modeling"
-              >
-                <div className="text-center py-12">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    This feature will be available in the next release.
-                  </p>
-                </div>
-              </DashboardCard>
-            </TabsContent>
-            
-            <TabsContent value="infrastructure">
-              <DashboardCard
-                title="Infrastructure Assessment"
-                description="Analysis of current infrastructure"
-              >
-                <div className="text-center py-12">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    This feature will be available in the next release.
-                  </p>
-                </div>
-              </DashboardCard>
-            </TabsContent>
-            
-            <TabsContent value="development">
-              <DashboardCard
-                title="Development Recommendations"
-                description="Sustainable development guidelines"
-              >
-                <div className="text-center py-12">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    This feature will be available in the next release.
-                  </p>
-                </div>
-              </DashboardCard>
+              )}
             </TabsContent>
           </Tabs>
         </div>

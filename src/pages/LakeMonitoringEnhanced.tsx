@@ -8,14 +8,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MapComponent from "@/components/maps/MapComponent";
 import SatelliteComparison from "@/components/maps/SatelliteComparison";
 import { Card } from "@/components/ui/card";
-import LakeHistoricalData from "@/components/lake/LakeHistoricalData";
-import LakeAnalysisCard from "@/components/lake/LakeAnalysisCard";
+import { 
+  LakeHistoricalData, 
+  LakeAnalysisCard, 
+  LandCoverStats, 
+  LakeReportDetails, 
+  LakeWaterQualityCard, 
+  LakeWaterLevelCard, 
+  LakeEncroachmentCard,
+  UrbanSprawlAnalysis,
+  AdvancedSatelliteViewer,
+  WaterQualityMonitor
+} from "@/components/lake";
 import LakeRealTimeService from "@/services/LakeRealTimeService";
-import LandCoverStats from "@/components/lake/LandCoverStats";
-import LakeReportDetails from "@/components/lake/LakeReportDetails";
-import LakeWaterQualityCard from "@/components/lake/LakeWaterQualityCard";
-import LakeWaterLevelCard from "@/components/lake/LakeWaterLevelCard";
-import LakeEncroachmentCard from "@/components/lake/LakeEncroachmentCard";
 import { toast } from "sonner";
 
 interface LakeData {
@@ -246,6 +251,7 @@ const LakeMonitoringEnhanced = () => {
               <TabsTrigger value="satellite">Satellite Data</TabsTrigger>
               <TabsTrigger value="trends">Trends</TabsTrigger>
               <TabsTrigger value="water-quality">Water Quality</TabsTrigger>
+              <TabsTrigger value="urban-impact">Urban Impact</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
             
@@ -346,20 +352,21 @@ const LakeMonitoringEnhanced = () => {
                   icon={Calendar}
                   iconColor="text-karnataka-rain-medium"
                 >
-                  <SatelliteComparison
-                    lakeName={selectedLakeInfo?.name || ''}
-                    coordinates={selectedLakeInfo?.coordinates as [number, number] || [12.9716, 77.5946] as [number, number]}
-                    historicalYear="2010"
-                    currentYear="2025"
-                    onAnalyze={(changes) => {
-                      console.log("Analysis results:", changes);
-                      if (changes.area.difference < -100) {
-                        toast.warning(`Significant reduction in ${selectedLakeInfo?.name || 'lake'} surface area detected`, {
-                          description: "Historical analysis shows encroachment may be affecting water capacity"
-                        });
-                      }
-                    }}
-                  />
+                  {selectedLakeInfo && (
+                    <AdvancedSatelliteViewer
+                      lakeName={selectedLakeInfo?.name || ''}
+                      coordinates={selectedLakeInfo?.coordinates as [number, number]}
+                      years={['2005', '2010', '2015', '2020', '2025']}
+                      onAnalysisComplete={(changes) => {
+                        console.log("Analysis results:", changes);
+                        if (changes.area && changes.area.difference < -100) {
+                          toast.warning(`Significant reduction in ${selectedLakeInfo?.name || 'lake'} surface area detected`, {
+                            description: "Historical analysis shows encroachment may be affecting water capacity"
+                          });
+                        }
+                      }}
+                    />
+                  )}
                 </DashboardCard>
                 
                 {selectedLakeInfo && (
@@ -449,17 +456,23 @@ const LakeMonitoringEnhanced = () => {
                   />
                 )}
               </div>
-
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center">
-                  <Building className="h-5 w-5 mr-2 text-karnataka-metro-medium" />
-                  Development Impact Analysis
-                </h3>
-                <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-                  <p>Detailed analysis of urban development impact on lake water quality will be displayed here.</p>
-                  <p className="mt-2 text-sm">This feature is coming soon.</p>
-                </div>
-              </Card>
+              
+              {selectedLakeInfo && (
+                <WaterQualityMonitor
+                  lakeId={selectedLake}
+                  lakeName={selectedLakeInfo.name}
+                />
+              )}
+            </TabsContent>
+            
+            <TabsContent value="urban-impact" className="space-y-6">
+              {selectedLakeInfo && (
+                <UrbanSprawlAnalysis
+                  lakeId={selectedLake}
+                  lakeName={selectedLakeInfo.name}
+                  coordinates={selectedLakeInfo.coordinates}
+                />
+              )}
             </TabsContent>
             
             <TabsContent value="reports" className="space-y-6">
