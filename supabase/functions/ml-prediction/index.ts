@@ -7,219 +7,158 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Initialize Supabase client
-const supabaseUrl = api-keys.env.get("SUPABASE_URL") || "https://myrteuqoeettnpunxoyt.supabase.co";
-const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+// Supabase config
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Mock ML prediction model (in real implementation, this would use scikit-learn/XGBoost models)
-function predictFloodRisk(rainfall: number, location: { lat: number; lng: number }): { risk_level: string; probability: number } {
-  // Enhanced risk assessment model incorporating multiple factors
-  const RISK_THRESHOLDS = {
-    CRITICAL: 100,
-    HIGH: 70,
-    MODERATE: 40,
-    LOW: 20
-  };
+// Elevation API key (you can use open-elevation or Google Elevation API)
+const OPEN_ELEVATION_API = "https://api.open-elevation.com/api/v1/lookup";
 
-  // Calculate base risk from rainfall
-  let probability = Math.min(rainfall / RISK_THRESHOLDS.CRITICAL, 1);
-  
-  // Adjust probability based on location factors (mock elevation and soil data)
-  const mockElevation = Math.sin(location.lat) * Math.cos(location.lng) * 100;
-  const elevationFactor = mockElevation < 0 ? 1.2 : 0.8; // Lower elevation increases risk
+// OpenWeatherMap API key
+const OPENWEATHER_API_KEY = Deno.env.get("OPENWEATHER_API_KEY")!;
 
-  // Apply location-based adjustment
-  probability *= elevationFactor;
-
-  // Determine risk level based on adjusted probability
-  let risk_level: string;
-  if (probability >= 0.8) {
-    risk_level = "Critical";
-  } else if (probability >= 0.6) {
-    risk_level = "High";
-  } else if (probability >= 0.3) {
-    risk_level = "Moderate";
-  } else {
-    risk_level = "Low";
-  }
-
-  return { risk_level, probability: Number(probability.toFixed(2)) };
-}
-
-// Function to fetch weather data from OpenWeatherMap API
+// Fetch rainfall from OpenWeatherMap
 async function fetchWeatherData(lat: number, lng: number): Promise<{ rainfall: number }> {
-  const OPENWEATHER_API_KEY = api-keys.env.get("OPENWEATHER_API_KEY");
-  if (!OPENWEATHER_API_KEY) {
-    console.warn("OpenWeather API key not configured, using mock data");
-    return { rainfall: Math.random() * 120 };
-  }
-
   try {
     const response = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${OPENWEATHER_API_KEY}&units=metric`
     );
 
-    if (!response.ok) {
-      throw new Error(`Weather API error: ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`Weather API error: ${response.statusText}`);
 
     const data = await response.json();
-    // Convert precipitation to mm/h if available, otherwise use a calculated value
-    const rainfall = data.rain?.['1h'] || (data.main.humidity * 0.5); // Simplified calculation
+    const rainfall = data.rain?.["1h"] ?? (data.main.humidity * 0.5); // fallback calculation
     return { rainfall };
   } catch (error) {
-    console.error("Error fetching weather data:", error);
-    // Fallback to historical average or calculated value
-    return { rainfall: 45 }; // Default to moderate rainfall
+    console.error("Weather error:", error);
+    return { rainfall: 45 };
   }
 }
 
-serve(async (req: Request) => {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders, status: 204 });
+// Fetch elevation from open-elevation
+async function fetchElevation(lat: number, lng: number): Promise<number> {
+  try {
+    const response = await fetch(`${OPEN_ELEVATION_API}?locations=${lat},${lng}`);
+    const data = await response.json();
+    return data.results[0].elevation;
+  } catch (err) {
+    console.error("Elevation error:", err);
+    return 50; // fallback elevation
   }
+}
+
+// Real risk prediction using weather + elevation
+async function predictFloodRisk(rainfall: number, elevation: number): Promise<{ risk_level: string; probability: number }> {
+  const thresholds = { CRITICAL: 100, HIGH: 70, MODERATE: 40 };
+  let probability = Math.min(rainfall / thresholds.CRITICAL, 1);
+  const elevationFactor = elevation < 30 ? 1.2 : 0.8; // Lower elevation, higher risk
+  probability *= elevationFactor;
+
+  let risk_level = "Low";
+  if (probability >= 0.8) risk_level = "Critical";
+  else if (probability >= 0.6) risk_level = "High";
+  else if (probability >= 0.3) risk_level = "Moderate";
+
+  return { risk_level, probability: Number(probability.toFixed(2)) };
+}
+
+serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders, status: 204 });
 
   try {
-    // Parse the request
+    const { pathname } = new URL(req.url);
     if (req.method === "GET") {
-      // Return API info for GET requests
       return new Response(
         JSON.stringify({
           status: "online",
           endpoints: {
-            "/flood-prediction": "POST - Predict flood risk for a location",
-            "/lake-health": "POST - Get lake health assessment",
+            "/flood-prediction": "POST - Predict flood risk",
+            "/lake-health": "POST - Assess lake health",
           },
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const { pathname } = new URL(req.url);
-    const requestData = await req.json();
+    const body = await req.json();
 
-    // Flood prediction endpoint
     if (pathname === "/flood-prediction") {
-      // Validate request data
-      if (!requestData.location || !requestData.location.lat || !requestData.location.lng) {
-        return new Response(
-          JSON.stringify({ error: "Invalid request. Location coordinates required." }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      const { location, area_name } = body;
+      if (!location?.lat || !location?.lng) {
+        return new Response(JSON.stringify({ error: "Missing coordinates" }), {
+          status: 400,
+          headers: corsHeaders,
+        });
       }
 
-      // Get weather data from external API
-      const weatherData = await fetchWeatherData(requestData.location.lat, requestData.location.lng);
-      
-      // Run prediction model
-      const prediction = predictFloodRisk(weatherData.rainfall, requestData.location);
+      const [weather, elevation] = await Promise.all([
+        fetchWeatherData(location.lat, location.lng),
+        fetchElevation(location.lat, location.lng),
+      ]);
 
-      // Store prediction in database
+      const prediction = await predictFloodRisk(weather.rainfall, elevation);
+
       const { error } = await supabase.from("flood_predictions").insert({
-        area_name: requestData.area_name || "Unknown Area",
-        location: `POINT(${requestData.location.lng} ${requestData.location.lat})`,
+        area_name: area_name || "Unknown",
+        location: `POINT(${location.lng} ${location.lat})`,
         prediction_date: new Date().toISOString().split("T")[0],
-        rainfall_forecast: weatherData.rainfall,
+        rainfall_forecast: weather.rainfall,
+        elevation,
         risk_level: prediction.risk_level,
       });
 
-      if (error) {
-        console.error("Error storing prediction:", error);
-      }
+      if (error) console.error("Insert error:", error);
 
-      // Return prediction
       return new Response(
-        JSON.stringify({
-          prediction: prediction,
-          weather: weatherData,
-          timestamp: new Date().toISOString(),
-        }),
+        JSON.stringify({ prediction, weather, elevation, timestamp: new Date().toISOString() }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Lake health assessment endpoint
     if (pathname === "/lake-health") {
-      // Validate request data
-      if (!requestData.lake_id) {
-        return new Response(
-          JSON.stringify({ error: "Invalid request. Lake ID required." }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (!body.lake_id) {
+        return new Response(JSON.stringify({ error: "Lake ID is required" }), {
+          status: 400,
+          headers: corsHeaders,
+        });
       }
 
-      // Fetch lake data from database
-      const { data: lakeData, error } = await supabase
-        .from("lakes")
-        .select("*")
-        .eq("id", requestData.lake_id)
-        .single();
-
-      if (error || !lakeData) {
-        return new Response(
-          JSON.stringify({ error: "Lake not found" }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      const { data: lake, error } = await supabase.from("lakes").select("*").eq("id", body.lake_id).single();
+      if (error || !lake) {
+        return new Response(JSON.stringify({ error: "Lake not found" }), {
+          status: 404,
+          headers: corsHeaders,
+        });
       }
 
-      // In a real implementation, this would use actual analysis algorithms
-      // Mock lake health assessment
-      const healthAssessment = {
-        water_quality: lakeData.pollution_level || "Unknown",
-        encroachment_risk: lakeData.encroachment_status || "Unknown",
-        restoration_priority: Math.random() > 0.5 ? "High" : "Medium",
+      // Assume pollution_level, encroachment_status are real stored columns
+      const assessment = {
+        water_quality: lake.pollution_level,
+        encroachment_risk: lake.encroachment_status,
+        restoration_priority: lake.pollution_level === "High" ? "Urgent" : "Monitor",
         suggested_actions: [
-          "Regular water quality testing",
-          "Monitor encroachment activities",
-          "Community cleanup drive",
+          "Monitor quality",
+          "Stop construction near lake",
+          "Enforce buffer zones",
         ],
       };
 
-      // Return assessment
       return new Response(
-        JSON.stringify({
-          lake: lakeData,
-          health_assessment: healthAssessment,
-          timestamp: new Date().toISOString(),
-        }),
+        JSON.stringify({ lake, health_assessment: assessment, timestamp: new Date().toISOString() }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Urban planning insights endpoint
-    if (pathname === "/urban-insights") {
-      // This would integrate with zoning data and urban planning models
-      // Mock response for now
-      return new Response(
-        JSON.stringify({
-          insights: {
-            green_cover_percentage: 22.5,
-            drainage_efficiency: "Medium",
-            flood_prone_zones: 3,
-            suggested_improvements: [
-              "Increase permeable surfaces",
-              "Expand green cover in eastern sector",
-              "Improve drainage infrastructure in low-lying areas",
-            ],
-          },
-          timestamp: new Date().toISOString(),
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // If no matching endpoint found
+    return new Response(JSON.stringify({ error: "Endpoint not found" }), {
+      status: 404,
+      headers: corsHeaders,
+    });
+  } catch (err) {
+    console.error("API error:", err);
     return new Response(
-      JSON.stringify({ error: "Endpoint not found" }),
-      { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error) {
-    console.error("API error:", error.message);
-    return new Response(
-      JSON.stringify({ error: "Internal server error", details: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: "Server error", details: err.message }),
+      { status: 500, headers: corsHeaders }
     );
   }
 });

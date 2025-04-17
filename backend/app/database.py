@@ -10,7 +10,7 @@ load_dotenv()
 # Database connection URL
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:your-password@localhost:5432/karnataka_urban_pulse"
+    "https://myrteuqoeettnpunxoyt.supabase.co"
 )
 
 # Create SQLAlchemy engine

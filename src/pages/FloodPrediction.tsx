@@ -22,12 +22,21 @@ const FloodPrediction = () => {
         // Using Bengaluru coordinates
         const lat = 12.9716;
         const lon = 77.5946;
+<<<<<<< Updated upstream
         
         const rainfall = await LakeDataService.getCurrentRainfall(lat, lon);
         const risk = await LakeDataService.getFloodRiskPrediction(lat, lon);
         
         setCurrentRainfall(rainfall);
         setFloodRisk(risk);
+=======
+        const [rainfall, risk] = await Promise.all([
+          LakeDataService.getCurrentRainfall(lat, lon),
+          LakeDataService.getFloodRiskPrediction(lat, lon)
+        ]);
+        setCurrentRainfall(rainfall.data);
+        setFloodRisk(risk.data);
+>>>>>>> Stashed changes
       } catch (error) {
         console.error('Error fetching weather data:', error);
       }
