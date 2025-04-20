@@ -48,14 +48,10 @@ const AlertHistory = () => {
   ];
 
   return (
-    <DashboardCard className="p-6 h-full overflow-auto">
-      <h2 className="text-lg font-semibold flex items-center mb-4">
-        <AlertTriangle className="w-5 h-5 mr-2 text-karnataka-metro-medium" />
-        Alert History
-      </h2>
-      <p className="mb-4 text-gray-700 dark:text-gray-300 text-sm">
+    <DashboardCard title="Alert History" className="p-6 h-full overflow-auto">
+      <div className="mb-4 text-gray-700 dark:text-gray-300 text-sm">
         Historical record of flood alerts and their accuracy over the past 12 months.
-      </p>
+      </div>
       <div className="space-y-4 max-h-[320px] overflow-y-auto">
         {alerts.map((alert, idx) => (
           <div key={idx} className="border rounded p-3 bg-white dark:bg-gray-800 shadow-sm">
@@ -83,11 +79,7 @@ const AlertHistory = () => {
 
 const AlertPerformance = () => {
   return (
-    <DashboardCard className="p-6 h-full">
-      <h2 className="text-lg font-semibold mb-4 flex items-center">
-        <AlertTriangle className="w-5 h-5 mr-2 text-karnataka-metro-medium" />
-        Alert System Performance
-      </h2>
+    <DashboardCard title="Alert System Performance" className="p-6 h-full">
       <p className="mb-6 text-gray-700 dark:text-gray-300 text-sm">
         Metrics showing the effectiveness of the flood prediction and alert system.
       </p>
@@ -365,4 +357,3 @@ const FloodPrediction = () => {
 };
 
 export default FloodPrediction;
-

@@ -3,11 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { LucideIcon } from "lucide-react";
 
 interface DashboardCardProps {
-  title: string;
+  title?: string;
   description?: string;
   icon?: LucideIcon;
   iconColor?: string;
   children: React.ReactNode;
+  className?: string; // add className as an optional prop
 }
 
 const DashboardCard = ({
@@ -16,18 +17,19 @@ const DashboardCard = ({
   icon: Icon,
   iconColor = "text-primary",
   children,
+  className = "",
 }: DashboardCardProps) => {
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div>
-          <CardTitle className="text-lg font-bold">{title}</CardTitle>
-          {description && (
-            <CardDescription>{description}</CardDescription>
-          )}
-        </div>
-        {Icon && <Icon className={`h-5 w-5 ${iconColor}`} />}
-      </CardHeader>
+    <Card className={`shadow-sm hover:shadow-md transition-shadow ${className}`}>
+      {(title || Icon) && (
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div>
+            {title && <CardTitle className="text-lg font-bold">{title}</CardTitle>}
+            {description && <CardDescription>{description}</CardDescription>}
+          </div>
+          {Icon && <Icon className={`h-5 w-5 ${iconColor}`} />}
+        </CardHeader>
+      )}
       <CardContent>
         {children}
       </CardContent>
