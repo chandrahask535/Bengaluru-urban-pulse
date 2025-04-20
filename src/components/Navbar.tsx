@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, MapPin, CloudRain, DropletIcon, Building, BarChart3, FileEdit, User, LogOut, Sun, Moon } from "lucide-react";
+import { Menu, X, MapPin, CloudRain, DropletIcon, Building, BarChart3, FileEdit, User, LogOut, Sun, Moon, AlertTriangle, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -168,4 +167,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
