@@ -98,6 +98,7 @@ const UrbanPlanning = () => {
   }[]>([]);
   
   const [selectedLake, setSelectedLake] = useState<string | null>(null);
+  const [activeSecondaryTab, setActiveSecondaryTab] = useState("projects");
 
   useEffect(() => {
     setTimeout(() => {
@@ -160,6 +161,7 @@ const UrbanPlanning = () => {
               <TabsTrigger value="map">City Map</TabsTrigger>
               <TabsTrigger value="analysis">Analysis</TabsTrigger>
               <TabsTrigger value="environment">Environmental Impact</TabsTrigger>
+              <TabsTrigger value="tracker">Urban Tracker</TabsTrigger>
             </TabsList>
 
             <TabsContent value="map">
@@ -317,6 +319,82 @@ const UrbanPlanning = () => {
                   />
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="tracker" className="mt-6">
+              <Tabs defaultValue={activeSecondaryTab} onValueChange={setActiveSecondaryTab}>
+                <TabsList className="mb-4">
+                  <TabsTrigger value="projects">Government Projects</TabsTrigger>
+                  <TabsTrigger value="investment">Investment Insights</TabsTrigger>
+                  <TabsTrigger value="premium">Premium Features</TabsTrigger>
+                </TabsList>
+                <TabsContent value="projects">
+                  <Card className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Government Infrastructure Projects</h3>
+                    <p>Track ongoing and upcoming government projects that may impact property values in Bengaluru.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                      <div className="border p-4 rounded-lg">
+                        <div className="font-semibold mb-1">Metro Line Extension - Purple Line</div>
+                        <div className="text-sm text-blue-600 font-medium mb-2">In Progress</div>
+                        <div className="text-xs mb-1">Location: Whitefield</div>
+                        <div className="text-xs mb-1">Budget: ₹15.50 Cr</div>
+                        <div className="text-xs mb-1">Started: 15 May 2023</div>
+                        <div className="text-xs">Est. Completion: 30 Jun 2025</div>
+                      </div>
+                      <div className="border p-4 rounded-lg">
+                        <div className="font-semibold mb-1">Smart City Water Management</div>
+                        <div className="text-sm text-blue-600 font-medium mb-2">In Progress</div>
+                        <div className="text-xs mb-1">Location: Koramangala</div>
+                        <div className="text-xs mb-1">Budget: ₹8.75 Cr</div>
+                        <div className="text-xs mb-1">Started: 1 Feb 2023</div>
+                        <div className="text-xs">Est. Completion: 31 Dec 2024</div>
+                      </div>
+                      <div className="border p-4 rounded-lg">
+                        <div className="font-semibold mb-1">Central Business District Rejuvenation</div>
+                        <div className="text-sm text-blue-600 font-medium mb-2">In Progress</div>
+                        <div className="text-xs mb-1">Location: MG Road</div>
+                        <div className="text-xs mb-1">Budget: ₹21.00 Cr</div>
+                        <div className="text-xs mb-1">Started: 10 Nov 2022</div>
+                        <div className="text-xs">Est. Completion: 30 Oct 2024</div>
+                      </div>
+                    </div>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="investment">
+                  <Card className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Premium Investment Insights</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="border p-4 rounded-lg">
+                        <div className="font-semibold mb-1">Investment Trends</div>
+                        <p className="text-sm mb-2">Analyze market trends and growth potential</p>
+                        <button className="btn btn-primary px-4 py-2 bg-black text-white rounded hover:bg-gray-900 transition-colors">
+                          View Trends
+                        </button>
+                      </div>
+                      <div className="border p-4 rounded-lg">
+                        <div className="font-semibold mb-1">ROI Predictions</div>
+                        <p className="text-sm mb-2">Estimated returns on investment</p>
+                        <button className="btn btn-primary px-4 py-2 bg-black text-white rounded hover:bg-gray-900 transition-colors">
+                          Calculate ROI
+                        </button>
+                      </div>
+                      <div className="border p-4 rounded-lg">
+                        <div className="font-semibold mb-1">Development Zones</div>
+                        <p className="text-sm mb-2">High-potential development areas</p>
+                        <button className="btn btn-primary px-4 py-2 bg-black text-white rounded hover:bg-gray-900 transition-colors">
+                          Explore Zones
+                        </button>
+                      </div>
+                    </div>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="premium">
+                  <Card className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Premium Features</h3>
+                    <p>Exclusive premium modules coming soon.</p>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           </Tabs>
         </div>

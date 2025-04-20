@@ -1,4 +1,6 @@
 
+// Fixing TypeError: Cannot read property 'critical' of undefined in getStatusColor function by checking if threshold is set before accessing it.
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Droplet, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -7,7 +9,7 @@ interface WaterLevelData {
   current: number;
   historical: number[];
   capacity: number;
-  threshold: {
+  threshold?: {
     low: number;
     critical: number;
   };
@@ -36,6 +38,7 @@ const LakeWaterLevelCard = ({ lakeId, lakeName, waterLevelData }: LakeWaterLevel
   };
 
   const getStatusColor = (level: number) => {
+    if (!data.threshold) return "bg-green-500"; // fallback if threshold undefined
     if (level < data.threshold.critical) return "bg-red-500";
     if (level < data.threshold.low) return "bg-yellow-500";
     return "bg-green-500";
@@ -56,7 +59,7 @@ const LakeWaterLevelCard = ({ lakeId, lakeName, waterLevelData }: LakeWaterLevel
         className={`absolute bottom-0 w-full transition-all duration-500 ${getStatusColor(level)}`} 
         style={{ height: `${level}%` }}
       ></div>
-      {showLabels && (
+      {showLabels && data.threshold && (
         <>
           <div className="absolute w-full border-t border-dashed border-red-500 dark:border-red-400" style={{ bottom: `${data.threshold.critical}%` }}>
             <span className="absolute text-xs text-red-600 dark:text-red-400 left-8 -translate-y-3">Critical</span>
@@ -153,31 +156,31 @@ const LakeWaterLevelCard = ({ lakeId, lakeName, waterLevelData }: LakeWaterLevel
               </div>
             </div>
             
-            {data.current < data.threshold.low && (
+            {data.current < (data.threshold?.low || 0) && (
               <div className={`p-3 rounded-lg border flex items-start ${
-                data.current < data.threshold.critical
+                data.current < (data.threshold?.critical || 0)
                   ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
                   : "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
               }`}>
                 <AlertTriangle className={`h-4 w-4 mt-0.5 mr-2 flex-shrink-0 ${
-                  data.current < data.threshold.critical
+                  data.current < (data.threshold?.critical || 0)
                     ? "text-red-600 dark:text-red-400"
                     : "text-yellow-600 dark:text-yellow-400"
                 }`} />
                 <div>
                   <p className={`text-xs font-medium ${
-                    data.current < data.threshold.critical
+                    data.current < (data.threshold?.critical || 0)
                       ? "text-red-800 dark:text-red-200"
                       : "text-yellow-800 dark:text-yellow-200"
                   }`}>
-                    {data.current < data.threshold.critical ? "Critical" : "Low"} Water Level
+                    {data.current < (data.threshold?.critical || 0) ? "Critical" : "Low"} Water Level
                   </p>
                   <p className={`text-xs mt-1 ${
-                    data.current < data.threshold.critical
+                    data.current < (data.threshold?.critical || 0)
                       ? "text-red-600 dark:text-red-400"
                       : "text-yellow-600 dark:text-yellow-400"
                   }`}>
-                    {data.current < data.threshold.critical
+                    {data.current < (data.threshold?.critical || 0)
                       ? "Water level is critically low. Conservation measures needed immediately."
                       : "Water level is below recommended threshold. Monitor closely."}
                   </p>

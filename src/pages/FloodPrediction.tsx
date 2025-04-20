@@ -1,4 +1,7 @@
 
+// Fixing the className errors on DashboardCard, ensure Alerts section appears only in FloodPrediction.
+// Also ensuring AlertTriangle icon is imported from lucide-react for usage in Alerts and elsewhere.
+
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -10,7 +13,6 @@ import FloodPredictionCard from "@/components/prediction/FloodPredictionCard";
 import { useRecentFloodPredictions } from "@/hooks/usePredictionData";
 import { LakeDataService } from "@/services/LakeDataService";
 
-// --- Alerts tab component extracted from Alerts.tsx ---
 const AlertHistory = () => {
   const alerts = [
     {
