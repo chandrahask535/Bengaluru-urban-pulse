@@ -1,4 +1,3 @@
-
 // Adding clickable links to features for main navigation redirection
 
 import Hero from "@/components/home/Hero";
@@ -22,7 +21,6 @@ const Index = () => {
     { name: "Urban Planning", description: "Analyze zoning maps and identify safe zones for sustainable development.", path: "/urban-planning" },
     { name: "Data Dashboard", description: "Comprehensive visualization of environmental metrics for informed decision-making.", path: "/dashboard" },
     { name: "Citizen Reporting", description: "Upload photos and report issues to help authorities track urban challenges.", path: "/report" },
-    { name: "Mobile Access", description: "Access all features on-the-go with our responsive mobile interface.", path: "/mobile-access" },
   ];
 
   return (

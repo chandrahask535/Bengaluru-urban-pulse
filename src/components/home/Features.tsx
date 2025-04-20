@@ -1,4 +1,3 @@
-
 import { CloudRain, Droplet, Building, BarChart3, Upload, Smartphone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -38,13 +37,6 @@ const Features = () => {
         "Upload photos and report issues to help authorities track urban challenges.",
       icon: Upload,
       color: "bg-karnataka-rain-light text-karnataka-rain-dark",
-    },
-    {
-      name: "Mobile Access",
-      description:
-        "Access all features on-the-go with our responsive mobile interface.",
-      icon: Smartphone,
-      color: "bg-karnataka-park-light text-karnataka-park-dark",
     },
   ];
 

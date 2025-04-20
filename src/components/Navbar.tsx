@@ -27,7 +27,6 @@ const Navbar = () => {
     { name: "Urban Planning", path: "/urban-planning", icon: <Building className="w-4 h-4 mr-2" /> },
     { name: "Data Dashboard", path: "/dashboard", icon: <BarChart3 className="w-4 h-4 mr-2" /> },
     { name: "Citizen Reporting", path: "/report", icon: <FileEdit className="w-4 h-4 mr-2" /> },
-    { name: "Mobile Access", path: "/mobile-access", icon: <Info className="w-4 h-4 mr-2" /> }, 
   ];
 
   return (
