@@ -14,6 +14,8 @@ import LakeMonitoringEnhanced from "./pages/LakeMonitoringEnhanced";
 import Report from "./pages/Report";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import Alerts from "./pages/Alerts";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,8 @@ function App() {
                 <Route path="/urban-planning" element={<UrbanPlanning />} />
                 <Route path="/lake-monitoring" element={<LakeMonitoringEnhanced />} />
                 <Route path="/report" element={<Report />} />
+                <Route path="/alerts" element={<Alerts />} />
+                <Route path="/about" element={<About />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

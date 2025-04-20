@@ -59,7 +59,16 @@ const Navbar = () => {
                 <Moon className="h-5 w-5" />
               )}
             </Button>
-            {navItems.map((item) => (
+            {[ 
+              { name: "Home", path: "/", icon: <MapPin className="w-4 h-4 mr-2" /> },
+              { name: "Flood Prediction", path: "/flood-prediction", icon: <CloudRain className="w-4 h-4 mr-2" /> },
+              { name: "Lake Monitoring", path: "/lake-monitoring", icon: <DropletIcon className="w-4 h-4 mr-2" /> },
+              { name: "Urban Planning", path: "/urban-planning", icon: <Building className="w-4 h-4 mr-2" /> },
+              { name: "Alerts", path: "/alerts", icon: <AlertTriangle className="w-4 h-4 mr-2" /> },
+              { name: "About", path: "/about", icon: <Info className="w-4 h-4 mr-2" /> },
+              { name: "Dashboard", path: "/dashboard", icon: <BarChart3 className="w-4 h-4 mr-2" /> },
+              { name: "Report Issue", path: "/report", icon: <FileEdit className="w-4 h-4 mr-2" /> },
+            ].map((item) => (
               <Link
                 key={item.name}
                 to={item.path}
@@ -110,7 +119,16 @@ const Navbar = () => {
       {/* Mobile menu, show/hide based on menu state */}
       <div className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          {navItems.map((item) => (
+          {[
+            { name: "Home", path: "/", icon: <MapPin className="w-4 h-4 mr-2" /> },
+            { name: "Flood Prediction", path: "/flood-prediction", icon: <CloudRain className="w-4 h-4 mr-2" /> },
+            { name: "Lake Monitoring", path: "/lake-monitoring", icon: <DropletIcon className="w-4 h-4 mr-2" /> },
+            { name: "Urban Planning", path: "/urban-planning", icon: <Building className="w-4 h-4 mr-2" /> },
+            { name: "Alerts", path: "/alerts", icon: <AlertTriangle className="w-4 h-4 mr-2" /> },
+            { name: "About", path: "/about", icon: <Info className="w-4 h-4 mr-2" /> },
+            { name: "Dashboard", path: "/dashboard", icon: <BarChart3 className="w-4 h-4 mr-2" /> },
+            { name: "Report Issue", path: "/report", icon: <FileEdit className="w-4 h-4 mr-2" /> },
+          ].map((item) => (
             <Link
               key={item.name}
               to={item.path}
@@ -150,3 +168,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
