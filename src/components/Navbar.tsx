@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -27,6 +28,7 @@ const Navbar = () => {
     { name: "Urban Planning", path: "/urban-planning", icon: <Building className="w-4 h-4 mr-2" /> },
     { name: "Data Dashboard", path: "/dashboard", icon: <BarChart3 className="w-4 h-4 mr-2" /> },
     { name: "Citizen Reporting", path: "/report", icon: <FileEdit className="w-4 h-4 mr-2" /> },
+    { name: "About", path: "/about", icon: <Info className="w-4 h-4 mr-2" /> }, // Explicitly add About
   ];
 
   return (
@@ -149,3 +151,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
