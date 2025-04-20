@@ -5,11 +5,14 @@ import numpy as np
 from shapely.geometry import shape, mapping
 from shapely.ops import unary_union
 import requests
-
-from ..models import Lake
-from ..schemas import LakeHealthResponse, LakeHealthAssessment
+from app.models import Lake
+from app.schemas import LakeHealthResponse, LakeHealthAssessment
 from .lake_data_scraper import LakeDataScraper
-from ..config.api_keys import API_KEYS
+from app.config.api_keys import API_KEYS, API_ENDPOINTS, CONFIG
+
+weather_key = API_KEYS["openweathermap"]
+weather_url = API_ENDPOINTS["weather"]
+timeout = CONFIG["request_timeout"]
 
 # Constants for analysis
 WATER_QUALITY_THRESHOLDS = {

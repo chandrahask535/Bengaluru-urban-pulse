@@ -38,6 +38,13 @@ const Features = () => {
       icon: Upload,
       color: "bg-karnataka-rain-light text-karnataka-rain-dark",
     },
+    {
+      name: "About",
+      description:
+        "This project aims to develop a data-driven software platform that predicts floods and visualizes urban water data in Bengaluru..",
+      icon: Smartphone,
+      color: "bg-karnataka-rain-light text-karnataka-rain-dark",
+    },
   ];
 
   return (

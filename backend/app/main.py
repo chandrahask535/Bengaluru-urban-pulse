@@ -3,17 +3,27 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
-import os
+import os # Import os module
 
 from .database import SessionLocal, engine, Base
 from .models import *  # Import all models
 from .schemas import *  # Import all schemas
 from .services import flood_prediction, lake_monitoring, urban_planning
 from .auth import get_current_user
-
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
+
+app = FastAPI()
+
+# Add CORS middleware to allow React frontend to communicate with the backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Allow React frontend
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 app = FastAPI(
     title="Karnataka Urban Pulse API",
     description="Backend API for flood prediction, lake monitoring, and urban planning",
@@ -41,6 +51,11 @@ def get_db():
 @app.get("/")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+
+@app.get("/")
+def read_root():
+    return {"message": "Connected to Supabase PostgreSQL!"}
 
 # Flood Prediction endpoints
 @app.post("/api/flood-prediction", response_model=FloodPredictionResponse)

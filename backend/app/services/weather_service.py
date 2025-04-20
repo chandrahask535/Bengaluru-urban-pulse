@@ -2,7 +2,7 @@ from typing import Dict, Any, Optional
 import requests
 from datetime import datetime
 import numpy as np
-from .data_scraper import DataScraper
+from data_scraper import DataScraper
 
 class WeatherService:
     def __init__(self, api_key: str):

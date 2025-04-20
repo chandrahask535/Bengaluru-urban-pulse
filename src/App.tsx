@@ -16,10 +16,36 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Alerts from "./pages/Alerts";
 import About from "./pages/About";
+import { useToast } from "@/hooks/use-toast";
 
-const queryClient = new QueryClient();
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-function App() {
+const App = () => {
+  const [message, setMessage] = useState("");
+  const [connectionError, setConnectionError] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:8000/")
+      .then((response) => {
+        setMessage(response.data.message || response.data);
+        setConnectionError(false);
+      })
+      .catch((error) => {
+        console.error("Backend connection error:", error);
+        setConnectionError(true);
+        toast({
+          variant: "destructive",
+          title: "Backend Connection Error",
+          description: "Unable to connect to the backend server. Please ensure it is running."
+        });
+      });
+  }, []);
+
+  const queryClient = new QueryClient();
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
@@ -40,12 +66,17 @@ function App() {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              {message && !connectionError && (
+                <div style={{ textAlign: "center", padding: "10px", background: "#f0f0f0" }}>
+                  <strong>Backend says:</strong> {message}
+                </div>
+              )}
             </BrowserRouter>
           </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
-}
+};
 
 export default App;

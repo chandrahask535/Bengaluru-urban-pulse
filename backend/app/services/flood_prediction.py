@@ -5,8 +5,8 @@ from typing import Dict, Any
 import requests
 from geopy.geocoders import Nominatim
 
-from ..models import FloodPrediction
-from ..schemas import Coordinates, FloodPredictionResponse
+from app.models import FloodPrediction
+from app.schemas import Coordinates, FloodPredictionResponse
 
 # OpenWeatherMap configuration
 OWM_API_KEY = "your-api-key"  # Replace with actual API key

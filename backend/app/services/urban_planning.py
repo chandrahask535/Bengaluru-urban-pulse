@@ -5,8 +5,8 @@ import numpy as np
 from shapely.geometry import shape, Point, mapping
 from shapely.ops import unary_union
 
-from ..models import UrbanZone
-from ..schemas import Region, UrbanInsightsResponse, UrbanInsights
+from app.models import UrbanZone
+from app.schemas import Region, UrbanInsightsResponse, UrbanInsights
 
 # Constants for analysis
 ZONE_TYPES = {
