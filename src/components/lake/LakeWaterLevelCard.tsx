@@ -1,5 +1,5 @@
 
-// Fixing TypeError: Cannot read property 'critical' of undefined in getStatusColor function by checking if threshold is set before accessing it.
+// Fixing TypeError: Cannot read properties of undefined (reading 'map') in the LakeWaterLevelCard component
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Droplet, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
@@ -113,11 +113,12 @@ const LakeWaterLevelCard = ({ lakeId, lakeName, waterLevelData }: LakeWaterLevel
               <h3 className="text-sm font-medium mb-3">Historical Levels</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                  <span>Last 5 Readings</span>
+                  <span>Last {data.historical?.length || 5} Readings</span>
                   <span>Current</span>
                 </div>
                 <div className="h-24 flex items-end justify-between space-x-1">
-                  {data.historical.map((level, index) => (
+                  {/* Adding a null check for data.historical to prevent the error */}
+                  {data.historical && data.historical.map((level, index) => (
                     <div key={index} className="flex-1 flex flex-col items-center">
                       <div className="w-full">
                         <div 
