@@ -201,9 +201,11 @@ const LakeEncroachmentCard = ({
               </Badge>
             </div>
             <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-              <span>Area: {hotspot.area.toLocaleString()} sq. m</span>
+              <span>Area: {hotspot.area ? hotspot.area.toLocaleString() : 'Unknown'} sq. m</span>
               <span>
-                {hotspot.coordinates[0].toFixed(4)}, {hotspot.coordinates[1].toFixed(4)}
+                {hotspot.coordinates && hotspot.coordinates.length >= 2 
+                  ? `${hotspot.coordinates[0].toFixed(4)}, ${hotspot.coordinates[1].toFixed(4)}`
+                  : 'Unknown location'}
               </span>
             </div>
           </div>
