@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      citizen_reports: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          image_urls: Json | null
+          location: unknown | null
+          report_type: string | null
+          reported_by: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          image_urls?: Json | null
+          location?: unknown | null
+          report_type?: string | null
+          reported_by?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          image_urls?: Json | null
+          location?: unknown | null
+          report_type?: string | null
+          reported_by?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "citizen_reports_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flood_predictions: {
         Row: {
           area_name: string
@@ -168,6 +212,69 @@ export type Database = {
           proj4text?: string | null
           srid?: number
           srtext?: string | null
+        }
+        Relationships: []
+      }
+      urban_zones: {
+        Row: {
+          boundary: unknown | null
+          created_at: string | null
+          flood_risk_score: number | null
+          green_cover_percentage: number | null
+          id: number
+          name: string | null
+          population_density: number | null
+          updated_at: string | null
+          zone_type: string | null
+        }
+        Insert: {
+          boundary?: unknown | null
+          created_at?: string | null
+          flood_risk_score?: number | null
+          green_cover_percentage?: number | null
+          id?: number
+          name?: string | null
+          population_density?: number | null
+          updated_at?: string | null
+          zone_type?: string | null
+        }
+        Update: {
+          boundary?: unknown | null
+          created_at?: string | null
+          flood_risk_score?: number | null
+          green_cover_percentage?: number | null
+          id?: number
+          name?: string | null
+          population_density?: number | null
+          updated_at?: string | null
+          zone_type?: string | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          hashed_password: string | null
+          id: number
+          role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          hashed_password?: string | null
+          id?: number
+          role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          hashed_password?: string | null
+          id?: number
+          role?: string | null
         }
         Relationships: []
       }
