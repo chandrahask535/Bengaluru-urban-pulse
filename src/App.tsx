@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,6 +22,11 @@ import { useToast } from "@/hooks/use-toast";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+// Define an interface for the response data structure
+interface BackendResponse {
+  message: string;
+}
+
 const App = () => {
   const [message, setMessage] = useState("");
   const [connectionError, setConnectionError] = useState(false);
@@ -28,9 +34,10 @@ const App = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/")
+      .get<BackendResponse>("http://localhost:8000/")
       .then((response) => {
-        setMessage(response.data.message || response.data);
+        // Now TypeScript knows response.data has a message property
+        setMessage(response.data.message || (response.data as any).toString());
         setConnectionError(false);
       })
       .catch((error) => {
