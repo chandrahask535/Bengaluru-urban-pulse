@@ -195,7 +195,9 @@ const LakeEncroachmentCard = ({
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{hotspot.description}</p>
               </div>
               <Badge className={getSeverityColor(hotspot.severity)}>
-                {hotspot.severity.charAt(0).toUpperCase() + hotspot.severity.slice(1)}
+                {hotspot.severity && typeof hotspot.severity === 'string' 
+                  ? hotspot.severity.charAt(0).toUpperCase() + hotspot.severity.slice(1) 
+                  : 'Unknown'}
               </Badge>
             </div>
             <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
