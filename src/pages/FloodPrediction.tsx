@@ -1,7 +1,3 @@
-
-// Fixing the className errors on DashboardCard, ensure Alerts section appears only in FloodPrediction.
-// Also ensuring AlertTriangle icon is imported from lucide-react for usage in Alerts and elsewhere.
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -120,6 +116,7 @@ const AlertPerformance = () => {
 const FloodPrediction = () => {
   const [activeTab, setActiveTab] = useState("current");
   const [currentRainfall, setCurrentRainfall] = useState<number>(0);
+  const [rainfallForecast, setRainfallForecast] = useState<number>(0);
   const [floodRisk, setFloodRisk] = useState<{ risk_level: string; probability: number } | null>(null);
   const { data: recentPredictions, isLoading } = useRecentFloodPredictions(10);
 
@@ -129,12 +126,15 @@ const FloodPrediction = () => {
         // Using Bengaluru coordinates
         const lat = 12.9716;
         const lon = 77.5946;
-        
+
+        // Use LakeDataService to get rainfall and flood risk
         const rainfall = await LakeDataService.getCurrentRainfall(lat, lon);
         const risk = await LakeDataService.getFloodRiskPrediction(lat, lon);
-        
+        const forecast = await LakeDataService.getRainfallForecast(lat, lon); // assuming this method exists or create a fallback method
+
         setCurrentRainfall(rainfall);
         setFloodRisk(risk);
+        setRainfallForecast(forecast);
       } catch (error) {
         console.error('Error fetching weather data:', error);
       }
@@ -189,6 +189,9 @@ const FloodPrediction = () => {
         status: pred.risk_level,
       }));
 
+  // Show rain alert only if forecast rainfall is above threshold (e.g., 20mm)
+  const showRainAlert = rainfallForecast > 20;
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -203,10 +206,12 @@ const FloodPrediction = () => {
                 Real-time flood risk analysis and predictions for Karnataka
               </p>
             </div>
-            <div className="flex items-center space-x-2 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1 rounded-full text-sm">
-              <AlertTriangle className="h-4 w-4" />
-              <span>Rain Alert: Heavy rainfall expected in next 24 hours</span>
-            </div>
+            {showRainAlert && (
+              <div className="flex items-center space-x-2 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1 rounded-full text-sm">
+                <AlertTriangle className="h-4 w-4" />
+                <span>Rain Alert: Heavy rainfall expected in next 24 hours</span>
+              </div>
+            )}
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
