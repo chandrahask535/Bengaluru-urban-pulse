@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -238,6 +237,33 @@ export class LakeDataService {
         risk_level: "Low",
         probability: 0
       };
+    }
+  }
+
+  // Get rainfall forecast (sum of rain for next 24 hours) for a location
+  static async getRainfallForecast(lat: number, lon: number): Promise<number> {
+    try {
+      const response = await axios.get(`${WEATHER_API_URL}/forecast`, {
+        params: {
+          lat,
+          lon,
+          appid: API_KEY,
+          units: 'metric',
+        }
+      });
+
+      const data = response.data as ForecastResponse;
+      // Sum rainfall for next 8 forecast periods (24h since 3h intervals)
+      const forecasts = data.list.slice(0, 8);
+      const totalRainfall = forecasts.reduce((sum: number, item) => {
+        const rain = item.rain ? (item.rain['3h'] || 0) : 0;
+        return sum + rain;
+      }, 0);
+
+      return totalRainfall;
+    } catch (error) {
+      console.error("Error fetching rainfall forecast:", error);
+      return 0;
     }
   }
 }

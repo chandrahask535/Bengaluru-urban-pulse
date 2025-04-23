@@ -130,7 +130,7 @@ const FloodPrediction = () => {
         // Use LakeDataService to get rainfall and flood risk
         const rainfall = await LakeDataService.getCurrentRainfall(lat, lon);
         const risk = await LakeDataService.getFloodRiskPrediction(lat, lon);
-        const forecast = await LakeDataService.getRainfallForecast(lat, lon); // assuming this method exists or create a fallback method
+        const forecast = await LakeDataService.getRainfallForecast(lat, lon);
 
         setCurrentRainfall(rainfall);
         setFloodRisk(risk);
@@ -141,7 +141,6 @@ const FloodPrediction = () => {
     };
 
     fetchWeatherData();
-    // Refresh data every 15 minutes
     const interval = setInterval(fetchWeatherData, 15 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
