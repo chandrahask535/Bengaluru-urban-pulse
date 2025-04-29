@@ -1,7 +1,12 @@
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Target, Map, ArrowRight } from "lucide-react";
-import React from "react";
+import { TrendingUp, Target, Map, ArrowRight, ChartBar, Calculator } from "lucide-react";
+import React, { useState } from "react";
+import InvestmentTrends from "./InvestmentTrends";
+import ROICalculator from "./ROICalculator";
+import DevelopmentZones from "./DevelopmentZones";
+import LandPriceCalculator from "./LandPriceCalculator";
 
 interface TrendData {
   area: string;
@@ -37,11 +42,13 @@ const investmentTrends: TrendData[] = [
   }
 ];
 
-const InvestmentInsights = () => {
-  const [activeView, setActiveView] = React.useState<'trends' | 'roi' | 'zones' | null>(null);
+type ViewType = 'main' | 'trends' | 'roi' | 'zones' | 'price';
 
-  const handleViewChange = (view: 'trends' | 'roi' | 'zones') => {
-    setActiveView(activeView === view ? null : view);
+const InvestmentInsights = () => {
+  const [activeView, setActiveView] = useState<ViewType>('main');
+
+  const handleViewChange = (view: ViewType) => {
+    setActiveView(view);
   };
 
   const getGrowthColor = (type: string) => {
@@ -57,9 +64,32 @@ const InvestmentInsights = () => {
     }
   };
 
+  if (activeView === 'trends') {
+    return <InvestmentTrends onBack={() => setActiveView('main')} />;
+  }
+
+  if (activeView === 'roi') {
+    return <ROICalculator onBack={() => setActiveView('main')} />;
+  }
+
+  if (activeView === 'zones') {
+    return <DevelopmentZones onBack={() => setActiveView('main')} />;
+  }
+
+  if (activeView === 'price') {
+    return <LandPriceCalculator onBack={() => setActiveView('main')} />;
+  }
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold flex items-center">
+          <Target className="mr-2 h-5 w-5 text-karnataka-metro-medium" />
+          Premium Investment Insights
+        </h3>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="p-6 flex flex-col justify-between">
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
@@ -68,6 +98,9 @@ const InvestmentInsights = () => {
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Analyze market trends and growth potential
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Get detailed analysis of property value trends and investment opportunities in developing areas.
             </p>
           </div>
           <Button
@@ -89,6 +122,9 @@ const InvestmentInsights = () => {
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Calculate potential returns based on development projects
             </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Calculate potential returns based on development projects and market analysis.
+            </p>
           </div>
           <Button
             variant="outline"
@@ -109,6 +145,9 @@ const InvestmentInsights = () => {
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Identify prime locations for development
             </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Identify prime locations for development based on infrastructure projects.
+            </p>
           </div>
           <Button
             variant="outline"
@@ -116,6 +155,29 @@ const InvestmentInsights = () => {
             onClick={() => handleViewChange('zones')}
           >
             <span>Explore Zones</span>
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </Card>
+        
+        <Card className="p-6 flex flex-col justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <ChartBar className="w-5 h-5 text-karnataka-rain-medium" />
+              <h3 className="font-semibold">Land Price Prediction</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Predict land prices based on location
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Calculate estimated land values based on location, amenities, and market trends.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            className="mt-4 w-full flex items-center justify-center space-x-2"
+            onClick={() => handleViewChange('price')}
+          >
+            <span>Predict Price</span>
             <ArrowRight className="w-4 h-4" />
           </Button>
         </Card>

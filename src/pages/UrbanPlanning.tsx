@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, MapPin, TrendingUp, AlertTriangle, Info, Droplet } from "lucide-react";
+import { Building, MapPin, TrendingUp, AlertTriangle, Info, Droplet, ChartBar } from "lucide-react";
 import UrbanPlanningMap from "@/components/maps/UrbanPlanningMap";
 import { UrbanSprawlAnalysis } from "@/components/lake";
 import { AdvancedSatelliteViewer } from "@/components/maps/satellite";
@@ -14,6 +15,7 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from "@/components/ui/tooltip";
+import InvestmentInsights from "@/components/prediction/InvestmentInsights";
 
 interface Location {
   id: string;
@@ -98,7 +100,7 @@ const UrbanPlanning = () => {
   }[]>([]);
   
   const [selectedLake, setSelectedLake] = useState<string | null>(null);
-  const [activeSecondaryTab, setActiveSecondaryTab] = useState("projects");
+  const [activeSecondaryTab, setActiveSecondaryTab] = useState("investment");
 
   useEffect(() => {
     setTimeout(() => {
@@ -324,10 +326,23 @@ const UrbanPlanning = () => {
             <TabsContent value="tracker" className="mt-6">
               <Tabs defaultValue={activeSecondaryTab} onValueChange={setActiveSecondaryTab}>
                 <TabsList className="mb-4">
-                  <TabsTrigger value="projects">Government Projects</TabsTrigger>
                   <TabsTrigger value="investment">Investment Insights</TabsTrigger>
+                  <TabsTrigger value="projects">Government Projects</TabsTrigger>
                   <TabsTrigger value="premium">Premium Features</TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="investment">
+                  <div className="mb-6">
+                    <h3 className="text-xl font-bold mb-4 flex items-center">
+                      <ChartBar className="mr-2 h-5 w-5 text-karnataka-metro-medium" />
+                      Bengaluru Urban Development Tracker
+                    </h3>
+                    <div className="mb-6">
+                      <InvestmentInsights />
+                    </div>
+                  </div>
+                </TabsContent>
+
                 <TabsContent value="projects">
                   <Card className="p-6">
                     <h3 className="text-lg font-semibold mb-4">Government Infrastructure Projects</h3>
@@ -360,34 +375,7 @@ const UrbanPlanning = () => {
                     </div>
                   </Card>
                 </TabsContent>
-                <TabsContent value="investment">
-                  <Card className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Premium Investment Insights</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="border p-4 rounded-lg">
-                        <div className="font-semibold mb-1">Investment Trends</div>
-                        <p className="text-sm mb-2">Analyze market trends and growth potential</p>
-                        <button className="btn btn-primary px-4 py-2 bg-black text-white rounded hover:bg-gray-900 transition-colors">
-                          View Trends
-                        </button>
-                      </div>
-                      <div className="border p-4 rounded-lg">
-                        <div className="font-semibold mb-1">ROI Predictions</div>
-                        <p className="text-sm mb-2">Estimated returns on investment</p>
-                        <button className="btn btn-primary px-4 py-2 bg-black text-white rounded hover:bg-gray-900 transition-colors">
-                          Calculate ROI
-                        </button>
-                      </div>
-                      <div className="border p-4 rounded-lg">
-                        <div className="font-semibold mb-1">Development Zones</div>
-                        <p className="text-sm mb-2">High-potential development areas</p>
-                        <button className="btn btn-primary px-4 py-2 bg-black text-white rounded hover:bg-gray-900 transition-colors">
-                          Explore Zones
-                        </button>
-                      </div>
-                    </div>
-                  </Card>
-                </TabsContent>
+
                 <TabsContent value="premium">
                   <Card className="p-6">
                     <h3 className="text-lg font-semibold mb-4">Premium Features</h3>
