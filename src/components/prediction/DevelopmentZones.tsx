@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building, MapPin, TrendingUp, ArrowUpRight } from 'lucide-react';
-import MapContainer from '@/components/ui/map/MapContainer';
+import MapBoxComponent from '@/components/maps/MapBoxComponent';
 import { toast } from 'sonner';
 
 interface DevelopmentZonesProps {
@@ -110,7 +110,7 @@ const DevelopmentZones = ({ onBack }: DevelopmentZonesProps) => {
             Prime Development Locations
           </h4>
           <div className="h-[400px] mb-4">
-            <MapContainer
+            <MapBoxComponent
               center={[12.9716, 77.5946]}
               zoom={11}
               className="h-full w-full rounded-md shadow-sm"

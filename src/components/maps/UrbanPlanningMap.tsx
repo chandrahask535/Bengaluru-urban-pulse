@@ -1,8 +1,7 @@
 
-import { useEffect, useState, useCallback } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import MapBoxComponent from '@/components/maps/MapBoxComponent';
 
 interface Location {
   id: string;
@@ -34,75 +33,52 @@ const UrbanPlanningMap = ({
   onLocationSelect,
   className = 'h-[600px]'
 }: UrbanPlanningMapProps) => {
-  const [map, setMap] = useState<L.Map | null>(null);
-  const [markers, setMarkers] = useState<L.Marker[]>([]);
-  const mapContainerRef = useState<string>(`urban-planning-map-${Math.random().toString(36).substring(2, 9)}`)[0];
+  const [markers, setMarkers] = useState<Array<{ position: [number, number]; popup: string }>>([]);
 
+  // Create popups for each location
   useEffect(() => {
-    if (!map) {
-      // Initialize map centered on Bengaluru
-      const newMap = L.map(mapContainerRef).setView([12.9716, 77.5946], 11);
-
-      // Add Mapbox tiles using environment variable
-      L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}`, {
-        attribution: '© Mapbox © OpenStreetMap'
-      }).addTo(newMap);
-
-      setMap(newMap);
-    }
-
-    return () => {
-      if (map) {
-        map.remove();
-        setMap(null);
-      }
+    const newMarkers = locations.map(location => ({
+      position: location.coordinates,
+      popup: `
+        <div class="p-2">
+          <h3 class="font-bold">${location.name}</h3>
+          <p class="text-sm">Flood Risk: ${location.details.floodRisk}</p>
+          <p class="text-sm">Green Coverage: ${location.details.greenCoverage}%</p>
+          <button 
+            class="mt-2 px-3 py-1 bg-blue-500 text-white rounded-md text-sm"
+            onclick="window.selectLocation('${location.id}')"
+          >
+            Select Location
+          </button>
+        </div>
+      `
+    }));
+    
+    setMarkers(newMarkers);
+    
+    // Add global function for marker click handling
+    (window as any).selectLocation = (locationId: string) => {
+      onLocationSelect(locationId);
     };
-  }, [mapContainerRef]);
+    
+    return () => {
+      // Clean up the global function
+      delete (window as any).selectLocation;
+    };
+  }, [locations, onLocationSelect]);
 
-  useEffect(() => {
-    if (map) {
-      // Clear existing markers
-      markers.forEach(marker => marker.remove());
-      const newMarkers: L.Marker[] = [];
-
-      // Add markers for each location
-      locations.forEach(location => {
-        const marker = L.marker(location.coordinates)
-          .addTo(map)
-          .bindPopup(`
-            <div class="p-2">
-              <h3 class="font-bold">${location.name}</h3>
-              <p class="text-sm">Flood Risk: ${location.details.floodRisk}</p>
-              <p class="text-sm">Green Coverage: ${location.details.greenCoverage}%</p>
-              <button 
-                class="mt-2 px-3 py-1 bg-blue-500 text-white rounded-md text-sm"
-                onclick="window.selectLocation('${location.id}')"
-              >
-                Select Location
-              </button>
-            </div>
-          `);
-
-        if (location.id === selectedLocation) {
-          marker.openPopup();
-          map.setView(location.coordinates, 12);
-        }
-
-        newMarkers.push(marker);
-      });
-
-      setMarkers(newMarkers);
-
-      // Add global function for marker click handling
-      (window as any).selectLocation = (locationId: string) => {
-        onLocationSelect(locationId);
-      };
-    }
-  }, [map, locations, selectedLocation, onLocationSelect]);
+  const centerCoordinates = selectedLocation 
+    ? locations.find(loc => loc.id === selectedLocation)?.coordinates || [12.9716, 77.5946]
+    : [12.9716, 77.5946];
 
   return (
     <Card className="p-4">
-      <div id={mapContainerRef} className={className} />
+      <MapBoxComponent
+        center={centerCoordinates}
+        zoom={selectedLocation ? 12 : 11}
+        markers={markers}
+        className={className}
+      />
     </Card>
   );
 };

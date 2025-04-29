@@ -6,7 +6,7 @@ export const API_KEYS = {
   OPENWEATHER_API_KEY: import.meta.env.VITE_OPENWEATHER_API_KEY || "8ad34abc3b5bd464821c93ba25ac9fd1",
   
   // Maps and Geolocation
-  MAPBOX_API_KEY: import.meta.env.VITE_MAPBOX_API_KEY || "pk.eyJ1IjoibG92YWJsZWxsYyIsImEiOiJjbHd1cTJvcDgxYWM5MnBtd3kxY2NrenU1In0.6OFAO96tqZVBEkw_JWbDQA",
+  MAPBOX_API_KEY: import.meta.env.VITE_MAPBOX_API_KEY || "pk.eyJ1IjoiY2hhbmRyYWhhc2s1MzUiLCJhIjoiY205NDVvemFnMHdiODJqcjRxZnhyaTBocSJ9.gi8-Fb34Kc5RkeGGPx8qCQ",
   
   // Satellite Imagery
   NASA_EARTH_API_KEY: import.meta.env.VITE_NASA_EARTH_API_KEY || "fQH61FjpO5Uaqh335VOCEVvEaqr1onrHtpPfA3eZ",
@@ -25,6 +25,10 @@ export const API_ENDPOINTS = {
   BHUVAN_LULC_STATISTICS: "https://bhuvan.nrsc.gov.in/api/lulc-statistics",
   BHUVAN_GEOCODING: "https://bhuvan.nrsc.gov.in/api/geocode",
   BHUVAN_GEOID: "https://bhuvan.nrsc.gov.in/api/geoid",
+  
+  // Mapbox specific endpoints
+  MAPBOX_GEOCODING: "https://api.mapbox.com/geocoding/v5/mapbox.places",
+  MAPBOX_DIRECTIONS: "https://api.mapbox.com/directions/v5/mapbox",
 };
 
 // Configuration
