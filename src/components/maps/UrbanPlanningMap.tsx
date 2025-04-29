@@ -67,8 +67,10 @@ const UrbanPlanningMap = ({
     };
   }, [locations, onLocationSelect]);
 
-  const centerCoordinates = selectedLocation 
-    ? locations.find(loc => loc.id === selectedLocation)?.coordinates || [12.9716, 77.5946]
+  const selectedLocationData = locations.find(loc => loc.id === selectedLocation);
+  // Make sure we have a valid [number, number] tuple
+  const centerCoordinates: [number, number] = selectedLocationData 
+    ? selectedLocationData.coordinates
     : [12.9716, 77.5946];
 
   return (

@@ -35,7 +35,7 @@ const MapBoxComponent = ({
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v11',
-      center: center,
+      center: [center[1], center[0]], // MapBox uses [lng, lat] order
       zoom: zoom,
     });
 
