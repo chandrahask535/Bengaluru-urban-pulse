@@ -9,14 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
-  const [selectedRegion, setSelectedRegion] = useState("bengaluru");
+  const [selectedRegion, setSelectedRegion] = useState("bengaluru-urban");
   
   const regions = [
-    { id: "bengaluru", name: "Bengaluru" },
-    { id: "mysuru", name: "Mysuru" },
-    { id: "hubli", name: "Hubli-Dharwad" },
-    { id: "mangaluru", name: "Mangaluru" },
-    { id: "belgaum", name: "Belgaum" },
+    { id: "bengaluru-urban", name: "Bengaluru Urban" },
+    { id: "bengaluru-rural", name: "Bengaluru Rural" },
+    { id: "east-bengaluru", name: "East Bengaluru" },
+    { id: "west-bengaluru", name: "West Bengaluru" },
+    { id: "north-bengaluru", name: "North Bengaluru" },
+    { id: "south-bengaluru", name: "South Bengaluru" },
   ];
 
   // Dummy alerts for the dashboard
@@ -78,10 +79,10 @@ const Dashboard = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                Karnataka Urban Pulse Dashboard
+                Bengaluru Urban Pulse Dashboard
               </h1>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Comprehensive view of urban management metrics
+                Comprehensive view of Bengaluru's urban management metrics
               </p>
             </div>
             <div className="w-full sm:w-auto">
@@ -103,9 +104,9 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <DashboardCard
               title="Rainfall Today"
-              description="Average across region"
+              description="Average across Bengaluru"
               icon={CloudRain}
-              iconColor="text-karnataka-rain-medium"
+              iconColor="text-bengaluru-rain-medium"
             >
               <div className="flex items-baseline space-x-2">
                 <span className="text-3xl font-bold">32.4</span>
@@ -120,7 +121,7 @@ const Dashboard = () => {
               title="Lake Health Index"
               description="Average across monitored lakes"
               icon={Droplet}
-              iconColor="text-karnataka-lake-medium"
+              iconColor="text-bengaluru-lake-medium"
             >
               <div className="flex items-baseline space-x-2">
                 <span className="text-3xl font-bold">62</span>
@@ -135,7 +136,7 @@ const Dashboard = () => {
               title="Green Cover"
               description="Percentage of urban area"
               icon={Building}
-              iconColor="text-karnataka-park-medium"
+              iconColor="text-bengaluru-park-medium"
             >
               <div className="flex items-baseline space-x-2">
                 <span className="text-3xl font-bold">18.2</span>
@@ -150,7 +151,7 @@ const Dashboard = () => {
               title="Air Quality Index"
               description="Average across monitoring stations"
               icon={Filter}
-              iconColor="text-karnataka-metro-medium"
+              iconColor="text-bengaluru-metro-medium"
             >
               <div className="flex items-baseline space-x-2">
                 <span className="text-3xl font-bold">124</span>
@@ -173,7 +174,7 @@ const Dashboard = () => {
             <TabsContent value="alerts">
               <DashboardCard
                 title="Recent Alerts & Notifications"
-                description="Critical updates from across Karnataka"
+                description="Critical updates from across Bengaluru"
                 icon={AlertTriangle}
                 iconColor="text-amber-500"
               >
@@ -216,12 +217,12 @@ const Dashboard = () => {
                   title="Flood Prediction Map"
                   description="Flood risk areas in Bengaluru"
                   icon={MapPin}
-                  iconColor="text-karnataka-rain-dark"
+                  iconColor="text-bengaluru-rain-dark"
                 >
                   <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-md overflow-hidden">
                     <img
-                      src="https://via.placeholder.com/800x450?text=Flood+Prediction+Map"
-                      alt="Flood Prediction Map"
+                      src="https://via.placeholder.com/800x450?text=Bengaluru+Flood+Prediction+Map"
+                      alt="Bengaluru Flood Prediction Map"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -231,41 +232,41 @@ const Dashboard = () => {
                   title="Rainfall Forecast"
                   description="Predicted rainfall for next 5 days"
                   icon={Calendar}
-                  iconColor="text-karnataka-rain-medium"
+                  iconColor="text-bengaluru-rain-medium"
                 >
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Today</span>
                       <div className="flex items-center space-x-2">
-                        <CloudRain className="h-4 w-4 text-karnataka-rain-medium" />
+                        <CloudRain className="h-4 w-4 text-bengaluru-rain-medium" />
                         <span>25-35 mm</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Tomorrow</span>
                       <div className="flex items-center space-x-2">
-                        <CloudRain className="h-4 w-4 text-karnataka-rain-medium" />
+                        <CloudRain className="h-4 w-4 text-bengaluru-rain-medium" />
                         <span>30-40 mm</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Day 3</span>
                       <div className="flex items-center space-x-2">
-                        <CloudRain className="h-4 w-4 text-karnataka-rain-medium" />
+                        <CloudRain className="h-4 w-4 text-bengaluru-rain-medium" />
                         <span>15-25 mm</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Day 4</span>
                       <div className="flex items-center space-x-2">
-                        <CloudRain className="h-4 w-4 text-karnataka-rain-medium" />
+                        <CloudRain className="h-4 w-4 text-bengaluru-rain-medium" />
                         <span>10-20 mm</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Day 5</span>
                       <div className="flex items-center space-x-2">
-                        <CloudRain className="h-4 w-4 text-karnataka-rain-medium" />
+                        <CloudRain className="h-4 w-4 text-bengaluru-rain-medium" />
                         <span>5-15 mm</span>
                       </div>
                     </div>
@@ -277,7 +278,7 @@ const Dashboard = () => {
             <TabsContent value="lakes">
               <DashboardCard
                 title="Lake Health Overview"
-                description="Status of major lakes in Karnataka"
+                description="Status of major lakes in Bengaluru"
               >
                 <div className="text-center py-12">
                   <p className="text-gray-500 dark:text-gray-400">
