@@ -9,11 +9,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center">
-              <img src="/placeholder.svg" alt="Karnataka Urban Pulse" className="h-8 w-auto" />
+              <img src="/placeholder.svg" alt="Bengaluru Urban Pulse" className="h-8 w-auto" />
               <span className="ml-2 text-lg font-semibold text-gray-900 dark:text-white">Urban Pulse</span>
             </Link>
             <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-              Smart urban management system for Karnataka's sustainable development.
+              Smart urban management system for Bengaluru's sustainable development.
             </p>
           </div>
           
@@ -65,13 +65,13 @@ const Footer = () => {
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" />
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  BBMP Complex, Hudson Circle, Bengaluru, Karnataka 560002
+                  BBMP Complex, Hudson Circle, Bengaluru, 560002
                 </span>
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 text-gray-400 mr-2" />
-                <a href="mailto:contact@karnatakaUrbanPulse.gov.in" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
-                  contact@karnatakaUrbanPulse.gov.in
+                <a href="mailto:contact@bengaluruUrbanPulse.gov.in" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
+                  contact@bengaluruUrbanPulse.gov.in
                 </a>
               </li>
               <li className="flex items-center">
@@ -86,7 +86,7 @@ const Footer = () => {
         
         <div className="mt-12 border-t border-gray-200 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} Karnataka Urban Pulse. All rights reserved.
+            &copy; {new Date().getFullYear()} Bengaluru Urban Pulse. All rights reserved.
           </p>
           <div className="mt-4 md:mt-0 flex space-x-6">
             <a href="#" className="text-gray-400 hover:text-karnataka-metro-medium">

@@ -40,7 +40,7 @@ const Navbar = () => {
               <img
                 className="h-8 w-auto"
                 src="/placeholder.svg"
-                alt="Karnataka Urban Pulse"
+                alt="Bengaluru Urban Pulse"
               />
               <span className="ml-2 text-lg font-semibold text-gray-900 dark:text-white">Urban Pulse</span>
             </Link>
@@ -151,4 +151,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

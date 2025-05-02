@@ -1,3 +1,4 @@
+
 import { CloudRain, Droplet, Building, BarChart3, Upload, Smartphone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -41,7 +42,7 @@ const Features = () => {
     {
       name: "About",
       description:
-        "This project aims to develop a data-driven software platform that predicts floods and visualizes urban water data in Bengaluru..",
+        "This project aims to develop a data-driven software platform that predicts floods and visualizes urban water data in Bengaluru.",
       icon: Smartphone,
       color: "bg-karnataka-rain-light text-karnataka-rain-dark",
     },
@@ -56,7 +57,7 @@ const Features = () => {
             A comprehensive urban management system
           </p>
           <p className="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-400 lg:mx-auto">
-            Our platform combines data analytics, GIS mapping, and machine learning to address Karnataka's urban challenges.
+            Our platform combines data analytics, GIS mapping, and machine learning to address Bengaluru's urban challenges.
           </p>
         </div>
 
