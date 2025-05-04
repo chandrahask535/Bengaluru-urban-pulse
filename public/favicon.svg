@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="95" fill="#ffffff" stroke="#D1D5DB" stroke-width="2"/>
+  <g transform="translate(30, 30) scale(0.7)">
+    <!-- Tree 1 -->
+    <path d="M40 80 L40 120 L60 120 L60 80 L50 60 Z" fill="#22C55E"/>
+    <!-- Buildings -->
+    <path d="M70 60 L70 120 L90 120 L90 40 L110 40 L110 120 L130 120 L130 60 Z" fill="#0F172A"/>
+    <!-- Tree 2 -->
+    <path d="M140 100 Q150 80 160 100 Z" fill="#22C55E"/>
+    <!-- Road -->
+    <path d="M20 90 L160 90" stroke="#4B5563" stroke-width="10" stroke-linecap="round"/>
+    <path d="M20 90 L160 90" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-dasharray="5,10"/>
+    <!-- Water Waves -->
+    <path d="M20 130 Q40 120 60 130 Q80 140 100 130 Q120 120 140 130 Q160 140 180 130" fill="none" stroke="#60A5FA" stroke-width="8" stroke-linecap="round"/>
+    <path d="M20 150 Q40 140 60 150 Q80 160 100 150 Q120 140 140 150 Q160 160 180 150" fill="none" stroke="#60A5FA" stroke-width="8" stroke-linecap="round"/>
+  </g>
+</svg>
