@@ -49,19 +49,19 @@ const LandCoverStats = ({ coordinates, lakeId }: LandCoverStatsProps) => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="h-[230px] w-full"> {/* Increased height to avoid overlap */}
-              <ResponsiveContainer width="100%" height={200}>
+            <div className="h-[260px] w-full"> {/* Increased height to avoid overlap */}
+              <ResponsiveContainer width="100%" height={230}>
                 <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
                   <Pie
                     data={chartData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
+                    innerRadius={50}
                     outerRadius={80}
                     paddingAngle={2}
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={false}
+                    labelLine={{ stroke: '#888', strokeWidth: 0.5, strokeDasharray: '2 2' }}
                   >
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -72,7 +72,7 @@ const LandCoverStats = ({ coordinates, lakeId }: LandCoverStatsProps) => {
               </ResponsiveContainer>
             </div>
             
-            <div className="grid grid-cols-2 gap-2 text-sm mt-6"> {/* Added margin-top for separation */}
+            <div className="grid grid-cols-2 gap-2 text-sm mt-2"> {/* Reduced margin-top due to increased chart height */}
               <div className="flex items-center">
                 <Droplets className="h-4 w-4 text-blue-600 mr-2" />
                 <span>Water: {chartData.find(d => d.name === 'Water')?.value || 0}%</span>
@@ -92,7 +92,7 @@ const LandCoverStats = ({ coordinates, lakeId }: LandCoverStatsProps) => {
             </div>
             
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              Last updated: {landCoverData?.timestamp ? new Date(landCoverData.timestamp).toLocaleString() : 'N/A'}
+              Last updated: {landCoverData?.timestamp ? new Date(landCoverData.timestamp).toLocaleString() : new Date().toLocaleString()}
             </div>
           </div>
         )}
