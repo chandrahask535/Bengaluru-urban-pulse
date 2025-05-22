@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
@@ -22,6 +23,7 @@ const LandCoverStats = ({ coordinates, lakeId }: LandCoverStatsProps) => {
         { name: 'Barren', value: landCoverData.barren, color: '#ca8a04' }
       ]);
     } else {
+      // Fallback data if API doesn't return anything
       setChartData([
         { name: 'Water', value: lakeId === 'bellandur' ? 18 : lakeId === 'varthur' ? 15 : 25, color: '#2563eb' },
         { name: 'Vegetation', value: lakeId === 'bellandur' ? 22 : lakeId === 'varthur' ? 20 : 40, color: '#16a34a' },
@@ -47,28 +49,30 @@ const LandCoverStats = ({ coordinates, lakeId }: LandCoverStatsProps) => {
           </div>
         ) : (
           <div className="space-y-4">
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={2}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false}
-                >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="h-[230px] w-full"> {/* Increased height to avoid overlap */}
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `${value}%`} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
             
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-2 text-sm mt-6"> {/* Added margin-top for separation */}
               <div className="flex items-center">
                 <Droplets className="h-4 w-4 text-blue-600 mr-2" />
                 <span>Water: {chartData.find(d => d.name === 'Water')?.value || 0}%</span>

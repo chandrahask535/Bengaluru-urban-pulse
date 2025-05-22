@@ -1,22 +1,17 @@
 
-import { Card } from '@/components/ui/card';
-import { Building, MapPin, AlertTriangle, Info } from 'lucide-react';
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
-} from '@/components/ui/tooltip';
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Building, AlertTriangle, Map, Locate } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
-interface EncroachmentHotspot {
-  id: number;
-  name: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  area: number;
-  description: string;
-  coordinates: [number, number];
+interface EncroachmentData {
+  percentage: number;
+  hotspots: Array<{id: number; name: string; area: number; severity: string}>;
+  area_lost: number;
+  timestamp: string;
 }
 
 interface LakeEncroachmentCardProps {
@@ -24,193 +19,201 @@ interface LakeEncroachmentCardProps {
   lakeName: string;
   encroachmentData?: {
     percentage: number;
-    totalArea: number;
-    hotspots: EncroachmentHotspot[];
-    lastUpdated: string;
+    hotspots?: number;
+    area_lost?: number;
   };
-  loading?: boolean;
 }
 
-const LakeEncroachmentCard = ({ 
-  lakeId, 
-  lakeName, 
-  encroachmentData,
-  loading = false 
-}: LakeEncroachmentCardProps) => {
-  // If no data provided, use sample data
-  const data = encroachmentData || {
-    percentage: 22,
-    totalArea: 15600,
-    hotspots: [
-      {
-        id: 1,
-        name: "Northeast Shore",
-        severity: "high" as const,
-        area: 4500,
-        description: "Commercial development expanding into protected zone",
-        coordinates: [12.958, 77.648]
-      },
-      {
-        id: 2,
-        name: "Western Edge",
-        severity: "medium" as const,
-        area: 2800,
-        description: "Informal settlements along lake periphery",
-        coordinates: [12.942, 77.632] 
-      },
-      {
-        id: 3,
-        name: "Southern Bank",
-        severity: "critical" as const,
-        area: 6200,
-        description: "Industrial waste dumping and construction activity",
-        coordinates: [12.936, 77.637]
-      },
-      {
-        id: 4,
-        name: "Eastern Inlet",
-        severity: "low" as const,
-        area: 2100,
-        description: "Minor agricultural encroachment affecting water flow",
-        coordinates: [12.950, 77.646]
-      }
-    ],
-    lastUpdated: "2025-04-02T14:30:00"
-  };
+const LakeEncroachmentCard = ({ lakeId, lakeName, encroachmentData }: LakeEncroachmentCardProps) => {
+  const [data, setData] = useState<EncroachmentData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'low':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200';
-      case 'medium':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200';
-      case 'high':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200';
-      case 'critical':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200 border border-red-500';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+  // Function to fetch encroachment data - simulates real-time web scraping
+  const fetchEncroachmentData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // In a real implementation, this would call your backend API that handles web scraping
+      // For now, we'll simulate it with a delayed response of synthetic data
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate realistic data based on lakeId
+      let generatedData: EncroachmentData;
+      
+      if (lakeId === 'bellandur') {
+        generatedData = {
+          percentage: encroachmentData?.percentage || 32,
+          hotspots: [
+            {id: 1, name: "Southeastern Shore", area: 12500, severity: "high"},
+            {id: 2, name: "Western Boundary", area: 8700, severity: "high"},
+            {id: 3, name: "Northern Edge", area: 6300, severity: "medium"},
+            {id: 4, name: "Eastern Inlet", area: 5100, severity: "medium"}
+          ],
+          area_lost: encroachmentData?.area_lost || 56.3,
+          timestamp: new Date().toISOString()
+        };
+      } else if (lakeId === 'varthur') {
+        generatedData = {
+          percentage: encroachmentData?.percentage || 25,
+          hotspots: [
+            {id: 1, name: "Northeastern Boundary", area: 9800, severity: "high"},
+            {id: 2, name: "Southern Shore", area: 7600, severity: "medium"},
+            {id: 3, name: "Western Edge", area: 4200, severity: "medium"}
+          ],
+          area_lost: encroachmentData?.area_lost || 43.8,
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        generatedData = {
+          percentage: encroachmentData?.percentage || 8,
+          hotspots: [
+            {id: 1, name: "Southern Edge", area: 2800, severity: "medium"},
+            {id: 2, name: "Eastern Shore", area: 1900, severity: "low"}
+          ],
+          area_lost: encroachmentData?.area_lost || 12.7,
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      setData(generatedData);
+      console.log(`Retrieved encroachment data for ${lakeName}:`, generatedData);
+      
+    } catch (err) {
+      console.error("Error fetching encroachment data:", err);
+      setError("Failed to fetch encroachment data. Please try again.");
+      
+      // Use fallback data
+      if (encroachmentData) {
+        setData({
+          percentage: encroachmentData.percentage,
+          hotspots: [],
+          area_lost: encroachmentData.area_lost || 0,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getEncroachmentLevel = () => {
-    if (data.percentage > 30) return "Severe";
-    if (data.percentage > 15) return "Significant";
-    if (data.percentage > 5) return "Moderate";
-    return "Low";
+  useEffect(() => {
+    fetchEncroachmentData();
+  }, [lakeId, lakeName]);
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'high':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      case 'medium':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+      case 'low':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    }
   };
 
-  const getEncroachmentColor = () => {
-    if (data.percentage > 30) return "text-red-600 dark:text-red-400";
-    if (data.percentage > 15) return "text-orange-600 dark:text-orange-400";
-    if (data.percentage > 5) return "text-yellow-600 dark:text-yellow-400";
-    return "text-green-600 dark:text-green-400";
+  const getProgressColor = (percentage: number) => {
+    if (percentage > 20) return "bg-red-500";
+    if (percentage > 10) return "bg-orange-500";
+    return "bg-green-500";
   };
-  
-  if (loading) {
-    return (
-      <Card className="p-4 animate-pulse">
-        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-2/5 mb-4"></div>
-        <div className="flex space-x-4 mb-6">
-          <div className="h-16 w-16 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-          <div className="flex-1">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-          </div>
-        </div>
-        <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-14 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          ))}
-        </div>
-      </Card>
-    );
-  }
-  
+
+  const handleRefresh = () => {
+    toast.info(`Refreshing encroachment data for ${lakeName}`);
+    fetchEncroachmentData();
+  };
+
   return (
-    <Card className="p-4 border-t-4 border-t-karnataka-metro-medium">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-medium text-lg flex items-center">
-          <Building className="h-5 w-5 mr-2 text-karnataka-metro-medium" />
-          Encroachment Analysis: {lakeName}
-        </h3>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Info className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left" className="max-w-80">
-              <p className="text-sm">Encroachment refers to unauthorized structures or development that reduces lake area or affects water quality.</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-      
-      <div className="flex items-center space-x-2 mb-4">
-        <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center relative">
-          <span className={`text-xl font-bold ${getEncroachmentColor()}`}>{data.percentage}%</span>
-          <svg className="absolute inset-0" width="64" height="64" viewBox="0 0 64 64">
-            <circle
-              cx="32"
-              cy="32"
-              r="28"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeDasharray={`${data.percentage * 1.76} 176`}
-              strokeLinecap="round"
-              className={getEncroachmentColor()}
-              transform="rotate(-90 32 32)"
-            />
-          </svg>
+    <Card className="border-t-4 border-t-karnataka-metro-medium">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-base font-medium flex items-center">
+            <Building className="h-4 w-4 mr-2 text-karnataka-metro-medium" />
+            Encroachment Analysis
+          </CardTitle>
+          <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={loading}>
+            <Locate className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
-        <div>
-          <div className="flex items-center">
-            <h4 className="font-medium">{getEncroachmentLevel()} Encroachment</h4>
-            {data.percentage > 15 && (
-              <AlertTriangle className="h-4 w-4 ml-2 text-amber-500" />
-            )}
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <div className="grid grid-cols-2 gap-2">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {data.percentage}% of lake area affected ({(data.totalArea * data.percentage / 100).toFixed(0)} sq. m)
-          </p>
-        </div>
-      </div>
-      
-      <div className="h-px bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
-      
-      <h4 className="text-sm font-medium mb-3">Encroachment Hotspots:</h4>
-      <div className="space-y-3">
-        {data.hotspots.map(hotspot => (
-          <div key={hotspot.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="flex items-center">
-                  <MapPin className="h-3.5 w-3.5 mr-1.5 text-karnataka-metro-light" />
-                  <h5 className="font-medium text-sm">{hotspot.name}</h5>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{hotspot.description}</p>
+        ) : error && !data ? (
+          <div className="py-8 text-center text-red-500">
+            <AlertTriangle className="mx-auto h-8 w-8 mb-2" />
+            <p>{error}</p>
+            <Button variant="outline" size="sm" className="mt-3" onClick={handleRefresh}>
+              Try Again
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-sm font-medium">Encroachment Level:</span>
+                <span className="text-sm font-semibold">{data?.percentage}%</span>
               </div>
-              <Badge className={getSeverityColor(hotspot.severity)}>
-                {hotspot.severity && typeof hotspot.severity === 'string' 
-                  ? hotspot.severity.charAt(0).toUpperCase() + hotspot.severity.slice(1) 
-                  : 'Unknown'}
-              </Badge>
+              <Progress 
+                value={data?.percentage || 0} 
+                className="h-2" 
+                indicatorClassName={getProgressColor(data?.percentage || 0)} 
+              />
+              <div className="mt-1 text-xs text-gray-500">
+                {data?.area_lost ? `Estimated ${data.area_lost.toFixed(1)} hectares lost` : ''}
+              </div>
             </div>
-            <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-              <span>Area: {hotspot.area ? hotspot.area.toLocaleString() : 'Unknown'} sq. m</span>
-              <span>
-                {hotspot.coordinates && hotspot.coordinates.length >= 2 
-                  ? `${hotspot.coordinates[0].toFixed(4)}, ${hotspot.coordinates[1].toFixed(4)}`
-                  : 'Unknown location'}
-              </span>
+            
+            <div>
+              <h4 className="text-sm font-medium mb-3 flex items-center">
+                <Map className="h-4 w-4 mr-1.5 text-karnataka-metro-medium" />
+                Encroachment Hotspots
+              </h4>
+              
+              {data?.hotspots && data.hotspots.length > 0 ? (
+                <div className="space-y-3 max-h-[250px] overflow-auto pr-1">
+                  {data.hotspots.map(hotspot => (
+                    <div key={hotspot.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                      <div className="flex justify-between items-start">
+                        <h5 className="font-medium text-sm">{hotspot.name}</h5>
+                        <span 
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${getSeverityColor(hotspot.severity)}`}
+                        >
+                          {hotspot.severity.charAt(0).toUpperCase() + hotspot.severity.slice(1)}
+                        </span>
+                      </div>
+                      <div className="mt-1.5 text-xs text-gray-600 dark:text-gray-400">
+                        <span>Affected area: {hotspot.area.toLocaleString()} sq m</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+                  <p>No encroachment hotspots detected</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="text-xs text-gray-500">
+              Last updated: {data?.timestamp ? new Date(data.timestamp).toLocaleString() : 'N/A'}
             </div>
           </div>
-        ))}
-      </div>
+        )}
+      </CardContent>
     </Card>
   );
 };

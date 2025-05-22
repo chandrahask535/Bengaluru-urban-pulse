@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,6 +8,7 @@ import UrbanPlanningMap from "@/components/maps/UrbanPlanningMap";
 import { UrbanSprawlAnalysis } from "@/components/lake";
 import { AdvancedSatelliteViewer } from "@/components/maps/satellite";
 import { Button } from "@/components/ui/button";
+import UrbanAnalysisContent from "@/components/urban/UrbanAnalysisContent";
 import { 
   Tooltip, 
   TooltipContent, 
@@ -146,6 +146,11 @@ const UrbanPlanning = () => {
     }
   }, [selectedLocation]);
 
+  // Get the name of the selected location
+  const selectedLocationName = selectedLocation 
+    ? locations.find(loc => loc.id === selectedLocation)?.name 
+    : '';
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -199,46 +204,11 @@ const UrbanPlanning = () => {
 
             <TabsContent value="analysis">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card className="col-span-1 md:col-span-2">
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center">
-                      <TrendingUp className="h-5 w-5 mr-2 text-karnataka-metro-medium" />
-                      Urban Growth Pattern
-                    </h3>
-                    {selectedLocation ? (
-                      <div className="h-[400px] relative">
-                        <div className="flex items-center justify-center h-full">
-                          <p className="text-gray-500 dark:text-gray-400">Urban growth visualization for selected location</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg">
-                        <p className="text-gray-500 dark:text-gray-400">Select a location to view urban growth patterns</p>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center">
-                    <AlertTriangle className="h-5 w-5 mr-2 text-karnataka-metro-medium" />
-                    Risk Factors
-                  </h3>
-                  {selectedLocation ? (
-                    <div>
-                      <ul>
-                        {locations.find((loc) => loc.id === selectedLocation)?.details.issues.map((issue, index) => (
-                          <li key={index} className="mb-2">
-                            {issue}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-[300px] bg-gray-100 dark:bg-gray-800 rounded-lg">
-                      <p className="text-gray-500 dark:text-gray-400">Select a location to view risk factors</p>
-                    </div>
-                  )}
+                <Card className="col-span-1 md:col-span-3">
+                  <UrbanAnalysisContent 
+                    locationId={selectedLocation}
+                    locationName={selectedLocationName}
+                  />
                 </Card>
               </div>
             </TabsContent>
