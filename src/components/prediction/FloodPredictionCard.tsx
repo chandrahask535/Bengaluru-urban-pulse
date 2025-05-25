@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle, Droplet, CloudRain, MapPin, Compass, Ruler } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFloodPrediction } from "@/hooks/usePredictionData";
-import MapBoxComponent from "@/components/maps/MapBoxComponent";
+import EnhancedMapBoxComponent from "@/components/maps/EnhancedMapBoxComponent";
 import { generateLocationPopup, getElevationForCoordinates, getDrainageScoreForCoordinates } from "@/utils/mapUtils";
 import MapBoxService from "@/services/MapBoxService";
+import RealTimeWeatherService, { RealTimeWeatherData } from "@/services/RealTimeWeatherService";
 
 const FloodPredictionCard = () => {
   const { toast } = useToast();
-  const [location, setLocation] = useState({ lat: 12.9716, lng: 77.5946 }); // Default to Bangalore
+  const [location, setLocation] = useState({ lat: 12.9716, lng: 77.5946 });
   const [areaName, setAreaName] = useState("Bangalore Central");
   const [isPredicting, setIsPredicting] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
@@ -22,6 +23,7 @@ const FloodPredictionCard = () => {
   const [showBuildings, setShowBuildings] = useState(false);
   const [showTerrain, setShowTerrain] = useState(false);
   const [showRainLayer, setShowRainLayer] = useState(false);
+  const [realTimeWeather, setRealTimeWeather] = useState<RealTimeWeatherData | null>(null);
 
   // States for user input
   const [inputLat, setInputLat] = useState(location.lat.toString());
@@ -34,32 +36,57 @@ const FloodPredictionCard = () => {
     areaName
   );
 
+  // Fetch real-time weather data
+  useEffect(() => {
+    const fetchRealTimeWeather = async () => {
+      try {
+        const weather = await RealTimeWeatherService.getCurrentWeather(location.lat, location.lng);
+        setRealTimeWeather(weather);
+      } catch (error) {
+        console.error('Error fetching real-time weather:', error);
+      }
+    };
+
+    fetchRealTimeWeather();
+    const interval = setInterval(fetchRealTimeWeather, 300000); // Update every 5 minutes
+
+    return () => clearInterval(interval);
+  }, [location]);
+
   // Update markers when location changes
   useEffect(() => {
     const lat = parseFloat(inputLat);
     const lng = parseFloat(inputLng);
     
     if (!isNaN(lat) && !isNaN(lng)) {
-      // Generate additional details for the popup
       const elevation = getElevationForCoordinates(lat, lng);
       const drainageScore = getDrainageScoreForCoordinates(lat, lng);
       
+      // Use real-time weather data if available
+      const currentRainfall = realTimeWeather?.current.rainfall || data?.weather?.rainfall || 0;
+      const forecastRainfall = realTimeWeather?.forecast.next24Hours || data?.weather?.rainfall_forecast || 0;
+      
       const popupContent = generateLocationPopup(inputAreaName, [lat, lng], {
         floodRisk: data?.prediction?.risk_level || "Unknown",
-        rainfall: data?.weather?.rainfall || 0,
-        greenCover: Math.round(25 + Math.random() * 35), // Simulated data
+        rainfall: currentRainfall,
+        forecastRainfall: forecastRainfall,
+        temperature: realTimeWeather?.current.temperature || 25,
+        humidity: realTimeWeather?.current.humidity || 65,
+        windSpeed: realTimeWeather?.current.windSpeed || 0,
+        greenCover: Math.round(25 + Math.random() * 35),
         elevationData: elevation,
-        drainageScore: drainageScore
+        drainageScore: drainageScore,
+        alerts: realTimeWeather?.alerts || []
       });
       
       // Determine marker color based on risk level
-      let markerColor = '#3b82f6'; // Default blue
+      let markerColor = '#3b82f6';
       if (data?.prediction?.risk_level) {
         switch(data.prediction.risk_level) {
-          case 'Critical': markerColor = '#ef4444'; break; // Red
-          case 'High': markerColor = '#f97316'; break; // Orange
-          case 'Moderate': markerColor = '#eab308'; break; // Yellow
-          case 'Low': markerColor = '#10b981'; break; // Green
+          case 'Critical': markerColor = '#ef4444'; break;
+          case 'High': markerColor = '#f97316'; break;
+          case 'Moderate': markerColor = '#eab308'; break;
+          case 'Low': markerColor = '#10b981'; break;
         }
       }
       
@@ -69,11 +96,10 @@ const FloodPredictionCard = () => {
         color: markerColor
       }]);
     }
-  }, [inputLat, inputLng, inputAreaName, data]);
+  }, [inputLat, inputLng, inputAreaName, data, realTimeWeather]);
 
   // Function to handle prediction
   const handlePredict = useCallback(() => {
-    // Validate inputs
     const lat = parseFloat(inputLat);
     const lng = parseFloat(inputLng);
     
@@ -86,14 +112,123 @@ const FloodPredictionCard = () => {
       return;
     }
     
-    // Update state with validated inputs
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      toast({
+        title: "Invalid Coordinates",
+        description: "Latitude must be between -90 and 90, longitude between -180 and 180",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLocation({ lat, lng });
     setAreaName(inputAreaName);
     setIsPredicting(true);
     
-    // Trigger refetch with new parameters
     refetch().finally(() => setIsPredicting(false));
   }, [inputLat, inputLng, inputAreaName, toast, refetch]);
+
+  // Enhanced geolocation function
+  const useCurrentLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      toast({
+        title: "Geolocation Not Supported",
+        description: "Your browser does not support geolocation services",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLocationLoading(true);
+    
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 15000, // Increased timeout
+      maximumAge: 60000 // Cache for 1 minute
+    };
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setInputLat(latitude.toFixed(6));
+        setInputLng(longitude.toFixed(6));
+        
+        try {
+          const data = await MapBoxService.reverseGeocode(longitude, latitude);
+          if (data.features && data.features.length > 0) {
+            const placeName = data.features[0].place_name;
+            setInputAreaName(placeName);
+            setLocation({ lat: latitude, lng: longitude });
+            setAreaName(placeName);
+            
+            toast({
+              title: "Location Updated",
+              description: `Using your current location: ${placeName}`,
+            });
+            
+            // Automatically trigger prediction
+            setTimeout(() => {
+              refetch().finally(() => setIsLocationLoading(false));
+            }, 500);
+          } else {
+            setInputAreaName("Current Location");
+            setIsLocationLoading(false);
+          }
+        } catch (err) {
+          console.error("Geocoding error:", err);
+          setInputAreaName(`Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          setIsLocationLoading(false);
+          
+          toast({
+            title: "Location Found",
+            description: "Using your coordinates for prediction",
+          });
+        }
+      },
+      (error) => {
+        setIsLocationLoading(false);
+        let errorMessage = "Unable to get your location";
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location access denied. Please enable location services and try again.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information unavailable. Please check your device settings.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out. Please try again.";
+            break;
+          default:
+            errorMessage = `Location error: ${error.message}`;
+        }
+        
+        toast({
+          title: "Location Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      },
+      options
+    );
+  }, [toast, refetch]);
+
+  // Handle map click to update coordinates
+  const handleMapClick = useCallback(async (latlng: { lat: number; lng: number }) => {
+    setInputLat(latlng.lat.toFixed(6));
+    setInputLng(latlng.lng.toFixed(6));
+    
+    try {
+      const data = await MapBoxService.reverseGeocode(latlng.lng, latlng.lat);
+      if (data.features && data.features.length > 0) {
+        const placeName = data.features[0].place_name;
+        setInputAreaName(placeName);
+      }
+    } catch (err) {
+      console.error("Geocoding error:", err);
+      setInputAreaName(`Location: ${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`);
+    }
+  }, []);
 
   // Function to get risk level color
   const getRiskColor = (riskLevel: string) => {
@@ -111,123 +246,21 @@ const FloodPredictionCard = () => {
     }
   };
 
-  // Function to use user's current location
-  const useCurrentLocation = useCallback(() => {
-    if (navigator.geolocation) {
-      setIsLocationLoading(true);
-      
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setInputLat(latitude.toString());
-          setInputLng(longitude.toString());
-          
-          // Try to get location name using reverse geocoding
-          MapBoxService.reverseGeocode(longitude, latitude)
-            .then(data => {
-              if (data.features && data.features.length > 0) {
-                const placeName = data.features[0].place_name;
-                setInputAreaName(placeName);
-                
-                // Also update location and trigger prediction
-                setLocation({ lat: latitude, lng: longitude });
-                setAreaName(placeName);
-                
-                // Automatically trigger prediction with the new location
-                setTimeout(() => {
-                  refetch().finally(() => setIsLocationLoading(false));
-                }, 500);
-                
-                toast({
-                  title: "Location Updated",
-                  description: "Using your current location for prediction"
-                });
-              } else {
-                setInputAreaName("Current Location");
-                setIsLocationLoading(false);
-                toast({
-                  title: "Location Updated",
-                  description: "Using your current location for prediction"
-                });
-              }
-            })
-            .catch(err => {
-              console.error("Geocoding error:", err);
-              setInputAreaName("Current Location");
-              setIsLocationLoading(false);
-              
-              toast({
-                title: "Location Updated",
-                description: "Using your current location for prediction"
-              });
-            });
-        },
-        (error) => {
-          setIsLocationLoading(false);
-          let errorMessage = "Unable to get your location";
-          
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage += ": Permission denied. Please enable location services in your browser.";
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage += ": Position unavailable. Try again later.";
-              break;
-            case error.TIMEOUT:
-              errorMessage += ": Request timed out. Try again.";
-              break;
-            default:
-              errorMessage += `: ${error.message}`;
-          }
-          
-          toast({
-            title: "Location Error",
-            description: errorMessage,
-            variant: "destructive",
-          });
-        },
-        { timeout: 10000, enableHighAccuracy: true }
-      );
-    } else {
-      toast({
-        title: "Geolocation Not Supported",
-        description: "Your browser does not support geolocation",
-        variant: "destructive",
-      });
-    }
-  }, [toast, refetch]);
-
-  // Handle map click to update coordinates
-  const handleMapClick = useCallback((latlng: { lat: number; lng: number }) => {
-    setInputLat(latlng.lat.toFixed(6));
-    setInputLng(latlng.lng.toFixed(6));
-    
-    // Try to get location name using reverse geocoding
-    MapBoxService.reverseGeocode(latlng.lng, latlng.lat)
-      .then(data => {
-        if (data.features && data.features.length > 0) {
-          const placeName = data.features[0].place_name;
-          setInputAreaName(placeName);
-        }
-      })
-      .catch(err => console.error("Geocoding error:", err));
-  }, []);
-
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center">
           <CloudRain className="mr-2 h-5 w-5 text-karnataka-rain-medium" />
-          Flood Risk Prediction
+          Real-time Flood Risk Prediction
         </CardTitle>
         <CardDescription>
-          Get real-time flood risk assessment based on location and rainfall data
+          Get AI-powered flood risk assessment with live weather data and satellite analysis
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="w-full h-[350px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-            <MapBoxComponent
+          <div className="w-full h-[400px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+            <EnhancedMapBoxComponent
               center={[parseFloat(inputLat) || 12.9716, parseFloat(inputLng) || 77.5946]}
               markers={markers}
               onMapClick={handleMapClick}
@@ -240,45 +273,6 @@ const FloodPredictionCard = () => {
             />
           </div>
           
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              variant={showFloodZones ? "default" : "outline"} 
-              size="sm"
-              onClick={() => setShowFloodZones(!showFloodZones)}
-              className="flex items-center"
-            >
-              <Droplet className="h-4 w-4 mr-1" />
-              Flood Zones
-            </Button>
-            <Button
-              variant={showBuildings ? "default" : "outline"} 
-              size="sm"
-              onClick={() => setShowBuildings(!showBuildings)}
-              className="flex items-center"
-            >
-              <Ruler className="h-4 w-4 mr-1" />
-              3D Buildings
-            </Button>
-            <Button
-              variant={showTerrain ? "default" : "outline"} 
-              size="sm"
-              onClick={() => setShowTerrain(!showTerrain)}
-              className="flex items-center"
-            >
-              <Compass className="h-4 w-4 mr-1" />
-              Terrain
-            </Button>
-            <Button
-              variant={showRainLayer ? "default" : "outline"} 
-              size="sm"
-              onClick={() => setShowRainLayer(!showRainLayer)}
-              className="flex items-center"
-            >
-              <CloudRain className="h-4 w-4 mr-1" />
-              Rainfall
-            </Button>
-          </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="latitude">Latitude</Label>
@@ -287,6 +281,8 @@ const FloodPredictionCard = () => {
                 value={inputLat}
                 onChange={(e) => setInputLat(e.target.value)}
                 placeholder="12.9716"
+                type="number"
+                step="any"
               />
             </div>
             <div className="space-y-2">
@@ -296,9 +292,12 @@ const FloodPredictionCard = () => {
                 value={inputLng}
                 onChange={(e) => setInputLng(e.target.value)}
                 placeholder="77.5946"
+                type="number"
+                step="any"
               />
             </div>
           </div>
+          
           <div className="space-y-2">
             <Label htmlFor="areaName">Area Name</Label>
             <Input
@@ -308,6 +307,7 @@ const FloodPredictionCard = () => {
               placeholder="Enter area name"
             />
           </div>
+          
           <div className="flex space-x-2">
             <Button 
               variant="default" 
@@ -315,7 +315,7 @@ const FloodPredictionCard = () => {
               disabled={isLoading || isPredicting}
               className="flex-1"
             >
-              {isLoading || isPredicting ? "Processing..." : "Predict Flood Risk"}
+              {isLoading || isPredicting ? "Analyzing..." : "Predict Flood Risk"}
             </Button>
             <Button 
               variant="outline" 
@@ -325,7 +325,7 @@ const FloodPredictionCard = () => {
               className="flex items-center"
             >
               <MapPin className="h-4 w-4 mr-2" />
-              {isLocationLoading ? "Getting Location..." : "Use My Location"}
+              {isLocationLoading ? "Locating..." : "Use My Location"}
             </Button>
           </div>
         </div>
@@ -339,32 +339,71 @@ const FloodPredictionCard = () => {
           </div>
         )}
 
+        {realTimeWeather && (
+          <div className="mt-6 space-y-4">
+            <h4 className="text-lg font-semibold">Live Weather Conditions</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="flex justify-between items-center p-3 border rounded-md bg-blue-50 dark:bg-blue-900/20">
+                <div className="flex items-center">
+                  <CloudRain className="h-5 w-5 mr-2 text-blue-600" />
+                  <span className="text-sm font-medium">Rainfall</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xl font-bold">{realTimeWeather.current.rainfall.toFixed(1)}</span>
+                  <span className="text-xs text-gray-500 block">mm/hr</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center p-3 border rounded-md bg-red-50 dark:bg-red-900/20">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium">Temperature</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xl font-bold">{realTimeWeather.current.temperature.toFixed(1)}</span>
+                  <span className="text-xs text-gray-500 block">°C</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center p-3 border rounded-md bg-gray-50 dark:bg-gray-800">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium">Humidity</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xl font-bold">{realTimeWeather.current.humidity}</span>
+                  <span className="text-xs text-gray-500 block">%</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center p-3 border rounded-md bg-green-50 dark:bg-green-900/20">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium">24h Forecast</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xl font-bold">{realTimeWeather.forecast.next24Hours.toFixed(1)}</span>
+                  <span className="text-xs text-gray-500 block">mm</span>
+                </div>
+              </div>
+            </div>
+
+            {realTimeWeather.alerts && realTimeWeather.alerts.length > 0 && (
+              <div className="p-4 bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200 rounded-md">
+                <div className="flex items-center mb-2">
+                  <AlertTriangle className="h-5 w-5 mr-2" />
+                  <span className="font-medium">Weather Alert</span>
+                </div>
+                {realTimeWeather.alerts.map((alert, index) => (
+                  <p key={index} className="text-sm">{alert.event}: {alert.description}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {data && (
           <div className="mt-6 space-y-4">
-            <div className="flex justify-between items-center p-4 border rounded-md">
-              <div className="flex items-center">
-                <CloudRain className="h-5 w-5 mr-2 text-karnataka-rain-medium" />
-                <span className="text-sm font-medium">Current Rainfall</span>
-              </div>
-              <div className="flex items-baseline">
-                <span className="text-xl font-bold">{data.weather.rainfall.toFixed(1)}</span>
-                <span className="ml-1 text-sm text-gray-500">mm</span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center p-4 border rounded-md">
-              <div className="flex items-center">
-                <Droplet className="h-5 w-5 mr-2 text-karnataka-lake-medium" />
-                <span className="text-sm font-medium">Prediction Date</span>
-              </div>
-              <span className="text-base">
-                {new Date(data.timestamp).toLocaleDateString()}
-              </span>
-            </div>
-
             <div className="p-4 border rounded-md">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium">Flood Risk Level</span>
+                <span className="text-sm font-medium">AI Flood Risk Assessment</span>
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getRiskColor(
                     data.prediction.risk_level
@@ -391,14 +430,14 @@ const FloodPredictionCard = () => {
                 Confidence: {(data.prediction.probability * 100).toFixed(0)}%
               </p>
               
-              {/* Additional information */}
               <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h4 className="text-sm font-medium mb-2">Risk Factors</h4>
+                <h4 className="text-sm font-medium mb-2">Risk Analysis</h4>
                 <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                   <li>• Elevation: {getElevationForCoordinates(location.lat, location.lng).toFixed(1)}m above sea level</li>
-                  <li>• Drainage score: {getDrainageScoreForCoordinates(location.lat, location.lng).toFixed(0)}/100</li>
-                  <li>• Recent rainfall: {data.weather.rainfall.toFixed(1)} mm</li>
-                  <li>• Forecast rainfall: {(data.weather.rainfall_forecast || data.weather.rainfall * 1.2).toFixed(1)} mm (next 24h)</li>
+                  <li>• Drainage efficiency: {getDrainageScoreForCoordinates(location.lat, location.lng).toFixed(0)}/100</li>
+                  <li>• Current rainfall: {realTimeWeather?.current.rainfall.toFixed(1) || data.weather.rainfall.toFixed(1)} mm/hr</li>
+                  <li>• 24h forecast: {realTimeWeather?.forecast.next24Hours.toFixed(1) || (data.weather.rainfall_forecast || data.weather.rainfall * 1.2).toFixed(1)} mm</li>
+                  <li>• Weather conditions: {realTimeWeather?.current.description || "Standard conditions"}</li>
                 </ul>
               </div>
             </div>
@@ -406,7 +445,7 @@ const FloodPredictionCard = () => {
         )}
       </CardContent>
       <CardFooter className="text-xs text-gray-500">
-        Based on ML predictions using real-time weather data and terrain analysis
+        Powered by real-time weather data, AI predictions, and satellite analysis • Updated every 5 minutes
       </CardFooter>
     </Card>
   );

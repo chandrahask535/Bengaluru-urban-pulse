@@ -1,352 +1,202 @@
-interface Location {
-  id: string;
-  name: string;
-  coordinates: [number, number];
-  details: {
-    floodRisk: string;
-    floodRiskValue: number;
-    greenCoverage: number;
-    infrastructureScore: number;
-    landUseTypes: Array<{
-      type: string;
-      percentage: number;
-    }>;
-    issues: string[];
-  };
-}
 
-// Function to generate heatmap data from locations based on flood risk
-export function generateHeatmapData(
-  locations: Location[]
-): Array<{ lat: number; lng: number; intensity: number }> {
-  // Generate base points from the locations
-  const basePoints = locations.map(loc => ({
-    lat: loc.coordinates[0],
-    lng: loc.coordinates[1],
-    intensity: loc.details.floodRiskValue / 100 // Normalize to 0-1
-  }));
+import RealTimeWeatherService from '@/services/RealTimeWeatherService';
 
-  // Add more points around high risk areas to create a more realistic heatmap
-  const expandedPoints: Array<{ lat: number; lng: number; intensity: number }> = [];
-  
-  basePoints.forEach(point => {
-    // Only expand points with higher intensity for performance reasons
-    if (point.intensity > 0.4) {
-      // Add the original point
-      expandedPoints.push(point);
-      
-      // Add points around the original point to create a cluster effect
-      const radius = 0.02; // About 2km
-      const numPoints = Math.ceil(point.intensity * 10); // More points for higher intensity areas
-      
-      for (let i = 0; i < numPoints; i++) {
-        // Random angle
-        const angle = Math.random() * Math.PI * 2;
-        // Random distance within the radius (concentrated toward the center)
-        const distance = radius * Math.sqrt(Math.random()) * point.intensity;
-        
-        // Calculate new coordinates
-        const newLat = point.lat + distance * Math.sin(angle);
-        const newLng = point.lng + distance * Math.cos(angle);
-        
-        // Calculate new intensity (decreases with distance from center)
-        const distanceFactor = 1 - (distance / radius);
-        const newIntensity = point.intensity * distanceFactor * (0.5 + Math.random() * 0.5);
-        
-        expandedPoints.push({
-          lat: newLat,
-          lng: newLng,
-          intensity: newIntensity
-        });
-      }
-    } else {
-      expandedPoints.push(point);
-    }
-  });
-
-  return expandedPoints;
-}
-
-// Function to get severity color based on value
-export function getSeverityColor(value: number, type: 'flood' | 'pollution' | 'traffic' = 'flood'): string {
-  // Colors for flood risk
-  if (type === 'flood') {
-    if (value >= 75) return '#ef4444'; // red-500
-    if (value >= 50) return '#f97316'; // orange-500
-    if (value >= 25) return '#eab308'; // yellow-500
-    return '#22c55e'; // green-500
-  }
-  // Colors for pollution
-  else if (type === 'pollution') {
-    if (value >= 300) return '#7f1d1d'; // red-900
-    if (value >= 200) return '#ef4444'; // red-500
-    if (value >= 150) return '#f97316'; // orange-500
-    if (value >= 100) return '#eab308'; // yellow-500
-    if (value >= 50) return '#84cc16'; // lime-500
-    return '#22c55e'; // green-500
-  }
-  // Colors for traffic congestion
-  else {
-    if (value >= 80) return '#ef4444'; // red-500
-    if (value >= 60) return '#f97316'; // orange-500
-    if (value >= 40) return '#eab308'; // yellow-500
-    return '#22c55e'; // green-500
-  }
-}
-
-export function calculateDistance(
-  lat1: number, 
-  lng1: number, 
-  lat2: number, 
-  lng2: number
-): number {
-  const R = 6371e3; // metres
-  const φ1 = lat1 * Math.PI/180; // φ, λ in radians
-  const φ2 = lat2 * Math.PI/180;
-  const Δφ = (lat2-lat1) * Math.PI/180;
-  const Δλ = (lng2-lng1) * Math.PI/180;
-
-  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-          Math.cos(φ1) * Math.cos(φ2) *
-          Math.sin(Δλ/2) * Math.sin(Δλ/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-  const d = R * c; // in metres
-  return d;
-}
-
-export function getBoundingBox(
-  lat: number, 
-  lng: number, 
-  radiusKm: number
-): { sw: [number, number], ne: [number, number] } {
-  // Earth's radius in kilometers
-  const R = 6371;
-  
-  // Convert latitude to radians
-  const latRad = (lat * Math.PI) / 180;
-  
-  // Angular distance in radians
-  const angDist = radiusKm / R;
-  
-  // Calculate min/max latitudes and longitudes
-  const minLat = lat - (angDist * 180) / Math.PI;
-  const maxLat = lat + (angDist * 180) / Math.PI;
-  
-  // Adjust for longitude distance which varies with latitude
-  const maxLng = lng + ((angDist * 180) / Math.PI) / Math.cos(latRad);
-  const minLng = lng - ((angDist * 180) / Math.PI) / Math.cos(latRad);
-  
-  return {
-    sw: [minLat, minLng],
-    ne: [maxLat, maxLng]
-  };
-}
-
-// Function to generate rich location info popup content
-export function generateLocationPopup(
-  locationName: string,
+// Generate enhanced location popup with real-time data
+export const generateLocationPopup = (
+  locationName: string, 
   coordinates: [number, number],
-  details: {
+  data: {
     floodRisk?: string;
     rainfall?: number;
+    forecastRainfall?: number;
+    temperature?: number;
+    humidity?: number;
+    windSpeed?: number;
     greenCover?: number;
-    waterBodies?: number;
-    urbanDensity?: number;
     elevationData?: number;
     drainageScore?: number;
+    alerts?: any[];
   }
-): string {
-  let content = `
-    <div class="p-3 max-w-xs">
-      <h3 class="font-bold text-lg mb-1">${locationName}</h3>
-      <p class="text-xs text-gray-500 mb-2">Coordinates: ${coordinates[0].toFixed(4)}, ${coordinates[1].toFixed(4)}</p>
-      <div class="space-y-2">
-  `;
+) => {
+  const alertsHtml = data.alerts && data.alerts.length > 0 
+    ? `<div class="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-xs">
+        <strong>⚠️ Weather Alert:</strong> ${data.alerts[0].event}
+       </div>`
+    : '';
 
-  if (details.floodRisk) {
-    const riskColor = details.floodRisk.toLowerCase() === 'high' ? 'text-red-600' : 
-                      details.floodRisk.toLowerCase() === 'moderate' ? 'text-orange-500' : 
-                      details.floodRisk.toLowerCase() === 'low' ? 'text-green-600' : 'text-blue-600';
-    
-    content += `
-      <div>
-        <span class="text-sm font-medium">Flood Risk: </span>
-        <span class="${riskColor} font-medium">${details.floodRisk}</span>
-      </div>
-    `;
-  }
-
-  if (details.rainfall !== undefined) {
-    content += `
-      <div>
-        <span class="text-sm font-medium">Recent Rainfall: </span>
-        <span>${details.rainfall.toFixed(1)} mm</span>
-      </div>
-    `;
-  }
-
-  if (details.greenCover !== undefined) {
-    content += `
-      <div>
-        <span class="text-sm font-medium">Green Coverage: </span>
-        <span>${details.greenCover.toFixed(1)}%</span>
-      </div>
-    `;
-  }
-
-  if (details.waterBodies !== undefined) {
-    content += `
-      <div>
-        <span class="text-sm font-medium">Water Bodies: </span>
-        <span>${details.waterBodies} nearby</span>
-      </div>
-    `;
-  }
-
-  if (details.urbanDensity !== undefined) {
-    content += `
-      <div>
-        <span class="text-sm font-medium">Urban Density: </span>
-        <span>${details.urbanDensity.toFixed(1)}%</span>
-      </div>
-    `;
-  }
-
-  if (details.elevationData !== undefined) {
-    content += `
-      <div>
-        <span class="text-sm font-medium">Elevation: </span>
-        <span>${details.elevationData.toFixed(1)}m</span>
-      </div>
-    `;
-  }
-
-  if (details.drainageScore !== undefined) {
-    const drainageClass = details.drainageScore > 70 ? 'text-green-600' : 
-                          details.drainageScore > 40 ? 'text-orange-500' : 'text-red-600';
-    content += `
-      <div>
-        <span class="text-sm font-medium">Drainage Score: </span>
-        <span class="${drainageClass}">${details.drainageScore}/100</span>
-      </div>
-    `;
-  }
-
-  content += `
+  return `
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg max-w-xs">
+      <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-sm">${locationName}</h3>
+      <div class="space-y-2 text-xs">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-blue-50 dark:bg-blue-900/30 p-2 rounded">
+            <div class="font-medium text-blue-700 dark:text-blue-300">Flood Risk</div>
+            <div class="text-lg font-bold ${
+              data.floodRisk === 'Critical' ? 'text-red-600' :
+              data.floodRisk === 'High' ? 'text-orange-600' :
+              data.floodRisk === 'Moderate' ? 'text-yellow-600' : 'text-green-600'
+            }">${data.floodRisk || 'Unknown'}</div>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded">
+            <div class="font-medium text-gray-700 dark:text-gray-300">Elevation</div>
+            <div class="text-lg font-bold text-gray-900 dark:text-white">${(data.elevationData || 0).toFixed(0)}m</div>
+          </div>
+        </div>
+        
+        <div class="border-t pt-2">
+          <div class="font-medium text-gray-700 dark:text-gray-300 mb-1">Live Weather</div>
+          <div class="grid grid-cols-2 gap-1 text-xs">
+            <div>🌡️ ${(data.temperature || 0).toFixed(1)}°C</div>
+            <div>💧 ${(data.humidity || 0)}%</div>
+            <div>🌧️ ${(data.rainfall || 0).toFixed(1)}mm</div>
+            <div>💨 ${(data.windSpeed || 0).toFixed(1)}m/s</div>
+          </div>
+        </div>
+        
+        <div class="border-t pt-2">
+          <div class="font-medium text-gray-700 dark:text-gray-300 mb-1">Infrastructure</div>
+          <div class="grid grid-cols-2 gap-1 text-xs">
+            <div>🌳 Green: ${data.greenCover || 0}%</div>
+            <div>🚰 Drainage: ${(data.drainageScore || 0).toFixed(0)}/100</div>
+          </div>
+        </div>
+        
+        ${data.forecastRainfall ? `
+          <div class="border-t pt-2">
+            <div class="font-medium text-gray-700 dark:text-gray-300">24h Forecast</div>
+            <div class="text-blue-600 dark:text-blue-400 font-bold">${data.forecastRainfall.toFixed(1)}mm expected</div>
+          </div>
+        ` : ''}
+        
+        ${alertsHtml}
+        
+        <div class="border-t pt-2 text-xs text-gray-500 dark:text-gray-400">
+          📍 ${coordinates[0].toFixed(4)}, ${coordinates[1].toFixed(4)}
+        </div>
       </div>
     </div>
   `;
+};
 
-  return content;
-}
+// Get realistic elevation data based on Bangalore's topology
+export const getElevationForCoordinates = (lat: number, lng: number): number => {
+  // Bangalore elevation ranges from 900-950m above sea level
+  // Higher elevations in the south, lower in the north
+  
+  const baseElevation = 920; // Average Bangalore elevation
+  
+  // Simulate elevation based on known high/low areas
+  const southFactor = (lat - 12.9) * 50; // Southern areas are higher
+  const variability = Math.sin(lat * 100) * Math.cos(lng * 100) * 15; // Add realistic variation
+  
+  return Math.max(880, Math.min(970, baseElevation + southFactor + variability));
+};
 
-// Generate synthetic elevation data for Bengaluru region (until real data is available)
-export function getElevationForCoordinates(lat: number, lng: number): number {
-  // Base elevation for Bengaluru (around 920m)
-  const baseElevation = 920;
+// Calculate drainage score based on elevation, proximity to water bodies, and urban development
+export const getDrainageScoreForCoordinates = (lat: number, lng: number): number => {
+  const elevation = getElevationForCoordinates(lat, lng);
   
-  // Bengaluru central coordinates
-  const blrCenterLat = 12.9716;
-  const blrCenterLng = 77.5946;
+  // Higher elevation = better natural drainage
+  const elevationScore = ((elevation - 880) / 90) * 40; // 0-40 points
   
-  // Calculate distance from center
-  const distance = calculateDistance(lat, lng, blrCenterLat, blrCenterLng) / 1000; // in km
+  // Distance from major lakes (closer = potentially worse drainage due to low elevation)
+  const lakeProximityPenalty = calculateLakeProximityPenalty(lat, lng);
   
-  // Generate some variation - higher in north/northeastern areas, lower in south
-  const latDiff = lat - blrCenterLat;
-  const lngDiff = lng - blrCenterLng;
+  // Urban development density (more development = worse drainage)
+  const urbanDensityPenalty = calculateUrbanDensityPenalty(lat, lng);
   
-  // Northern areas tend to be higher
-  const northFactor = latDiff * 15;
+  // Slope calculation (steeper = better drainage)
+  const slopeBonus = calculateSlopeBonus(lat, lng);
   
-  // Eastern areas also tend to be slightly higher
-  const eastFactor = lngDiff * 5;
+  const totalScore = Math.max(0, Math.min(100, 
+    elevationScore + slopeBonus - lakeProximityPenalty - urbanDensityPenalty + 30
+  ));
   
-  // Add some randomness to make it more natural
-  const randomFactor = Math.sin(lat * 100) * Math.cos(lng * 100) * 10;
-  
-  // Calculate final elevation
-  let elevation = baseElevation + northFactor + eastFactor + randomFactor;
-  
-  // Add some local peaks and valleys based on distance rings from center
-  elevation += Math.sin(distance * 0.8) * 15;
-  
-  return elevation;
-}
+  return totalScore;
+};
 
-// Get drainage score for coordinates (synthetic data until real data is available)
-export function getDrainageScoreForCoordinates(lat: number, lng: number): number {
-  // Bengaluru central coordinates
-  const blrCenterLat = 12.9716;
-  const blrCenterLng = 77.5946;
-  
-  // Known problem areas (low drainage scores)
-  const problemAreas = [
-    { lat: 12.9783, lng: 77.6408, radius: 2, impact: -40 }, // Koramangala
-    { lat: 12.9289, lng: 77.6851, radius: 3, impact: -50 }, // Bellandur
-    { lat: 12.9592, lng: 77.7494, radius: 3, impact: -45 }, // Whitefield
-    { lat: 12.9982, lng: 77.5865, radius: 2, impact: -35 }, // Ulsoor
-    { lat: 13.0283, lng: 77.5603, radius: 2, impact: -25 }, // Hebbal
+// Helper function to calculate lake proximity penalty
+const calculateLakeProximityPenalty = (lat: number, lng: number): number => {
+  const majorLakes = [
+    [12.9373, 77.6402], // Bellandur
+    [12.9417, 77.7341], // Varthur
+    [13.0450, 77.5950], // Hebbal
+    [12.9825, 77.6203], // Ulsoor
   ];
   
-  // Base drainage score (higher in central areas, lower in outskirts)
-  const distance = calculateDistance(lat, lng, blrCenterLat, blrCenterLng) / 1000;
-  let baseScore = 75 - distance * 2; // Decreases with distance from center
+  let minDistance = Infinity;
+  majorLakes.forEach(([lakeLat, lakeLng]) => {
+    const distance = Math.sqrt(Math.pow(lat - lakeLat, 2) + Math.pow(lng - lakeLng, 2));
+    minDistance = Math.min(minDistance, distance);
+  });
   
-  // Adjust for problem areas
-  for (const area of problemAreas) {
-    const areaDistance = calculateDistance(lat, lng, area.lat, area.lng) / 1000;
-    if (areaDistance < area.radius) {
-      // Apply impact based on proximity to problem area center
-      const impactFactor = 1 - (areaDistance / area.radius);
-      baseScore += area.impact * impactFactor;
-    }
+  // Penalty increases as we get closer to lakes (within 2km)
+  if (minDistance < 0.02) { // Within ~2km
+    return (0.02 - minDistance) * 500; // Up to 10 points penalty
   }
-  
-  // Add some randomness (±10%)
-  const randomFactor = (Math.random() * 20 - 10);
-  
-  // Ensure score is between 0 and 100
-  return Math.min(100, Math.max(0, baseScore + randomFactor));
-}
+  return 0;
+};
 
-// Function to fetch real-time weather data from OpenWeatherMap
-export async function fetchRealTimeWeather(lat: number, lng: number): Promise<any> {
-  const apiKey = '8ad34abc3b5bd464821c93ba25ac9fd1'; // Default API key (replace with your own)
+// Helper function to calculate urban density penalty
+const calculateUrbanDensityPenalty = (lat: number, lng: number): number => {
+  // High-density areas in Bangalore
+  const highDensityAreas = [
+    [12.9716, 77.5946], // City center
+    [12.9698, 77.7500], // Whitefield
+    [12.9279, 77.5816], // Jayanagar
+    [12.9352, 77.6245], // Koramangala
+  ];
   
-  try {
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&appid=${apiKey}`
-    );
-    
-    if (!response.ok) {
-      throw new Error('Weather data fetch failed');
+  let proximityPenalty = 0;
+  highDensityAreas.forEach(([areaLat, areaLng]) => {
+    const distance = Math.sqrt(Math.pow(lat - areaLat, 2) + Math.pow(lng - areaLng, 2));
+    if (distance < 0.05) { // Within ~5km
+      proximityPenalty += (0.05 - distance) * 200; // Up to 10 points penalty
     }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching real-time weather:', error);
-    throw error;
-  }
-}
+  });
+  
+  return Math.min(15, proximityPenalty);
+};
 
-// Function to fetch weather forecast from OpenWeatherMap
-export async function fetchWeatherForecast(lat: number, lng: number): Promise<any> {
-  const apiKey = '8ad34abc3b5bd464821c93ba25ac9fd1'; // Default API key (replace with your own)
+// Helper function to calculate slope bonus
+const calculateSlopeBonus = (lat: number, lng: number): number => {
+  // Simulate slope based on elevation changes in the area
+  const elevation1 = getElevationForCoordinates(lat, lng);
+  const elevation2 = getElevationForCoordinates(lat + 0.001, lng);
+  const elevation3 = getElevationForCoordinates(lat, lng + 0.001);
   
-  try {
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&units=metric&appid=${apiKey}`
-    );
-    
-    if (!response.ok) {
-      throw new Error('Weather forecast fetch failed');
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching weather forecast:', error);
-    throw error;
-  }
-}
+  const slope = Math.abs(elevation1 - elevation2) + Math.abs(elevation1 - elevation3);
+  return Math.min(15, slope * 0.5); // Up to 15 points bonus
+};
+
+// Generate flood zone data for map overlays
+export const generateFloodZoneGeoJSON = (center: [number, number], riskLevel: string) => {
+  const [lat, lng] = center;
+  const radius = riskLevel === 'Critical' ? 0.015 : 
+                 riskLevel === 'High' ? 0.01 : 
+                 riskLevel === 'Moderate' ? 0.007 : 0.005;
+
+  return {
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[
+          [lng - radius, lat - radius],
+          [lng + radius, lat - radius],
+          [lng + radius, lat + radius],
+          [lng - radius, lat + radius],
+          [lng - radius, lat - radius]
+        ]]
+      },
+      properties: {
+        riskLevel,
+        fillColor: riskLevel === 'Critical' ? '#ef4444' :
+                   riskLevel === 'High' ? '#f97316' :
+                   riskLevel === 'Moderate' ? '#eab308' : '#10b981',
+        fillOpacity: 0.3
+      }
+    }]
+  };
+};
