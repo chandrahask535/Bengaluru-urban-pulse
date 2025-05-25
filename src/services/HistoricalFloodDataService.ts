@@ -30,8 +30,11 @@ export interface FloodStatistics {
 export interface FloodEvent {
   id: string;
   date: string;
-  location: string; // Fixed: changed to string to match usage
-  severity: 'High' | 'Critical' | 'Moderate' | 'Minor' | 'Major' | 'Extreme'; // Fixed: added missing severity types
+  location: {
+    name: string;
+    coordinates: [number, number];
+  };
+  severity: 'High' | 'Critical' | 'Moderate' | 'Minor' | 'Major' | 'Extreme';
   affectedAreas: string[];
   casualties: number;
   economicLoss: number;
@@ -97,6 +100,23 @@ export interface ImpactMetrics {
   };
 }
 
+// Helper function to format numbers consistently
+export const formatNumber = (value: number, decimals: number = 1): number => {
+  return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+};
+
+// Helper function to format currency values
+export const formatCurrency = (value: number): string => {
+  if (value >= 10000000) {
+    return `₹${formatNumber(value / 10000000, 1)}Cr`;
+  } else if (value >= 100000) {
+    return `₹${formatNumber(value / 100000, 1)}L`;
+  } else if (value >= 1000) {
+    return `₹${formatNumber(value / 1000, 1)}K`;
+  }
+  return `₹${formatNumber(value, 0)}`;
+};
+
 class HistoricalFloodDataService {
   private static floodEvents: HistoricalFloodEvent[] = [
     // 2024 Events
@@ -105,9 +125,9 @@ class HistoricalFloodDataService {
       date: "2024-05-30",
       location: { name: "Mahadevapura", coordinates: [12.9899, 77.6976] },
       severity: "Major",
-      affectedArea: 15.2,
+      affectedArea: formatNumber(15.2),
       casualties: 0,
-      economicLoss: 45,
+      economicLoss: formatNumber(45),
       description: "Heavy rainfall caused flooding in low-lying areas of Mahadevapura. Several tech parks were affected.",
       source: "BBMP Disaster Management",
       images: []
@@ -117,9 +137,9 @@ class HistoricalFloodDataService {
       date: "2024-08-15",
       location: { name: "Bellandur", coordinates: [12.9373, 77.6402] },
       severity: "Extreme",
-      affectedArea: 25.8,
+      affectedArea: formatNumber(25.8),
       casualties: 2,
-      economicLoss: 120,
+      economicLoss: formatNumber(120),
       description: "Severe flooding due to lake overflow and inadequate drainage. Major traffic disruptions.",
       source: "Karnataka State Disaster Management Authority",
       images: []
@@ -129,9 +149,9 @@ class HistoricalFloodDataService {
       date: "2024-09-22",
       location: { name: "Electronic City", coordinates: [12.8456, 77.6603] },
       severity: "Moderate",
-      affectedArea: 8.5,
+      affectedArea: formatNumber(8.5),
       casualties: 0,
-      economicLoss: 25,
+      economicLoss: formatNumber(25),
       description: "Flash floods in Electronic City due to sudden heavy downpour.",
       source: "BBMP",
       images: []
@@ -143,9 +163,9 @@ class HistoricalFloodDataService {
       date: "2023-06-18",
       location: { name: "Yelahanka", coordinates: [13.1007, 77.5963] },
       severity: "Major",
-      affectedArea: 18.7,
+      affectedArea: formatNumber(18.7),
       casualties: 1,
-      economicLoss: 65,
+      economicLoss: formatNumber(65),
       description: "Widespread flooding in Yelahanka due to heavy monsoon rains and poor drainage.",
       source: "KSNDMC",
       images: []
@@ -155,9 +175,9 @@ class HistoricalFloodDataService {
       date: "2023-07-25",
       location: { name: "KR Puram", coordinates: [12.9698, 77.7019] },
       severity: "Moderate",
-      affectedArea: 12.3,
+      affectedArea: formatNumber(12.3),
       casualties: 0,
-      economicLoss: 35,
+      economicLoss: formatNumber(35),
       description: "Residential areas in KR Puram experienced flooding due to overflowing storm drains.",
       source: "BBMP",
       images: []
@@ -167,9 +187,9 @@ class HistoricalFloodDataService {
       date: "2023-10-12",
       location: { name: "Sarjapur", coordinates: [12.9078, 77.6906] },
       severity: "Minor",
-      affectedArea: 5.2,
+      affectedArea: formatNumber(5.2),
       casualties: 0,
-      economicLoss: 12,
+      economicLoss: formatNumber(12),
       description: "Minor flooding in newly developed areas of Sarjapur.",
       source: "Local Administration",
       images: []
@@ -181,9 +201,9 @@ class HistoricalFloodDataService {
       date: "2022-05-20",
       location: { name: "Bommanahalli", coordinates: [12.9156, 77.6347] },
       severity: "Major",
-      affectedArea: 22.1,
+      affectedArea: formatNumber(22.1),
       casualties: 3,
-      economicLoss: 85,
+      economicLoss: formatNumber(85),
       description: "Severe flooding affected residential and commercial areas in Bommanahalli zone.",
       source: "KSNDMC",
       images: []
@@ -193,9 +213,9 @@ class HistoricalFloodDataService {
       date: "2022-08-08",
       location: { name: "Hebbal", coordinates: [13.0450, 77.5950] },
       severity: "Moderate",
-      affectedArea: 9.8,
+      affectedArea: formatNumber(9.8),
       casualties: 0,
-      economicLoss: 28,
+      economicLoss: formatNumber(28),
       description: "Flooding near Hebbal Lake due to heavy rains and encroachment issues.",
       source: "BBMP",
       images: []
@@ -207,9 +227,9 @@ class HistoricalFloodDataService {
       date: "2021-09-05",
       location: { name: "Koramangala", coordinates: [12.9352, 77.6245] },
       severity: "Major",
-      affectedArea: 16.4,
+      affectedArea: formatNumber(16.4),
       casualties: 1,
-      economicLoss: 55,
+      economicLoss: formatNumber(55),
       description: "Urban flooding in Koramangala due to inadequate storm water drainage.",
       source: "KSNDMC",
       images: []
@@ -219,9 +239,9 @@ class HistoricalFloodDataService {
       date: "2021-11-15",
       location: { name: "Whitefield", coordinates: [12.9698, 77.7500] },
       severity: "Moderate",
-      affectedArea: 13.2,
+      affectedArea: formatNumber(13.2),
       casualties: 0,
-      economicLoss: 40,
+      economicLoss: formatNumber(40),
       description: "Flooding in IT corridor areas of Whitefield due to poor urban planning.",
       source: "BBMP",
       images: []
@@ -233,9 +253,9 @@ class HistoricalFloodDataService {
       date: "2020-06-28",
       location: { name: "Rajaji Nagar", coordinates: [12.9915, 77.5525] },
       severity: "Major",
-      affectedArea: 20.5,
+      affectedArea: formatNumber(20.5),
       casualties: 2,
-      economicLoss: 75,
+      economicLoss: formatNumber(75),
       description: "Severe flooding in central Bangalore affecting multiple wards in Rajaji Nagar.",
       source: "KSNDMC",
       images: []
@@ -245,9 +265,9 @@ class HistoricalFloodDataService {
       date: "2020-10-22",
       location: { name: "Jayanagar", coordinates: [12.9279, 77.5816] },
       severity: "Moderate",
-      affectedArea: 11.7,
+      affectedArea: formatNumber(11.7),
       casualties: 0,
-      economicLoss: 32,
+      economicLoss: formatNumber(32),
       description: "Residential flooding in Jayanagar due to overwhelmed drainage systems.",
       source: "BBMP",
       images: []
@@ -275,14 +295,14 @@ class HistoricalFloodDataService {
           date: item.prediction_date,
           location: {
             name: item.area_name,
-            coordinates: [item.location.x, item.location.y] as [number, number]
+            coordinates: [formatNumber(item.location.x, 4), formatNumber(item.location.y, 4)] as [number, number]
           },
           severity: item.risk_level === 'Critical' ? 'Extreme' : 
                    item.risk_level === 'High' ? 'Major' :
                    item.risk_level === 'Moderate' ? 'Moderate' : 'Minor',
-          affectedArea: Math.random() * 20 + 5,
+          affectedArea: formatNumber(Math.random() * 20 + 5),
           casualties: item.risk_level === 'Critical' ? Math.floor(Math.random() * 5) : 0,
-          economicLoss: item.risk_level === 'Critical' ? Math.random() * 100 + 50 : Math.random() * 50,
+          economicLoss: formatNumber(item.risk_level === 'Critical' ? Math.random() * 100 + 50 : Math.random() * 50),
           description: `Flood event in ${item.area_name} with ${item.risk_level} risk level`,
           source: "Historical Data",
           images: []
@@ -390,13 +410,13 @@ class HistoricalFloodDataService {
         {
           id: '2022-heavy-rainfall',
           date: '2022-08-30',
-          location: 'Electronic City, Bengaluru',
+          location: { name: 'Electronic City, Bengaluru', coordinates: [12.8456, 77.6603] },
           severity: 'High',
           affectedAreas: ['Electronic City', 'Bommanahalli', 'HSR Layout'],
           casualties: 12,
-          economicLoss: 450000000,
+          economicLoss: formatNumber(450000000),
           description: 'Heavy rainfall of 132mm in 6 hours caused severe waterlogging',
-          rainfall: 132,
+          rainfall: formatNumber(132),
           duration: 6,
           recoveryTime: 72,
           preventionMeasures: [
@@ -408,13 +428,13 @@ class HistoricalFloodDataService {
         {
           id: '2021-monsoon-floods',
           date: '2021-09-02',
-          location: 'Majestic, Bengaluru',
+          location: { name: 'Majestic, Bengaluru', coordinates: [12.9767, 77.5736] },
           severity: 'Critical',
           affectedAreas: ['Majestic', 'KR Market', 'Chickpet'],
           casualties: 8,
-          economicLoss: 620000000,
+          economicLoss: formatNumber(620000000),
           description: 'Continuous rainfall for 48 hours led to flash floods',
-          rainfall: 178,
+          rainfall: formatNumber(178),
           duration: 48,
           recoveryTime: 96,
           preventionMeasures: [
@@ -426,13 +446,13 @@ class HistoricalFloodDataService {
         {
           id: '2020-urban-flooding',
           date: '2020-10-14',
-          location: 'Yelahanka, Bengaluru',
+          location: { name: 'Yelahanka, Bengaluru', coordinates: [13.0358, 77.5970] },
           severity: 'Moderate',
           affectedAreas: ['Yelahanka', 'Hebbal', 'RT Nagar'],
           casualties: 3,
-          economicLoss: 280000000,
+          economicLoss: formatNumber(280000000),
           description: 'Lake overflow combined with poor drainage caused flooding',
-          rainfall: 89,
+          rainfall: formatNumber(89),
           duration: 12,
           recoveryTime: 48,
           preventionMeasures: [
@@ -444,13 +464,13 @@ class HistoricalFloodDataService {
         {
           id: '2019-september-deluge',
           date: '2019-09-16',
-          location: 'Whitefield, Bengaluru',
+          location: { name: 'Whitefield, Bengaluru', coordinates: [12.9698, 77.7500] },
           severity: 'High',
           affectedAreas: ['Whitefield', 'Marathahalli', 'Brookefield'],
           casualties: 6,
-          economicLoss: 380000000,
+          economicLoss: formatNumber(380000000),
           description: 'Unprecedented rainfall in IT corridor areas',
-          rainfall: 145,
+          rainfall: formatNumber(145),
           duration: 18,
           recoveryTime: 60,
           preventionMeasures: [
@@ -462,13 +482,13 @@ class HistoricalFloodDataService {
         {
           id: '2018-august-floods',
           date: '2018-08-21',
-          location: 'Koramangala, Bengaluru',
+          location: { name: 'Koramangala, Bengaluru', coordinates: [12.9352, 77.6245] },
           severity: 'High',
           affectedAreas: ['Koramangala', 'BTM Layout', 'Jayanagar'],
           casualties: 4,
-          economicLoss: 340000000,
+          economicLoss: formatNumber(340000000),
           description: 'Intense rainfall overwhelmed city drainage systems',
-          rainfall: 118,
+          rainfall: formatNumber(118),
           duration: 14,
           recoveryTime: 54,
           preventionMeasures: [
@@ -492,8 +512,8 @@ class HistoricalFloodDataService {
       for (let year = currentYear - 4; year <= currentYear; year++) {
         // Simulate realistic trend based on actual Bangalore flood patterns
         const baseIncidents = year === 2022 ? 28 : year === 2021 ? 24 : year === 2020 ? 18 : year === 2019 ? 22 : 20;
-        const avgSeverity = year === 2022 ? 7.2 : year === 2021 ? 8.1 : year === 2020 ? 5.8 : year === 2019 ? 6.5 : 6.0;
-        const totalDamage = year === 2022 ? 4500 : year === 2021 ? 6200 : year === 2020 ? 2800 : year === 2019 ? 3800 : 3400;
+        const avgSeverity = formatNumber(year === 2022 ? 7.2 : year === 2021 ? 8.1 : year === 2020 ? 5.8 : year === 2019 ? 6.5 : 6.0);
+        const totalDamage = formatNumber(year === 2022 ? 4500 : year === 2021 ? 6200 : year === 2020 ? 2800 : year === 2019 ? 3800 : 3400);
         
         yearlyData.push({
           year: year,
@@ -501,7 +521,7 @@ class HistoricalFloodDataService {
           avgSeverity: avgSeverity,
           totalDamage: totalDamage * 100000, // Convert to actual rupees
           affectedPopulation: baseIncidents * 1250,
-          recoveryTime: avgSeverity * 8,
+          recoveryTime: formatNumber(avgSeverity * 8),
           preventionEffectiveness: Math.min(95, 60 + (currentYear - year) * 7)
         });
       }
@@ -688,8 +708,12 @@ class HistoricalFloodDataService {
     return data.map((item: any) => {
       if (typeof item === 'object' && item !== null) {
         // Safe property access with proper type checking
-        const x = item.x ?? item.year ?? item.month ?? 0;
-        const y = item.y ?? item.value ?? item.incidents ?? 0;
+        const x = typeof item.x === 'number' ? formatNumber(item.x, 1) : 
+                 typeof item.year === 'number' ? item.year : 
+                 typeof item.month === 'string' ? item.month : 0;
+        const y = typeof item.y === 'number' ? formatNumber(item.y, 1) : 
+                 typeof item.value === 'number' ? formatNumber(item.value, 1) : 
+                 typeof item.incidents === 'number' ? item.incidents : 0;
         return { x: Number(x), y: Number(y) };
       }
       return { x: 0, y: 0 };
@@ -705,7 +729,7 @@ class HistoricalFloodDataService {
       Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) * 
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+    return formatNumber(R * c);
   }
 
   private static deg2rad(deg: number): number {

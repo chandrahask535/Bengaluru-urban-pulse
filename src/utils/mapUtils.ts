@@ -1,4 +1,5 @@
 import RealTimeWeatherService from '@/services/RealTimeWeatherService';
+import { formatNumber, formatCurrency } from '@/services/HistoricalFloodDataService';
 
 // Real-time weather data fetching
 export const fetchRealTimeWeather = async (lat: number, lng: number) => {
@@ -18,8 +19,8 @@ export const fetchWeatherForecast = async (lat: number, lng: number) => {
       list: [{
         dt: Date.now() / 1000,
         main: {
-          temp: weatherData.current.temperature,
-          feels_like: weatherData.current.temperature + 2,
+          temp: formatNumber(weatherData.current.temperature),
+          feels_like: formatNumber(weatherData.current.temperature + 2),
           humidity: weatherData.current.humidity,
           pressure: weatherData.current.pressure
         },
@@ -28,7 +29,7 @@ export const fetchWeatherForecast = async (lat: number, lng: number) => {
           description: weatherData.current.description
         }],
         wind: {
-          speed: weatherData.current.windSpeed
+          speed: formatNumber(weatherData.current.windSpeed)
         },
         visibility: weatherData.current.visibility * 1000,
         pop: weatherData.forecast.next24Hours > 0 ? 0.8 : 0.2
@@ -43,9 +44,9 @@ export const fetchWeatherForecast = async (lat: number, lng: number) => {
 // Generate heatmap data based on real flood risk
 export const generateHeatmapData = (locations: any[]) => {
   return locations.map(location => ({
-    lat: location.coordinates[0],
-    lng: location.coordinates[1],
-    intensity: location.details?.floodRiskValue || 0.5
+    lat: formatNumber(location.coordinates[0], 4),
+    lng: formatNumber(location.coordinates[1], 4),
+    intensity: formatNumber(location.details?.floodRiskValue || 0.5, 2)
   }));
 };
 
@@ -61,7 +62,6 @@ interface PopupData {
   elevationData?: number;
   drainageScore?: number;
   alerts?: any[];
-  urbanDensity?: number; // Added this property
 }
 
 // Generate enhanced location popup with real-time data
@@ -91,17 +91,17 @@ export const generateLocationPopup = (
           </div>
           <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded">
             <div class="font-medium text-gray-700 dark:text-gray-300">Elevation</div>
-            <div class="text-lg font-bold text-gray-900 dark:text-white">${(data.elevationData || 0).toFixed(0)}m</div>
+            <div class="text-lg font-bold text-gray-900 dark:text-white">${formatNumber(data.elevationData || 0, 0)}m</div>
           </div>
         </div>
         
         <div class="border-t pt-2">
           <div class="font-medium text-gray-700 dark:text-gray-300 mb-1">Live Weather</div>
           <div class="grid grid-cols-2 gap-1 text-xs">
-            <div>🌡️ ${(data.temperature || 0).toFixed(1)}°C</div>
-            <div>💧 ${(data.humidity || 0)}%</div>
-            <div>🌧️ ${(data.rainfall || 0).toFixed(1)}mm</div>
-            <div>💨 ${(data.windSpeed || 0).toFixed(1)}m/s</div>
+            <div>🌡️ ${formatNumber(data.temperature || 0)}°C</div>
+            <div>💧 ${data.humidity || 0}%</div>
+            <div>🌧️ ${formatNumber(data.rainfall || 0)}mm</div>
+            <div>💨 ${formatNumber(data.windSpeed || 0)}m/s</div>
           </div>
         </div>
         
@@ -109,21 +109,21 @@ export const generateLocationPopup = (
           <div class="font-medium text-gray-700 dark:text-gray-300 mb-1">Infrastructure</div>
           <div class="grid grid-cols-2 gap-1 text-xs">
             <div>🌳 Green: ${data.greenCover || 0}%</div>
-            <div>🚰 Drainage: ${(data.drainageScore || 0).toFixed(0)}/100</div>
+            <div>🚰 Drainage: ${formatNumber(data.drainageScore || 0, 0)}/100</div>
           </div>
         </div>
         
         ${data.forecastRainfall ? `
           <div class="border-t pt-2">
             <div class="font-medium text-gray-700 dark:text-gray-300">24h Forecast</div>
-            <div class="text-blue-600 dark:text-blue-400 font-bold">${data.forecastRainfall.toFixed(1)}mm expected</div>
+            <div class="text-blue-600 dark:text-blue-400 font-bold">${formatNumber(data.forecastRainfall)}mm expected</div>
           </div>
         ` : ''}
         
         ${alertsHtml}
         
         <div class="border-t pt-2 text-xs text-gray-500 dark:text-gray-400">
-          📍 ${coordinates[0].toFixed(4)}, ${coordinates[1].toFixed(4)}
+          📍 ${formatNumber(coordinates[0], 4)}, ${formatNumber(coordinates[1], 4)}
         </div>
       </div>
     </div>
@@ -141,7 +141,7 @@ export const getElevationForCoordinates = (lat: number, lng: number): number => 
   const southFactor = (lat - 12.9) * 50; // Southern areas are higher
   const variability = Math.sin(lat * 100) * Math.cos(lng * 100) * 15; // Add realistic variation
   
-  return Math.max(880, Math.min(970, baseElevation + southFactor + variability));
+  return formatNumber(Math.max(880, Math.min(970, baseElevation + southFactor + variability)), 0);
 };
 
 // Calculate drainage score based on elevation, proximity to water bodies, and urban development
@@ -164,7 +164,7 @@ export const getDrainageScoreForCoordinates = (lat: number, lng: number): number
     elevationScore + slopeBonus - lakeProximityPenalty - urbanDensityPenalty + 30
   ));
   
-  return totalScore;
+  return formatNumber(totalScore, 0);
 };
 
 // Helper function to calculate lake proximity penalty
@@ -184,7 +184,7 @@ const calculateLakeProximityPenalty = (lat: number, lng: number): number => {
   
   // Penalty increases as we get closer to lakes (within 2km)
   if (minDistance < 0.02) { // Within ~2km
-    return (0.02 - minDistance) * 500; // Up to 10 points penalty
+    return formatNumber((0.02 - minDistance) * 500, 1); // Up to 10 points penalty
   }
   return 0;
 };
@@ -207,7 +207,7 @@ const calculateUrbanDensityPenalty = (lat: number, lng: number): number => {
     }
   });
   
-  return Math.min(15, proximityPenalty);
+  return formatNumber(Math.min(15, proximityPenalty), 1);
 };
 
 // Helper function to calculate slope bonus
@@ -218,7 +218,7 @@ const calculateSlopeBonus = (lat: number, lng: number): number => {
   const elevation3 = getElevationForCoordinates(lat, lng + 0.001);
   
   const slope = Math.abs(elevation1 - elevation2) + Math.abs(elevation1 - elevation3);
-  return Math.min(15, slope * 0.5); // Up to 15 points bonus
+  return formatNumber(Math.min(15, slope * 0.5), 1); // Up to 15 points bonus
 };
 
 // Generate flood zone data for map overlays
@@ -235,11 +235,11 @@ export const generateFloodZoneGeoJSON = (center: [number, number], riskLevel: st
       geometry: {
         type: 'Polygon',
         coordinates: [[
-          [lng - radius, lat - radius],
-          [lng + radius, lat - radius],
-          [lng + radius, lat + radius],
-          [lng - radius, lat + radius],
-          [lng - radius, lat - radius]
+          [formatNumber(lng - radius, 4), formatNumber(lat - radius, 4)],
+          [formatNumber(lng + radius, 4), formatNumber(lat - radius, 4)],
+          [formatNumber(lng + radius, 4), formatNumber(lat + radius, 4)],
+          [formatNumber(lng - radius, 4), formatNumber(lat + radius, 4)],
+          [formatNumber(lng - radius, 4), formatNumber(lat - radius, 4)]
         ]]
       },
       properties: {

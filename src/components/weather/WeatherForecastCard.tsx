@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CloudRain, Sun, CloudSun, CloudLightning, CloudSnow, CloudFog, Cloud, Loader2, AlertTriangle } from 'lucide-react';
 import DashboardCard from '@/components/dashboard/DashboardCard';
 import RealTimeWeatherService from '@/services/RealTimeWeatherService';
+import { formatNumber } from '@/services/HistoricalFloodDataService';
 import { toast } from 'sonner';
 
 interface WeatherForecastProps {
@@ -110,7 +111,7 @@ const WeatherForecastCard: React.FC<WeatherForecastProps> = ({
             <div className="text-center">
               <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
               <p className="text-sm text-red-600 mb-2">Failed to load live weather data</p>
-              <p className="text-xs text-gray-500">{error}</p>
+              <p className="text-xs text-gray-500 break-words max-w-xs">{error}</p>
               <button 
                 onClick={() => window.location.reload()} 
                 className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
@@ -151,44 +152,44 @@ const WeatherForecastCard: React.FC<WeatherForecastProps> = ({
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col items-center">
-            <div className="text-4xl font-bold">{currentWeather.current.temperature.toFixed(1)}°C</div>
+            <div className="text-4xl font-bold">{formatNumber(currentWeather.current.temperature)}°C</div>
             <div className="flex items-center mt-1">
               {getWeatherIcon(currentWeather.current.description)}
-              <span className="ml-1 capitalize">{currentWeather.current.description}</span>
+              <span className="ml-1 capitalize text-sm truncate max-w-24">{currentWeather.current.description}</span>
             </div>
           </div>
           
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Humidity:</span>
-              <span>{currentWeather.current.humidity}%</span>
+              <span className="font-mono">{currentWeather.current.humidity}%</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Pressure:</span>
-              <span>{currentWeather.current.pressure} hPa</span>
+              <span className="font-mono">{currentWeather.current.pressure} hPa</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Wind Speed:</span>
-              <span>{currentWeather.current.windSpeed.toFixed(1)} m/s</span>
+              <span className="font-mono">{formatNumber(currentWeather.current.windSpeed)} m/s</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span>Current Rainfall:</span>
-              <span className="font-medium text-blue-600">{currentWeather.current.rainfall.toFixed(1)} mm/h</span>
+              <span>Rainfall:</span>
+              <span className="font-medium text-blue-600 font-mono">{formatNumber(currentWeather.current.rainfall)} mm/h</span>
             </div>
           </div>
           
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Visibility:</span>
-              <span>{currentWeather.current.visibility.toFixed(1)} km</span>
+              <span className="font-mono">{formatNumber(currentWeather.current.visibility)} km</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Cloud Cover:</span>
-              <span>{currentWeather.current.cloudCover}%</span>
+              <span className="font-mono">{currentWeather.current.cloudCover}%</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span>Wind Direction:</span>
-              <span>{currentWeather.current.windDirection}°</span>
+              <span>Wind Dir:</span>
+              <span className="font-mono">{currentWeather.current.windDirection}°</span>
             </div>
           </div>
         </div>
@@ -198,16 +199,16 @@ const WeatherForecastCard: React.FC<WeatherForecastProps> = ({
           <h4 className="font-medium mb-2">Rainfall Forecast</h4>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="text-center">
-              <div className="font-bold text-blue-600">{currentWeather.forecast.next6Hours.toFixed(1)} mm</div>
-              <div className="text-gray-500">Next 6 hours</div>
+              <div className="font-bold text-blue-600 font-mono">{formatNumber(currentWeather.forecast.next6Hours)} mm</div>
+              <div className="text-gray-500 text-xs">Next 6 hours</div>
             </div>
             <div className="text-center">
-              <div className="font-bold text-blue-600">{currentWeather.forecast.next12Hours.toFixed(1)} mm</div>
-              <div className="text-gray-500">Next 12 hours</div>
+              <div className="font-bold text-blue-600 font-mono">{formatNumber(currentWeather.forecast.next12Hours)} mm</div>
+              <div className="text-gray-500 text-xs">Next 12 hours</div>
             </div>
             <div className="text-center">
-              <div className="font-bold text-blue-600">{currentWeather.forecast.next24Hours.toFixed(1)} mm</div>
-              <div className="text-gray-500">Next 24 hours</div>
+              <div className="font-bold text-blue-600 font-mono">{formatNumber(currentWeather.forecast.next24Hours)} mm</div>
+              <div className="text-gray-500 text-xs">Next 24 hours</div>
             </div>
           </div>
         </div>
@@ -219,8 +220,8 @@ const WeatherForecastCard: React.FC<WeatherForecastProps> = ({
             <div className="space-y-2">
               {currentWeather.alerts.map((alert: any, index: number) => (
                 <div key={index} className="bg-red-50 border border-red-200 rounded p-2 text-sm">
-                  <div className="font-medium text-red-800">{alert.event}</div>
-                  <div className="text-red-600">{alert.description}</div>
+                  <div className="font-medium text-red-800 truncate">{alert.event}</div>
+                  <div className="text-red-600 text-xs truncate">{alert.description}</div>
                   <div className="text-xs text-red-500 mt-1">
                     Severity: {alert.severity} | 
                     Until: {new Date(alert.end).toLocaleString()}
@@ -232,9 +233,9 @@ const WeatherForecastCard: React.FC<WeatherForecastProps> = ({
         )}
 
         <div className="mt-4 pt-2 border-t text-xs text-gray-500">
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <span>🔄 Auto-refresh: Every 10 minutes</span>
-            <span>📡 Source: OpenWeatherMap Live API</span>
+            <span className="truncate ml-2">📡 Source: OpenWeatherMap Live API</span>
           </div>
         </div>
       </DashboardCard>
