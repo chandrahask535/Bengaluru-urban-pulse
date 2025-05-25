@@ -1,6 +1,55 @@
 
 import RealTimeWeatherService from '@/services/RealTimeWeatherService';
 
+// Real-time weather data fetching
+export const fetchRealTimeWeather = async (lat: number, lng: number) => {
+  try {
+    const weatherData = await RealTimeWeatherService.getCurrentWeather(lat, lng);
+    return weatherData;
+  } catch (error) {
+    console.error('Error fetching real-time weather:', error);
+    throw error;
+  }
+};
+
+export const fetchWeatherForecast = async (lat: number, lng: number) => {
+  try {
+    const weatherData = await RealTimeWeatherService.getCurrentWeather(lat, lng);
+    return {
+      list: [{
+        dt: Date.now() / 1000,
+        main: {
+          temp: weatherData.current.temperature,
+          feels_like: weatherData.current.temperature + 2,
+          humidity: weatherData.current.humidity,
+          pressure: weatherData.current.pressure
+        },
+        weather: [{
+          main: weatherData.current.description.includes('rain') ? 'Rain' : 'Clear',
+          description: weatherData.current.description
+        }],
+        wind: {
+          speed: weatherData.current.windSpeed
+        },
+        visibility: weatherData.current.visibility * 1000,
+        pop: weatherData.forecast.next24Hours > 0 ? 0.8 : 0.2
+      }]
+    };
+  } catch (error) {
+    console.error('Error fetching weather forecast:', error);
+    throw error;
+  }
+};
+
+// Generate heatmap data based on real flood risk
+export const generateHeatmapData = (locations: any[]) => {
+  return locations.map(location => ({
+    lat: location.coordinates[0],
+    lng: location.coordinates[1],
+    intensity: location.details?.floodRiskValue || 0.5
+  }));
+};
+
 // Generate enhanced location popup with real-time data
 export const generateLocationPopup = (
   locationName: string, 

@@ -1,133 +1,130 @@
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { API_KEYS } from '@/config/api-keys';
-import RealTimeWeatherService from '@/services/RealTimeWeatherService';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { 
-  Building, 
-  Mountain, 
-  Droplet, 
-  CloudRain, 
-  Navigation, 
-  Eye,
-  MapPin,
-  Thermometer,
-  Wind,
-  Gauge
-} from 'lucide-react';
+
+interface Marker {
+  position: [number, number];
+  popup: string;
+  color: string;
+}
+
+interface HeatmapPoint {
+  lat: number;
+  lng: number;
+  intensity: number;
+}
 
 interface EnhancedMapBoxProps {
   center: [number, number];
   zoom?: number;
-  markers?: Array<{
-    position: [number, number];
-    popup?: string;
-    color?: string;
-    type?: 'flood' | 'lake' | 'alert' | 'default';
-  }>;
-  onMapClick?: (latlng: { lat: number; lng: number }) => void;
-  showBuildings?: boolean;
-  showTerrain?: boolean;
-  showRainLayer?: boolean;
-  showFloodZones?: boolean;
-  showTraffic?: boolean;
-  showSatellite?: boolean;
-  enableLocateControl?: boolean;
+  markers?: Marker[];
   className?: string;
+  showBuildings?: boolean;
+  showTraffic?: boolean;
+  style?: string;
+  showHeatmap?: boolean;
+  heatmapData?: HeatmapPoint[];
+  showRainLayer?: boolean;
+  showTerrain?: boolean;
+  showWaterBodies?: boolean;
+  showUrbanZones?: boolean;
+  onMapClick?: (latlng: { lat: number; lng: number }) => void;
+  enableHover?: boolean;
+  onHover?: (feature: any) => void;
 }
 
-const EnhancedMapBoxComponent = ({
+const EnhancedMapBoxComponent: React.FC<EnhancedMapBoxProps> = ({
   center,
-  zoom = 12,
+  zoom = 11,
   markers = [],
-  onMapClick,
+  className = 'h-96',
   showBuildings = false,
-  showTerrain = false,
-  showRainLayer = false,
-  showFloodZones = false,
   showTraffic = false,
-  showSatellite = false,
-  enableLocateControl = false,
-  className = "h-full w-full"
-}: EnhancedMapBoxProps) => {
+  style = 'mapbox://styles/mapbox/streets-v11',
+  showHeatmap = false,
+  heatmapData = [],
+  showRainLayer = false,
+  showTerrain = false,
+  showWaterBodies = false,
+  showUrbanZones = false,
+  onMapClick,
+  enableHover = false,
+  onHover
+}) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [weatherData, setWeatherData] = useState<any>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [selectedLayers, setSelectedLayers] = useState({
-    buildings: showBuildings,
-    terrain: showTerrain,
-    rain: showRainLayer,
-    floodZones: showFloodZones,
-    traffic: showTraffic,
-    satellite: showSatellite
-  });
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current) return;
 
-    mapboxgl.accessToken = API_KEYS.MAPBOX_API_KEY;
+    // Set Mapbox access token
+    mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNtNWhyaGdyczB1aHcyanB4aWZlNGh1enkifQ.PgeyMH5jL9fz9v0sUls-Ag';
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: selectedLayers.satellite 
-        ? 'mapbox://styles/mapbox/satellite-v9'
-        : 'mapbox://styles/mapbox/light-v11',
-      center: center,
+      style: style,
+      center: [center[1], center[0]], // Mapbox uses [lng, lat]
       zoom: zoom,
-      pitch: selectedLayers.buildings ? 45 : 0,
+      antialias: true
     });
 
     // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    // Add geolocate control if enabled
-    if (enableLocateControl) {
-      map.current.addControl(
-        new mapboxgl.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true
-          },
-          trackUserLocation: true,
-          showUserHeading: true
-        }),
-        'top-right'
-      );
-    }
+    // Add geolocate control
+    map.current.addControl(
+      new mapboxgl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true,
+        showUserHeading: true
+      }),
+      'top-right'
+    );
 
-    // Add scale control
-    map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+    map.current.on('load', () => {
+      setIsMapLoaded(true);
+    });
 
-    // Map click handler
+    // Click handler
     if (onMapClick) {
       map.current.on('click', (e) => {
         onMapClick({ lat: e.lngLat.lat, lng: e.lngLat.lng });
       });
     }
 
-    // Map load handler
-    map.current.on('load', () => {
-      setMapLoaded(true);
-      addAllLayers();
-    });
-
     return () => {
       map.current?.remove();
-      map.current = null;
     };
   }, []);
 
-  // Function to add all map layers
-  const addAllLayers = useCallback(() => {
-    if (!map.current || !mapLoaded) return;
+  // Update map center and zoom
+  useEffect(() => {
+    if (map.current && isMapLoaded) {
+      map.current.flyTo({
+        center: [center[1], center[0]],
+        zoom: zoom,
+        essential: true
+      });
+    }
+  }, [center, zoom, isMapLoaded]);
 
-    // Add 3D buildings layer
-    if (selectedLayers.buildings && !map.current.getLayer('3d-buildings')) {
+  // Update map style
+  useEffect(() => {
+    if (map.current && isMapLoaded) {
+      map.current.setStyle(style);
+    }
+  }, [style, isMapLoaded]);
+
+  // Handle 3D buildings
+  useEffect(() => {
+    if (!map.current || !isMapLoaded) return;
+
+    if (showBuildings) {
       map.current.addLayer({
         id: '3d-buildings',
         source: 'composite',
@@ -158,105 +155,110 @@ const EnhancedMapBoxComponent = ({
           'fill-extrusion-opacity': 0.6
         }
       });
+    } else {
+      if (map.current.getLayer('3d-buildings')) {
+        map.current.removeLayer('3d-buildings');
+      }
     }
+  }, [showBuildings, isMapLoaded]);
 
-    // Add terrain layer
-    if (selectedLayers.terrain && !map.current.getSource('mapbox-dem')) {
-      map.current.addSource('mapbox-dem', {
-        type: 'raster-dem',
-        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        tileSize: 512,
-        maxzoom: 14
+  // Handle traffic layer
+  useEffect(() => {
+    if (!map.current || !isMapLoaded) return;
+
+    if (showTraffic) {
+      map.current.addSource('mapbox-traffic', {
+        type: 'vector',
+        url: 'mapbox://mapbox.mapbox-traffic-v1'
       });
-      map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
-    }
 
-    // Add traffic layer
-    if (selectedLayers.traffic && !map.current.getLayer('traffic')) {
       map.current.addLayer({
         id: 'traffic',
         type: 'line',
-        source: {
-          type: 'vector',
-          url: 'mapbox://mapbox.mapbox-traffic-v1'
-        },
+        source: 'mapbox-traffic',
         'source-layer': 'traffic',
         paint: {
           'line-width': 2,
           'line-color': [
             'case',
-            ['==', ['get', 'congestion'], 'low'], '#00ff00',
-            ['==', ['get', 'congestion'], 'moderate'], '#ffff00',
-            ['==', ['get', 'congestion'], 'heavy'], '#ff8800',
-            '#ff0000'
+            ['==', ['get', 'congestion'], 'low'],
+            '#5cb85c',
+            ['==', ['get', 'congestion'], 'moderate'],
+            '#f0ad4e',
+            ['==', ['get', 'congestion'], 'heavy'],
+            '#d9534f',
+            ['==', ['get', 'congestion'], 'severe'],
+            '#d9534f',
+            '#3bb2d0'
           ]
         }
       });
+    } else {
+      if (map.current.getLayer('traffic')) {
+        map.current.removeLayer('traffic');
+      }
+      if (map.current.getSource('mapbox-traffic')) {
+        map.current.removeSource('mapbox-traffic');
+      }
     }
+  }, [showTraffic, isMapLoaded]);
 
-    // Add flood zones layer
-    if (selectedLayers.floodZones && !map.current.getLayer('flood-zones')) {
+  // Handle flood zones
+  useEffect(() => {
+    if (!map.current || !isMapLoaded) return;
+
+    if (showUrbanZones) {
+      // Create proper GeoJSON FeatureCollection
+      const floodZonesGeoJSON: GeoJSON.FeatureCollection = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: {
+              type: "Polygon",
+              coordinates: [[
+                [77.5946, 12.9716],
+                [77.6046, 12.9716],
+                [77.6046, 12.9816],
+                [77.5946, 12.9816],
+                [77.5946, 12.9716]
+              ]]
+            },
+            properties: {
+              name: "High Risk Zone",
+              risk: "High"
+            }
+          }
+        ]
+      };
+
+      map.current.addSource('flood-zones', {
+        type: 'geojson',
+        data: floodZonesGeoJSON
+      });
+
       map.current.addLayer({
-        id: 'flood-zones',
+        id: 'flood-zones-fill',
         type: 'fill',
-        source: {
-          type: 'geojson',
-          data: generateFloodZoneData()
-        },
+        source: 'flood-zones',
         paint: {
-          'fill-color': '#0080ff',
+          'fill-color': '#ff0000',
           'fill-opacity': 0.3
         }
       });
+    } else {
+      if (map.current.getLayer('flood-zones-fill')) {
+        map.current.removeLayer('flood-zones-fill');
+      }
+      if (map.current.getSource('flood-zones')) {
+        map.current.removeSource('flood-zones');
+      }
     }
+  }, [showUrbanZones, isMapLoaded]);
 
-    // Add rainfall layer
-    if (selectedLayers.rain && !map.current.getLayer('rainfall')) {
-      map.current.addLayer({
-        id: 'rainfall',
-        type: 'raster',
-        source: {
-          type: 'raster',
-          tiles: [`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${API_KEYS.OPENWEATHER_API_KEY}`],
-          tileSize: 256,
-        },
-        paint: {
-          'raster-opacity': 0.6
-        }
-      });
-    }
-  }, [selectedLayers, mapLoaded]);
-
-  // Generate flood zone data
-  const generateFloodZoneData = () => {
-    const [lng, lat] = center;
-    return {
-      type: 'FeatureCollection',
-      features: [
-        {
-          type: 'Feature',
-          geometry: {
-            type: 'Polygon',
-            coordinates: [[
-              [lng - 0.01, lat - 0.01],
-              [lng + 0.01, lat - 0.01],
-              [lng + 0.01, lat + 0.01],
-              [lng - 0.01, lat + 0.01],
-              [lng - 0.01, lat - 0.01]
-            ]]
-          },
-          properties: {
-            name: 'High Risk Flood Zone',
-            risk: 'high'
-          }
-        }
-      ]
-    };
-  };
-
-  // Update markers
+  // Handle markers
   useEffect(() => {
-    if (!map.current || !mapLoaded) return;
+    if (!map.current || !isMapLoaded) return;
 
     // Clear existing markers
     const existingMarkers = document.querySelectorAll('.mapboxgl-marker');
@@ -266,183 +268,84 @@ const EnhancedMapBoxComponent = ({
     markers.forEach((marker, index) => {
       const el = document.createElement('div');
       el.className = 'marker';
-      el.style.backgroundColor = marker.color || '#3b82f6';
-      el.style.width = '12px';
-      el.style.height = '12px';
+      el.style.backgroundColor = marker.color;
+      el.style.width = '20px';
+      el.style.height = '20px';
       el.style.borderRadius = '50%';
       el.style.border = '2px solid white';
-      el.style.cursor = 'pointer';
 
-      const mapboxMarker = new mapboxgl.Marker(el)
+      const popup = new mapboxgl.Popup({ offset: 25 })
+        .setHTML(marker.popup);
+
+      new mapboxgl.Marker(el)
         .setLngLat([marker.position[1], marker.position[0]])
+        .setPopup(popup)
         .addTo(map.current!);
-
-      if (marker.popup) {
-        const popup = new mapboxgl.Popup({ offset: 25 })
-          .setHTML(marker.popup);
-        mapboxMarker.setPopup(popup);
-      }
     });
-  }, [markers, mapLoaded]);
+  }, [markers, isMapLoaded]);
 
-  // Fetch weather data
+  // Handle heatmap
   useEffect(() => {
-    const fetchWeather = async () => {
-      try {
-        const weather = await RealTimeWeatherService.getCurrentWeather(center[0], center[1]);
-        setWeatherData(weather);
-      } catch (error) {
-        console.error('Error fetching weather:', error);
-      }
-    };
+    if (!map.current || !isMapLoaded) return;
 
-    fetchWeather();
-  }, [center]);
-
-  // Layer toggle functions
-  const toggleLayer = (layerType: keyof typeof selectedLayers) => {
-    setSelectedLayers(prev => {
-      const newLayers = { ...prev, [layerType]: !prev[layerType] };
-      
-      // Apply layer changes
-      if (map.current && mapLoaded) {
-        switch (layerType) {
-          case 'buildings':
-            if (newLayers.buildings) {
-              map.current.setPitch(45);
-            } else {
-              map.current.setPitch(0);
-              if (map.current.getLayer('3d-buildings')) {
-                map.current.removeLayer('3d-buildings');
-              }
-            }
-            break;
-            
-          case 'terrain':
-            if (newLayers.terrain) {
-              if (!map.current.getSource('mapbox-dem')) {
-                map.current.addSource('mapbox-dem', {
-                  type: 'raster-dem',
-                  url: 'mapbox://mapbox.mapbox-terrain-dem-v1'
-                });
-              }
-              map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
-            } else {
-              map.current.setTerrain(null);
-            }
-            break;
-            
-          case 'satellite':
-            map.current.setStyle(newLayers.satellite 
-              ? 'mapbox://styles/mapbox/satellite-v9'
-              : 'mapbox://styles/mapbox/light-v11'
-            );
-            break;
+    if (showHeatmap && heatmapData.length > 0) {
+      const features = heatmapData.map(point => ({
+        type: 'Feature' as const,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [point.lng, point.lat]
+        },
+        properties: {
+          intensity: point.intensity
         }
-        
-        // Re-add other layers after style change
-        setTimeout(() => addAllLayers(), 100);
+      }));
+
+      const heatmapGeoJSON: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: features
+      };
+
+      map.current.addSource('heatmap-data', {
+        type: 'geojson',
+        data: heatmapGeoJSON
+      });
+
+      map.current.addLayer({
+        id: 'heatmap-layer',
+        type: 'heatmap',
+        source: 'heatmap-data',
+        maxzoom: 15,
+        paint: {
+          'heatmap-weight': ['get', 'intensity'],
+          'heatmap-intensity': 1,
+          'heatmap-color': [
+            'interpolate',
+            ['linear'],
+            ['heatmap-density'],
+            0, 'rgba(0,0,255,0)',
+            0.2, 'rgb(0,0,255)',
+            0.4, 'rgb(0,255,255)',
+            0.6, 'rgb(0,255,0)',
+            0.8, 'rgb(255,255,0)',
+            1, 'rgb(255,0,0)'
+          ],
+          'heatmap-radius': 30,
+          'heatmap-opacity': 0.8
+        }
+      });
+    } else {
+      if (map.current.getLayer('heatmap-layer')) {
+        map.current.removeLayer('heatmap-layer');
       }
-      
-      return newLayers;
-    });
-  };
+      if (map.current.getSource('heatmap-data')) {
+        map.current.removeSource('heatmap-data');
+      }
+    }
+  }, [showHeatmap, heatmapData, isMapLoaded]);
 
   return (
     <div className={`relative ${className}`}>
-      <div ref={mapContainer} className="absolute inset-0" />
-      
-      {/* Layer Controls */}
-      <div className="absolute top-4 left-4 z-10 space-y-2">
-        <Card className="p-2">
-          <div className="flex flex-wrap gap-1">
-            <Button
-              variant={selectedLayers.buildings ? "default" : "outline"}
-              size="sm"
-              onClick={() => toggleLayer('buildings')}
-              className="text-xs"
-            >
-              <Building className="h-3 w-3 mr-1" />
-              3D
-            </Button>
-            <Button
-              variant={selectedLayers.terrain ? "default" : "outline"}
-              size="sm"
-              onClick={() => toggleLayer('terrain')}
-              className="text-xs"
-            >
-              <Mountain className="h-3 w-3 mr-1" />
-              Terrain
-            </Button>
-            <Button
-              variant={selectedLayers.rain ? "default" : "outline"}
-              size="sm"
-              onClick={() => toggleLayer('rain')}
-              className="text-xs"
-            >
-              <CloudRain className="h-3 w-3 mr-1" />
-              Rain
-            </Button>
-            <Button
-              variant={selectedLayers.floodZones ? "default" : "outline"}
-              size="sm"
-              onClick={() => toggleLayer('floodZones')}
-              className="text-xs"
-            >
-              <Droplet className="h-3 w-3 mr-1" />
-              Flood
-            </Button>
-            <Button
-              variant={selectedLayers.satellite ? "default" : "outline"}
-              size="sm"
-              onClick={() => toggleLayer('satellite')}
-              className="text-xs"
-            >
-              <Eye className="h-3 w-3 mr-1" />
-              Satellite
-            </Button>
-          </div>
-        </Card>
-      </div>
-
-      {/* Weather Info */}
-      {weatherData && (
-        <div className="absolute top-4 right-4 z-10">
-          <Card className="p-3 bg-white/90 backdrop-blur-sm">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium">Current Weather</h4>
-                <Badge variant="outline" className="text-xs">
-                  Live
-                </Badge>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center">
-                  <Thermometer className="h-3 w-3 mr-1 text-red-500" />
-                  {weatherData.current.temperature.toFixed(1)}°C
-                </div>
-                <div className="flex items-center">
-                  <CloudRain className="h-3 w-3 mr-1 text-blue-500" />
-                  {weatherData.current.rainfall.toFixed(1)}mm
-                </div>
-                <div className="flex items-center">
-                  <Wind className="h-3 w-3 mr-1 text-gray-500" />
-                  {weatherData.current.windSpeed.toFixed(1)}m/s
-                </div>
-                <div className="flex items-center">
-                  <Gauge className="h-3 w-3 mr-1 text-purple-500" />
-                  {weatherData.current.humidity}%
-                </div>
-              </div>
-              {weatherData.alerts && weatherData.alerts.length > 0 && (
-                <div className="mt-2 p-1 bg-red-100 rounded text-xs text-red-700">
-                  Weather Alert: {weatherData.alerts[0].event}
-                </div>
-              )}
-            </div>
-          </Card>
-        </div>
-      )}
+      <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
     </div>
   );
 };

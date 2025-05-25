@@ -34,16 +34,23 @@ class RealTimeWeatherService {
 
   static async getCurrentWeather(lat: number, lng: number): Promise<RealTimeWeatherData> {
     try {
+      console.log(`Fetching real-time weather for ${lat}, ${lng}`);
+      
+      if (!this.API_KEY) {
+        throw new Error('OpenWeatherMap API key not configured');
+      }
+
       // Fetch current weather
       const currentResponse = await fetch(
         `${this.BASE_URL}/weather?lat=${lat}&lon=${lng}&appid=${this.API_KEY}&units=metric`
       );
       
       if (!currentResponse.ok) {
-        throw new Error(`Weather API error: ${currentResponse.status}`);
+        throw new Error(`Weather API error: ${currentResponse.status} - ${currentResponse.statusText}`);
       }
       
       const currentData = await currentResponse.json();
+      console.log('Current weather data:', currentData);
       
       // Fetch forecast for rainfall prediction
       const forecastResponse = await fetch(
@@ -53,16 +60,22 @@ class RealTimeWeatherService {
       let forecastData = null;
       if (forecastResponse.ok) {
         forecastData = await forecastResponse.json();
+        console.log('Forecast data received');
       }
       
-      // Fetch weather alerts
-      const alertsResponse = await fetch(
-        `${this.BASE_URL}/onecall?lat=${lat}&lon=${lng}&appid=${this.API_KEY}&exclude=minutely,daily`
-      );
-      
+      // Fetch weather alerts using One Call API 3.0
       let alertsData = null;
-      if (alertsResponse.ok) {
-        alertsData = await alertsResponse.json();
+      try {
+        const alertsResponse = await fetch(
+          `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lng}&appid=${this.API_KEY}&exclude=minutely,daily`
+        );
+        
+        if (alertsResponse.ok) {
+          alertsData = await alertsResponse.json();
+          console.log('Alerts data received');
+        }
+      } catch (alertError) {
+        console.warn('Could not fetch alerts:', alertError);
       }
       
       // Process rainfall data
@@ -87,7 +100,7 @@ class RealTimeWeatherService {
         );
       }
       
-      return {
+      const weatherData: RealTimeWeatherData = {
         current: {
           temperature: currentData.main.temp,
           humidity: currentData.main.humidity,
@@ -106,54 +119,44 @@ class RealTimeWeatherService {
         },
         alerts: alertsData?.alerts?.map((alert: any) => ({
           event: alert.event,
-          severity: alert.tags[0] || 'unknown',
+          severity: alert.tags?.[0] || 'unknown',
           description: alert.description,
           start: new Date(alert.start * 1000).toISOString(),
           end: new Date(alert.end * 1000).toISOString(),
         })) || [],
         timestamp: new Date().toISOString(),
       };
+
+      console.log('Processed weather data:', weatherData);
+      return weatherData;
       
     } catch (error) {
       console.error('Error fetching real-time weather data:', error);
-      
-      // Return fallback data with error indication
-      return {
-        current: {
-          temperature: 25,
-          humidity: 65,
-          pressure: 1013,
-          windSpeed: 2.5,
-          windDirection: 180,
-          rainfall: 0,
-          visibility: 10,
-          description: 'Data unavailable',
-          cloudCover: 50,
-        },
-        forecast: {
-          next6Hours: 0,
-          next12Hours: 0,
-          next24Hours: 0,
-        },
-        alerts: [],
-        timestamp: new Date().toISOString(),
-      };
+      throw error; // Throw the error instead of returning fallback data
     }
   }
   
   static async getWeatherAlerts(lat: number, lng: number) {
     try {
+      console.log(`Fetching weather alerts for ${lat}, ${lng}`);
+      
+      if (!this.API_KEY) {
+        throw new Error('OpenWeatherMap API key not configured');
+      }
+
       const response = await fetch(
-        `${this.BASE_URL}/onecall?lat=${lat}&lon=${lng}&appid=${this.API_KEY}&exclude=current,minutely,hourly,daily`
+        `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lng}&appid=${this.API_KEY}&exclude=current,minutely,hourly,daily`
       );
       
-      if (!response.ok) return [];
+      if (!response.ok) {
+        throw new Error(`Alerts API error: ${response.status}`);
+      }
       
       const data = await response.json();
       return data.alerts || [];
     } catch (error) {
       console.error('Error fetching weather alerts:', error);
-      return [];
+      throw error;
     }
   }
 }
