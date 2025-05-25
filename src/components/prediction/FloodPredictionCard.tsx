@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, Droplet, CloudRain, MapPin, Compass, Rulers } from "lucide-react";
+import { AlertTriangle, Droplet, CloudRain, MapPin, Compass, Ruler } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFloodPrediction } from "@/hooks/usePredictionData";
 import MapBoxComponent from "@/components/maps/MapBoxComponent";
@@ -256,7 +256,7 @@ const FloodPredictionCard = () => {
               onClick={() => setShowBuildings(!showBuildings)}
               className="flex items-center"
             >
-              <Rulers className="h-4 w-4 mr-1" />
+              <Ruler className="h-4 w-4 mr-1" />
               3D Buildings
             </Button>
             <Button
@@ -398,7 +398,7 @@ const FloodPredictionCard = () => {
                   <li>• Elevation: {getElevationForCoordinates(location.lat, location.lng).toFixed(1)}m above sea level</li>
                   <li>• Drainage score: {getDrainageScoreForCoordinates(location.lat, location.lng).toFixed(0)}/100</li>
                   <li>• Recent rainfall: {data.weather.rainfall.toFixed(1)} mm</li>
-                  <li>• Forecast rainfall: {data.weather.rainfall_forecast.toFixed(1)} mm (next 24h)</li>
+                  <li>• Forecast rainfall: {(data.weather.rainfall_forecast || data.weather.rainfall * 1.2).toFixed(1)} mm (next 24h)</li>
                 </ul>
               </div>
             </div>
