@@ -12,13 +12,20 @@ import { generateLocationPopup, getElevationForCoordinates, getDrainageScoreForC
 import MapBoxService from "@/services/MapBoxService";
 import RealTimeWeatherService, { RealTimeWeatherData } from "@/services/RealTimeWeatherService";
 
+// Define the Marker interface to match what's expected
+interface Marker {
+  position: [number, number];
+  popup: string;
+  color: string;
+}
+
 const FloodPredictionCard = () => {
   const { toast } = useToast();
   const [location, setLocation] = useState({ lat: 12.9716, lng: 77.5946 });
   const [areaName, setAreaName] = useState("Bangalore Central");
   const [isPredicting, setIsPredicting] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
-  const [markers, setMarkers] = useState<Array<{ position: [number, number]; popup?: string; color?: string }>>([]);
+  const [markers, setMarkers] = useState<Marker[]>([]);
   const [showFloodZones, setShowFloodZones] = useState(false);
   const [showBuildings, setShowBuildings] = useState(false);
   const [showTerrain, setShowTerrain] = useState(false);
@@ -90,6 +97,7 @@ const FloodPredictionCard = () => {
         }
       }
       
+      // Ensure popup is always provided
       setMarkers([{
         position: [lat, lng],
         popup: popupContent,
@@ -128,7 +136,6 @@ const FloodPredictionCard = () => {
     refetch().finally(() => setIsPredicting(false));
   }, [inputLat, inputLng, inputAreaName, toast, refetch]);
 
-  // Enhanced geolocation function
   const useCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
       toast({
@@ -143,8 +150,8 @@ const FloodPredictionCard = () => {
     
     const options = {
       enableHighAccuracy: true,
-      timeout: 15000, // Increased timeout
-      maximumAge: 60000 // Cache for 1 minute
+      timeout: 15000,
+      maximumAge: 60000
     };
     
     navigator.geolocation.getCurrentPosition(
@@ -166,7 +173,6 @@ const FloodPredictionCard = () => {
               description: `Using your current location: ${placeName}`,
             });
             
-            // Automatically trigger prediction
             setTimeout(() => {
               refetch().finally(() => setIsLocationLoading(false));
             }, 500);
@@ -213,7 +219,6 @@ const FloodPredictionCard = () => {
     );
   }, [toast, refetch]);
 
-  // Handle map click to update coordinates
   const handleMapClick = useCallback(async (latlng: { lat: number; lng: number }) => {
     setInputLat(latlng.lat.toFixed(6));
     setInputLng(latlng.lng.toFixed(6));
@@ -230,7 +235,6 @@ const FloodPredictionCard = () => {
     }
   }, []);
 
-  // Function to get risk level color
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {
       case "Critical":
@@ -268,8 +272,7 @@ const FloodPredictionCard = () => {
               showBuildings={showBuildings}
               showTerrain={showTerrain}
               showRainLayer={showRainLayer}
-              showFloodZones={showFloodZones}
-              enableLocateControl={true}
+              showUrbanZones={showFloodZones}
             />
           </div>
           

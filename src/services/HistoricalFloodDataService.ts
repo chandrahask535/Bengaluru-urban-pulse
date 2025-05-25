@@ -30,11 +30,8 @@ export interface FloodStatistics {
 export interface FloodEvent {
   id: string;
   date: string;
-  location: {
-    name: string;
-    coordinates: [number, number];
-  };
-  severity: 'Minor' | 'Moderate' | 'Major' | 'Extreme';
+  location: string; // Fixed: changed to string to match usage
+  severity: 'High' | 'Critical' | 'Moderate' | 'Minor' | 'Major' | 'Extreme'; // Fixed: added missing severity types
   affectedAreas: string[];
   casualties: number;
   economicLoss: number;
@@ -690,11 +687,10 @@ class HistoricalFloodDataService {
   static processChartData(data: any[]): any[] {
     return data.map((item: any) => {
       if (typeof item === 'object' && item !== null) {
-        return {
-          ...item,
-          x: item.x || item.year || item.month || 0,
-          y: item.y || item.value || item.incidents || 0
-        };
+        // Safe property access with proper type checking
+        const x = item.x ?? item.year ?? item.month ?? 0;
+        const y = item.y ?? item.value ?? item.incidents ?? 0;
+        return { x: Number(x), y: Number(y) };
       }
       return { x: 0, y: 0 };
     });

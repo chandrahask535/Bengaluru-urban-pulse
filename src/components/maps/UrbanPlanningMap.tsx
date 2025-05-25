@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import MapBoxComponent from '@/components/maps/MapBoxComponent';
@@ -70,8 +69,7 @@ const UrbanPlanningMap = ({
           floodRisk: location.details.floodRisk,
           greenCover: location.details.greenCoverage,
           elevationData: getElevationForCoordinates(location.coordinates[0], location.coordinates[1]),
-          drainageScore: getDrainageScoreForCoordinates(location.coordinates[0], location.coordinates[1]),
-          urbanDensity: 100 - location.details.greenCoverage - (location.details.landUseTypes.find(lt => lt.type === 'Water')?.percentage || 0)
+          drainageScore: getDrainageScoreForCoordinates(location.coordinates[0], location.coordinates[1])
         }
       );
       
@@ -87,20 +85,17 @@ const UrbanPlanningMap = ({
 
   // Generate heatmap data based on flood risk
   useEffect(() => {
-    // Generate heatmap data based on flood risk values
     const data = generateHeatmapData(locations);
     setHeatmapData(data);
   }, [locations]);
 
   const selectedLocationData = locations.find(loc => loc.id === selectedLocation);
-  // Make sure we have a valid [number, number] tuple
   const centerCoordinates: [number, number] = selectedLocationData 
     ? selectedLocationData.coordinates
     : [12.9716, 77.5946];
 
   // Handle map click
   const handleMapClick = (latlng: { lat: number; lng: number }) => {
-    // Find the closest location to where the user clicked
     let closestLocation = locations[0];
     let minDistance = Infinity;
     
@@ -115,7 +110,6 @@ const UrbanPlanningMap = ({
       }
     });
     
-    // Only select if within reasonable distance (0.1 degrees ~ 11km)
     if (minDistance < 0.1) {
       onLocationSelect(closestLocation.id);
     }
@@ -299,7 +293,6 @@ const UrbanPlanningMap = ({
         onHover={setHoveredFeature}
       />
       
-      {/* Enhanced Legend */}
       <div className="mt-3 bg-white dark:bg-gray-800 p-3 rounded-md border shadow-sm">
         <div className="text-xs text-gray-700 dark:text-gray-300 mb-2 font-medium flex items-center">
           <Info className="h-4 w-4 mr-1" />
@@ -307,7 +300,6 @@ const UrbanPlanningMap = ({
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-xs">
-          {/* Flood Risk Legend */}
           <div>
             <p className="font-medium mb-1 text-gray-700 dark:text-gray-300">Flood Risk</p>
             <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -326,7 +318,6 @@ const UrbanPlanningMap = ({
             </div>
           </div>
           
-          {/* Traffic Legend */}
           {showTraffic && (
             <div>
               <p className="font-medium mb-1 text-gray-700 dark:text-gray-300">Traffic Conditions</p>
@@ -351,7 +342,6 @@ const UrbanPlanningMap = ({
             </div>
           )}
           
-          {/* Urban Zones Legend */}
           {showUrbanZones && (
             <div>
               <p className="font-medium mb-1 text-gray-700 dark:text-gray-300">Urban Zones</p>
@@ -372,7 +362,6 @@ const UrbanPlanningMap = ({
             </div>
           )}
           
-          {/* Heatmap Legend */}
           {showHeatmap && (
             <div>
               <p className="font-medium mb-1 text-gray-700 dark:text-gray-300">Flood Risk Heatmap</p>
@@ -386,7 +375,6 @@ const UrbanPlanningMap = ({
             </div>
           )}
           
-          {/* Rain Layer Legend */}
           {showRain && (
             <div>
               <p className="font-medium mb-1 text-gray-700 dark:text-gray-300">Precipitation</p>
@@ -401,7 +389,6 @@ const UrbanPlanningMap = ({
           )}
         </div>
         
-        {/* Feature Info Section - Shows when hovering over features */}
         {hoveredFeature && (
           <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700">
             <p className="font-medium mb-1 text-gray-700 dark:text-gray-300">Selected Feature</p>

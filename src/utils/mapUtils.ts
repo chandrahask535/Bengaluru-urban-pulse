@@ -1,4 +1,3 @@
-
 import RealTimeWeatherService from '@/services/RealTimeWeatherService';
 
 // Real-time weather data fetching
@@ -50,22 +49,26 @@ export const generateHeatmapData = (locations: any[]) => {
   }));
 };
 
+// Updated interface for popup data
+interface PopupData {
+  floodRisk?: string;
+  rainfall?: number;
+  forecastRainfall?: number;
+  temperature?: number;
+  humidity?: number;
+  windSpeed?: number;
+  greenCover?: number;
+  elevationData?: number;
+  drainageScore?: number;
+  alerts?: any[];
+  urbanDensity?: number; // Added this property
+}
+
 // Generate enhanced location popup with real-time data
 export const generateLocationPopup = (
   locationName: string, 
   coordinates: [number, number],
-  data: {
-    floodRisk?: string;
-    rainfall?: number;
-    forecastRainfall?: number;
-    temperature?: number;
-    humidity?: number;
-    windSpeed?: number;
-    greenCover?: number;
-    elevationData?: number;
-    drainageScore?: number;
-    alerts?: any[];
-  }
+  data: PopupData
 ) => {
   const alertsHtml = data.alerts && data.alerts.length > 0 
     ? `<div class="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-xs">
