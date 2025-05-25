@@ -12,6 +12,7 @@ export interface FloodPrediction {
 
 export interface WeatherData {
   rainfall: number;
+  rainfall_forecast?: number;
 }
 
 export interface FloodPredictionResponse {
@@ -91,7 +92,7 @@ class PredictionService {
       console.error("Error fetching flood prediction:", error);
       return {
         prediction: { risk_level: "Low", probability: 0 },
-        weather: { rainfall: 0 },
+        weather: { rainfall: 0, rainfall_forecast: 0 },
         timestamp: new Date().toISOString(),
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       };
