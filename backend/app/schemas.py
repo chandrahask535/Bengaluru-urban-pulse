@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
@@ -39,6 +40,7 @@ class FloodPrediction(BaseModel):
 
 class WeatherData(BaseModel):
     rainfall: float
+    rainfall_forecast: Optional[float] = None
 
 class FloodPredictionResponse(BaseModel):
     prediction: FloodPrediction
