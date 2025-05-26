@@ -258,7 +258,7 @@ class HistoricalFloodDataService {
   }
 
   static generatePredictionScenarios(location: string) {
-    const baseRisk = this.getFloodRiskPrediction({ x: 12.9716, y: 77.5946 });
+    const baseRisk = this.getFloodRiskPrediction({ lat: 12.9716, lng: 77.5946 });
     
     return {
       current: {
