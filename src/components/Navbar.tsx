@@ -61,18 +61,18 @@ const Navbar = () => {
           </div>
 
           {/* Theme Toggle and Mobile Menu Button */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleTheme}
-              className="p-2"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
               aria-label="Toggle theme"
             >
               {theme === 'light' ? (
-                <Moon className="h-4 w-4" />
+                <Moon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               ) : (
-                <Sun className="h-4 w-4" />
+                <Sun className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               )}
             </Button>
             
@@ -82,13 +82,13 @@ const Navbar = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                 aria-label="Toggle menu"
               >
                 {isOpen ? (
-                  <X className="h-5 w-5" />
+                  <X className="h-6 w-6 text-gray-600 dark:text-gray-400" />
                 ) : (
-                  <Menu className="h-5 w-5" />
+                  <Menu className="h-6 w-6 text-gray-600 dark:text-gray-400" />
                 )}
               </Button>
             </div>
@@ -99,7 +99,7 @@ const Navbar = () => {
       {/* Mobile Navigation */}
       {isOpen && (
         <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-900 shadow-lg">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-900 shadow-lg border-t border-gray-200 dark:border-gray-700">
             {navigation.map((item) => (
               <Link
                 key={item.name}

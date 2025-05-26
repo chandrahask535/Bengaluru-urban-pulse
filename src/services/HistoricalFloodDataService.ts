@@ -1,4 +1,3 @@
-
 interface FloodEvent {
   date: string;
   location: string;
@@ -31,8 +30,8 @@ interface GeographicFloodData {
 }
 
 interface CoordinatePoint {
-  x: number;
-  y: number;
+  lat: number;
+  lng: number;
 }
 
 export const formatNumber = (value: number | string | undefined | null, decimals: number = 2): number => {
@@ -178,8 +177,8 @@ class HistoricalFloodDataService {
   }
 
   static getFloodRiskPrediction(coordinates: CoordinatePoint): FloodRiskData {
-    const lat = formatNumber(coordinates.x, 4);
-    const lng = formatNumber(coordinates.y, 4);
+    const lat = formatNumber(coordinates.lat, 4);
+    const lng = formatNumber(coordinates.lng, 4);
     
     // Determine risk based on known flood-prone areas in Bangalore
     let riskLevel: 'Low' | 'Moderate' | 'High' | 'Critical' = 'Low';

@@ -65,67 +65,93 @@ interface PopupData {
   alerts?: any[];
 }
 
-// Generate enhanced location popup with real-time data and better visibility
+// Generate enhanced location popup with better contrast and visibility
 export const generateLocationPopup = (
   locationName: string, 
   coordinates: [number, number],
   data: PopupData
 ) => {
   const alertsHtml = data.alerts && data.alerts.length > 0 
-    ? `<div class="mt-2 p-2 bg-red-100 border border-red-300 rounded text-red-800 text-xs">
-        <strong>⚠️ Weather Alert:</strong> ${data.alerts[0].event}
+    ? `<div class="mt-3 p-3 bg-red-50 border-l-4 border-red-500 rounded-r">
+        <div class="flex items-center">
+          <span class="text-red-600 font-semibold">⚠️ Weather Alert</span>
+        </div>
+        <p class="text-red-800 text-sm mt-1">${data.alerts[0].event}</p>
        </div>`
     : '';
 
   return `
-    <div class="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-xl max-w-xs border border-gray-200 dark:border-gray-700">
-      <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-sm">${locationName}</h3>
-      <div class="space-y-2 text-xs">
+    <div class="bg-white border border-gray-300 rounded-lg shadow-xl p-4 max-w-sm" style="font-family: system-ui, -apple-system, sans-serif;">
+      <div class="border-b border-gray-200 pb-2 mb-3">
+        <h3 class="font-bold text-gray-900 text-base leading-tight">${locationName}</h3>
+        <p class="text-xs text-gray-600 mt-1">📍 ${formatNumber(coordinates[0], 4)}, ${formatNumber(coordinates[1], 4)}</p>
+      </div>
+      
+      <div class="space-y-3">
+        <!-- Flood Risk Section -->
+        <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-semibold text-gray-700">Flood Risk Level</span>
+            <span class="px-2 py-1 rounded text-xs font-bold ${
+              data.floodRisk === 'Critical' ? 'bg-red-100 text-red-800 border border-red-200' :
+              data.floodRisk === 'High' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
+              data.floodRisk === 'Moderate' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' : 
+              'bg-green-100 text-green-800 border border-green-200'
+            }">${data.floodRisk || 'Low'}</span>
+          </div>
+        </div>
+        
+        <!-- Location Data -->
         <div class="grid grid-cols-2 gap-2">
-          <div class="bg-blue-50 dark:bg-blue-900/50 p-2 rounded border">
-            <div class="font-medium text-blue-800 dark:text-blue-200">Flood Risk</div>
-            <div class="text-lg font-bold ${
-              data.floodRisk === 'Critical' ? 'text-red-700 dark:text-red-400' :
-              data.floodRisk === 'High' ? 'text-orange-700 dark:text-orange-400' :
-              data.floodRisk === 'Moderate' ? 'text-yellow-700 dark:text-yellow-400' : 'text-green-700 dark:text-green-400'
-            }">${data.floodRisk || 'Low'}</div>
+          <div class="bg-blue-50 border border-blue-200 rounded p-2">
+            <div class="text-xs text-blue-700 font-medium">Elevation</div>
+            <div class="text-sm font-bold text-blue-900">${formatNumber(data.elevationData || 920, 0)}m</div>
           </div>
-          <div class="bg-gray-50 dark:bg-gray-800 p-2 rounded border">
-            <div class="font-medium text-gray-800 dark:text-gray-200">Elevation</div>
-            <div class="text-lg font-bold text-gray-900 dark:text-white">${formatNumber(data.elevationData || 920, 0)}m</div>
+          <div class="bg-cyan-50 border border-cyan-200 rounded p-2">
+            <div class="text-xs text-cyan-700 font-medium">Drainage</div>
+            <div class="text-sm font-bold text-cyan-900">${formatNumber(data.drainageScore || 75, 0)}/100</div>
           </div>
         </div>
         
-        <div class="border-t border-gray-200 dark:border-gray-600 pt-2">
-          <div class="font-medium text-gray-800 dark:text-gray-200 mb-1">Live Weather</div>
-          <div class="grid grid-cols-2 gap-1 text-xs">
-            <div class="text-gray-700 dark:text-gray-300">🌡️ ${formatNumber(data.temperature || 26, 1)}°C</div>
-            <div class="text-gray-700 dark:text-gray-300">💧 ${formatNumber(data.humidity || 65, 0)}%</div>
-            <div class="text-gray-700 dark:text-gray-300">🌧️ ${formatNumber(data.rainfall || 0, 1)}mm</div>
-            <div class="text-gray-700 dark:text-gray-300">💨 ${formatNumber(data.windSpeed || 5, 1)}m/s</div>
+        <!-- Weather Info -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+          <div class="text-sm font-semibold text-gray-700 mb-2">Current Weather</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="flex items-center text-gray-800">
+              <span class="mr-1">🌡️</span>
+              <span class="font-medium">${formatNumber(data.temperature || 26, 1)}°C</span>
+            </div>
+            <div class="flex items-center text-gray-800">
+              <span class="mr-1">💧</span>
+              <span class="font-medium">${formatNumber(data.humidity || 65, 0)}%</span>
+            </div>
+            <div class="flex items-center text-gray-800">
+              <span class="mr-1">🌧️</span>
+              <span class="font-medium">${formatNumber(data.rainfall || 0, 1)}mm</span>
+            </div>
+            <div class="flex items-center text-gray-800">
+              <span class="mr-1">💨</span>
+              <span class="font-medium">${formatNumber(data.windSpeed || 5, 1)}m/s</span>
+            </div>
           </div>
         </div>
         
-        <div class="border-t border-gray-200 dark:border-gray-600 pt-2">
-          <div class="font-medium text-gray-800 dark:text-gray-200 mb-1">Infrastructure</div>
-          <div class="grid grid-cols-2 gap-1 text-xs">
-            <div class="text-gray-700 dark:text-gray-300">🌳 Green: ${formatNumber(data.greenCover || 35, 0)}%</div>
-            <div class="text-gray-700 dark:text-gray-300">🚰 Drainage: ${formatNumber(data.drainageScore || 75, 0)}/100</div>
+        <!-- Environment -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+          <div class="text-sm font-semibold text-green-800 mb-2">Environment</div>
+          <div class="flex justify-between text-xs text-green-700">
+            <span>🌳 Green Cover: <strong>${formatNumber(data.greenCover || 35, 0)}%</strong></span>
           </div>
         </div>
         
         ${data.forecastRainfall && data.forecastRainfall > 0 ? `
-          <div class="border-t border-gray-200 dark:border-gray-600 pt-2">
-            <div class="font-medium text-gray-800 dark:text-gray-200">24h Forecast</div>
-            <div class="text-blue-700 dark:text-blue-300 font-bold">${formatNumber(data.forecastRainfall, 1)}mm expected</div>
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div class="text-sm font-semibold text-blue-800">24h Forecast</div>
+            <div class="text-blue-700 font-bold text-sm">${formatNumber(data.forecastRainfall, 1)}mm expected</div>
           </div>
         ` : ''}
         
         ${alertsHtml}
-        
-        <div class="border-t border-gray-200 dark:border-gray-600 pt-2 text-xs text-gray-600 dark:text-gray-400">
-          📍 ${formatNumber(coordinates[0], 4)}, ${formatNumber(coordinates[1], 4)}
-        </div>
       </div>
     </div>
   `;
