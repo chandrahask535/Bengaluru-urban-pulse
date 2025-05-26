@@ -64,8 +64,10 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/prediction" element={<FloodPrediction />} />
                 <Route path="/flood-prediction" element={<FloodPrediction />} />
                 <Route path="/urban-planning" element={<UrbanPlanning />} />
+                <Route path="/lakes" element={<LakeMonitoringEnhanced />} />
                 <Route path="/lake-monitoring" element={<LakeMonitoringEnhanced />} />
                 <Route path="/report" element={<Report />} />
                 <Route path="/alerts" element={<Alerts />} />
