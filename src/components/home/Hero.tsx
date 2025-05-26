@@ -7,25 +7,27 @@ import { useState, useEffect } from "react";
 const Hero = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // Array of Bangalore landmark images
+  // Array of Bangalore landmark images - updated with new images
   const bangaloreImages = [
     "/lovable-uploads/fd1029ed-d989-41e5-8056-0c9b1b9371a0.png", // Vidhana Soudha
-    "/lovable-uploads/e8f1bb5b-5f7a-4d24-9491-6d6f88e60c99.png", // Gol Gumbaz
+    "/lovable-uploads/f50f55d0-55c7-4b10-8b40-b2f23c42d7a9.png", // East Bangalore IT Hub - Whitefield
     "/lovable-uploads/894a1868-166b-4937-b242-f26ea05ade29.png", // Temple
     "/lovable-uploads/3383ef19-11f7-4852-8c01-58853788384e.png", // UB City Tower
-    "/lovable-uploads/12048c57-5809-47ad-af32-f91781d258ea.png", // Traditional performer
+    "/lovable-uploads/57e517e3-6e4c-4304-b071-14b70aff51ff.png", // Lalbagh Botanical Garden
     "/lovable-uploads/c21d9983-b636-4c0f-9053-0e3adb5caf88.png", // Airport
+    "/lovable-uploads/3e1be1e9-4cf2-40e2-8c1d-977fd73ca362.png", // Bannerghatta National Park
     "/lovable-uploads/0f854bfb-e9ca-4d47-824f-d4160aa38f37.png", // Mysore Palace at night
   ];
 
-  // Image captions/credits
+  // Image captions/credits - updated with new descriptions
   const imageCredits = [
     "Vidhana Soudha - Bengaluru's Legislative Building",
-    "Gol Gumbaz - Iconic Dome Structure",
+    "Whitefield IT Hub - East Bangalore's Technology Corridor",
     "Ancient Temple Architecture in Bengaluru",
     "UB City Tower - Modern Bangalore",
-    "Traditional Yakshagana Performer",
+    "Lalbagh Botanical Garden - 240-acre Heritage Garden",
     "Kempegowda International Airport",
+    "Bannerghatta National Park - Wildlife Sanctuary & Zoo",
     "Mysore Palace - Illuminated at Night"
   ];
 
@@ -99,7 +101,7 @@ const Hero = () => {
         </div>
         
         {/* Image caption */}
-        <div className="absolute bottom-8 right-8 bg-black/60 text-white px-4 py-2 rounded text-sm z-10">
+        <div className="absolute bottom-8 right-8 bg-black/60 text-white px-4 py-2 rounded text-sm z-10 max-w-xs">
           {imageCredits[currentImageIndex]}
         </div>
       </div>

@@ -38,7 +38,7 @@ const LandCoverStats = ({ coordinates, lakeId }: LandCoverStatsProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white dark:bg-gray-800 p-2 border rounded shadow-lg">
-          <p className="text-sm font-medium">{`${payload[0].name}: ${payload[0].value}%`}</p>
+          <p className="text-sm font-medium">{`${payload[0].name}: ${formatNumber(payload[0].value, 0)}%`}</p>
         </div>
       );
     }
@@ -91,19 +91,19 @@ const LandCoverStats = ({ coordinates, lakeId }: LandCoverStatsProps) => {
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="flex items-center">
                 <Droplets className="h-4 w-4 text-blue-600 mr-2 flex-shrink-0" />
-                <span className="truncate">Water: {chartData.find(d => d.name === 'Water')?.value || 0}%</span>
+                <span className="truncate">Water: {formatNumber(chartData.find(d => d.name === 'Water')?.value || 0, 0)}%</span>
               </div>
               <div className="flex items-center">
                 <Trees className="h-4 w-4 text-green-600 mr-2 flex-shrink-0" />
-                <span className="truncate">Vegetation: {chartData.find(d => d.name === 'Vegetation')?.value || 0}%</span>
+                <span className="truncate">Vegetation: {formatNumber(chartData.find(d => d.name === 'Vegetation')?.value || 0, 0)}%</span>
               </div>
               <div className="flex items-center">
                 <Building2 className="h-4 w-4 text-red-600 mr-2 flex-shrink-0" />
-                <span className="truncate">Urban: {chartData.find(d => d.name === 'Urban')?.value || 0}%</span>
+                <span className="truncate">Urban: {formatNumber(chartData.find(d => d.name === 'Urban')?.value || 0, 0)}%</span>
               </div>
               <div className="flex items-center">
                 <Mountain className="h-4 w-4 text-yellow-600 mr-2 flex-shrink-0" />
-                <span className="truncate">Barren: {chartData.find(d => d.name === 'Barren')?.value || 0}%</span>
+                <span className="truncate">Barren: {formatNumber(chartData.find(d => d.name === 'Barren')?.value || 0, 0)}%</span>
               </div>
             </div>
             

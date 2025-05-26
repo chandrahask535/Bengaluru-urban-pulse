@@ -152,7 +152,7 @@ const WeatherForecastCard: React.FC<WeatherForecastProps> = ({
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col items-center">
-            <div className="text-4xl font-bold">{formatNumber(currentWeather.current.temperature)}°C</div>
+            <div className="text-4xl font-bold">{formatNumber(currentWeather.current.temperature, 1)}°C</div>
             <div className="flex items-center mt-1">
               {getWeatherIcon(currentWeather.current.description)}
               <span className="ml-1 capitalize text-sm truncate max-w-24">{currentWeather.current.description}</span>
@@ -162,34 +162,34 @@ const WeatherForecastCard: React.FC<WeatherForecastProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Humidity:</span>
-              <span className="font-mono">{currentWeather.current.humidity}%</span>
+              <span className="font-mono">{formatNumber(currentWeather.current.humidity, 0)}%</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Pressure:</span>
-              <span className="font-mono">{currentWeather.current.pressure} hPa</span>
+              <span className="font-mono">{formatNumber(currentWeather.current.pressure, 0)} hPa</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Wind Speed:</span>
-              <span className="font-mono">{formatNumber(currentWeather.current.windSpeed)} m/s</span>
+              <span className="font-mono">{formatNumber(currentWeather.current.windSpeed, 1)} m/s</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Rainfall:</span>
-              <span className="font-medium text-blue-600 font-mono">{formatNumber(currentWeather.current.rainfall)} mm/h</span>
+              <span className="font-medium text-blue-600 font-mono">{formatNumber(currentWeather.current.rainfall, 1)} mm/h</span>
             </div>
           </div>
           
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Visibility:</span>
-              <span className="font-mono">{formatNumber(currentWeather.current.visibility)} km</span>
+              <span className="font-mono">{formatNumber(currentWeather.current.visibility, 1)} km</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Cloud Cover:</span>
-              <span className="font-mono">{currentWeather.current.cloudCover}%</span>
+              <span className="font-mono">{formatNumber(currentWeather.current.cloudCover, 0)}%</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Wind Dir:</span>
-              <span className="font-mono">{currentWeather.current.windDirection}°</span>
+              <span className="font-mono">{formatNumber(currentWeather.current.windDirection, 0)}°</span>
             </div>
           </div>
         </div>
@@ -199,15 +199,15 @@ const WeatherForecastCard: React.FC<WeatherForecastProps> = ({
           <h4 className="font-medium mb-2">Rainfall Forecast</h4>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="text-center">
-              <div className="font-bold text-blue-600 font-mono">{formatNumber(currentWeather.forecast.next6Hours)} mm</div>
+              <div className="font-bold text-blue-600 font-mono">{formatNumber(currentWeather.forecast.next6Hours, 1)} mm</div>
               <div className="text-gray-500 text-xs">Next 6 hours</div>
             </div>
             <div className="text-center">
-              <div className="font-bold text-blue-600 font-mono">{formatNumber(currentWeather.forecast.next12Hours)} mm</div>
+              <div className="font-bold text-blue-600 font-mono">{formatNumber(currentWeather.forecast.next12Hours, 1)} mm</div>
               <div className="text-gray-500 text-xs">Next 12 hours</div>
             </div>
             <div className="text-center">
-              <div className="font-bold text-blue-600 font-mono">{formatNumber(currentWeather.forecast.next24Hours)} mm</div>
+              <div className="font-bold text-blue-600 font-mono">{formatNumber(currentWeather.forecast.next24Hours, 1)} mm</div>
               <div className="text-gray-500 text-xs">Next 24 hours</div>
             </div>
           </div>

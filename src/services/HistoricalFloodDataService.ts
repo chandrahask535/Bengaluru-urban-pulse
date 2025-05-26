@@ -714,7 +714,7 @@ class HistoricalFloodDataService {
         const y = typeof item.y === 'number' ? formatNumber(item.y, 1) : 
                  typeof item.value === 'number' ? formatNumber(item.value, 1) : 
                  typeof item.incidents === 'number' ? item.incidents : 0;
-        return { x: Number(x), y: Number(y) };
+        return { x: x, y: y };
       }
       return { x: 0, y: 0 };
     });
