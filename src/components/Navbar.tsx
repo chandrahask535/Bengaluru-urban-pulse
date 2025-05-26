@@ -1,151 +1,122 @@
 
-import { useState } from 'react';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, MapPin, CloudRain, DropletIcon, Building, BarChart3, FileEdit, User, LogOut, Sun, Moon, Info } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { Menu, X, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const location = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const navigate = useNavigate();
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
-
-  const navItems = [
-    { name: "Home", path: "/", icon: <MapPin className="w-4 h-4 mr-2" /> },
-    { name: "Flood Prediction", path: "/flood-prediction", icon: <CloudRain className="w-4 h-4 mr-2" /> },
-    { name: "Lake Monitoring", path: "/lake-monitoring", icon: <DropletIcon className="w-4 h-4 mr-2" /> },
-    { name: "Urban Planning", path: "/urban-planning", icon: <Building className="w-4 h-4 mr-2" /> },
-    { name: "Data Dashboard", path: "/dashboard", icon: <BarChart3 className="w-4 h-4 mr-2" /> },
-    { name: "Citizen Reporting", path: "/report", icon: <FileEdit className="w-4 h-4 mr-2" /> },
-    { name: "About", path: "/about", icon: <Info className="w-4 h-4 mr-2" /> }, // Explicitly add About
+  const navigation = [
+    { name: "Home", href: "/" },
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "Flood Prediction", href: "/prediction" },
+    { name: "Lake Monitoring", href: "/lakes" },
+    { name: "Urban Planning", href: "/urban-planning" },
+    { name: "About", href: "/about" },
   ];
 
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
   return (
-    <nav className="bg-white shadow-sm dark:bg-gray-900 fixed w-full z-20 top-0 left-0">
+    <nav className="bg-white dark:bg-gray-900 shadow-lg fixed w-full z-50 top-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <img
-                className="h-8 w-auto"
-                src="/placeholder.svg"
-                alt="Bengaluru Urban Pulse"
-              />
-              <span className="ml-2 text-lg font-semibold text-gray-900 dark:text-white">Urban Pulse</span>
+        <div className="flex justify-between items-center h-16">
+          {/* Logo and Brand */}
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/favicon.svg" 
+              alt="Bengaluru Urban Pulse Logo" 
+              className="h-8 w-8" 
+            />
+            <Link to="/" className="flex items-center">
+              <span className="text-xl font-bold gradient-heading">
+                Bengaluru Urban Pulse
+              </span>
             </Link>
           </div>
-          
-          {/* Desktop navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:block">
+            <div className="ml-10 flex items-baseline space-x-4">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? "bg-karnataka-metro-light text-karnataka-metro-dark dark:bg-karnataka-metro-dark dark:text-white"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Theme Toggle and Mobile Menu Button */}
+          <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={toggleTheme}
-              className="mr-2"
+              className="p-2"
+              aria-label="Toggle theme"
             >
-              {theme === 'dark' ? (
-                <Sun className="h-5 w-5 text-yellow-500" />
+              {theme === 'light' ? (
+                <Moon className="h-4 w-4" />
               ) : (
-                <Moon className="h-5 w-5" />
+                <Sun className="h-4 w-4" />
               )}
             </Button>
-            {navItems.map((item) => (
+            
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2"
+                aria-label="Toggle menu"
+              >
+                {isOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isOpen && (
+        <div className="md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-900 shadow-lg">
+            {navigation.map((item) => (
               <Link
                 key={item.name}
-                to={item.path}
-                className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-karnataka-metro-medium hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-primary flex items-center transition-colors duration-200"
+                to={item.href}
+                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                  isActive(item.href)
+                    ? "bg-karnataka-metro-light text-karnataka-metro-dark dark:bg-karnataka-metro-dark dark:text-white"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                }`}
+                onClick={() => setIsOpen(false)}
               >
-                {item.icon}
                 {item.name}
               </Link>
             ))}
-            {user ? (
-              <div className="flex items-center">
-                <span className="text-sm text-gray-700 dark:text-gray-300 mr-2">
-                  {user.email}
-                </span>
-                <Button variant="outline" className="ml-2 flex items-center" onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Button>
-              </div>
-            ) : (
-              <Link to="/auth">
-                <Button variant="outline" className="ml-4 flex items-center">
-                  <User className="w-4 h-4 mr-2" />
-                  Login
-                </Button>
-              </Link>
-            )}
-          </div>
-          
-          {/* Mobile menu button */}
-          <div className="flex items-center md:hidden">
-            <button
-              onClick={toggleMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
-              aria-expanded="false"
-            >
-              <span className="sr-only">Open main menu</span>
-              {isOpen ? (
-                <X className="block h-6 w-6" aria-hidden="true" />
-              ) : (
-                <Menu className="block h-6 w-6" aria-hidden="true" />
-              )}
-            </button>
           </div>
         </div>
-      </div>
-
-      {/* Mobile menu, show/hide based on menu state */}
-      <div className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.path}
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-karnataka-metro-medium hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-primary flex items-center transition-colors duration-200"
-              onClick={() => setIsOpen(false)}
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          ))}
-          {user ? (
-            <div className="pt-2 pb-1">
-              <span className="block px-3 py-1 text-sm text-gray-700 dark:text-gray-300">
-                {user.email}
-              </span>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start mt-2 flex items-center"
-                onClick={handleSignOut}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          ) : (
-            <Link to="/auth" onClick={() => setIsOpen(false)}>
-              <Button variant="outline" className="w-full justify-start mt-2 flex items-center">
-                <User className="w-4 h-4 mr-2" />
-                Login
-              </Button>
-            </Link>
-          )}
-        </div>
-      </div>
+      )}
     </nav>
   );
 };

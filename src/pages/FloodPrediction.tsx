@@ -3,12 +3,14 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardCard from "@/components/dashboard/DashboardCard";
-import { CloudRain, Droplet, AlertTriangle, MapPin } from "lucide-react";
+import { CloudRain, Droplet, AlertTriangle, MapPin, Calendar, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FloodPredictionCard from "@/components/prediction/FloodPredictionCard";
 import { useRecentFloodPredictions } from "@/hooks/usePredictionData";
 import { LakeDataService } from "@/services/LakeDataService";
+import HistoricalFloodDataService, { formatNumber } from "@/services/HistoricalFloodDataService";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const AlertHistory = () => {
   const alerts = [
@@ -114,6 +116,99 @@ const AlertPerformance = () => {
   );
 };
 
+const HistoricalData = () => {
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
+  const [analysis, setAnalysis] = useState<any>(null);
+  const [statistics, setStatistics] = useState<any>(null);
+
+  useEffect(() => {
+    const data = HistoricalFloodDataService.getHistoricalFloodData();
+    const analysisData = HistoricalFloodDataService.getFloodAnalysis();
+    const statsData = HistoricalFloodDataService.getFloodStatistics();
+    const timeSeriesData = HistoricalFloodDataService.generateTimeSeriesData();
+    
+    setHistoricalData(timeSeriesData);
+    setAnalysis(analysisData);
+    setStatistics(statsData);
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <DashboardCard
+        title="Historical Flood Analysis"
+        description="Analysis of past flooding events in Karnataka"
+        icon={TrendingUp}
+        iconColor="text-blue-600"
+      >
+        {analysis && statistics && (
+          <div className="space-y-6">
+            {/* Statistics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                <h3 className="font-medium text-blue-800 dark:text-blue-200">Total Events</h3>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{statistics.totalEvents}</p>
+                <p className="text-sm text-blue-600 dark:text-blue-300">Since 2019</p>
+              </div>
+              <div className="bg-amber-50 dark:bg-amber-900/30 p-4 rounded-lg">
+                <h3 className="font-medium text-amber-800 dark:text-amber-200">Avg. Severity</h3>
+                <p className="text-2xl font-bold text-amber-900 dark:text-amber-100">{analysis.averageSeverity}</p>
+                <p className="text-sm text-amber-600 dark:text-amber-300">Based on impact</p>
+              </div>
+              <div className="bg-red-50 dark:bg-red-900/30 p-4 rounded-lg">
+                <h3 className="font-medium text-red-800 dark:text-red-200">Economic Loss</h3>
+                <p className="text-2xl font-bold text-red-900 dark:text-red-100">₹{formatNumber(statistics.totalEconomicLoss / 10000000, 0)}Cr</p>
+                <p className="text-sm text-red-600 dark:text-red-300">Total impact</p>
+              </div>
+            </div>
+
+            {/* Trends Chart */}
+            <div className="h-80">
+              <h4 className="font-medium mb-4 text-gray-800 dark:text-gray-200">Flood Events Trend (2019-2024)</h4>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={historicalData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="events" stroke="#3b82f6" name="Flood Events" strokeWidth={2} />
+                  <Line type="monotone" dataKey="economicLoss" stroke="#ef4444" name="Economic Loss (₹Cr)" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Analysis Insights */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium mb-3 text-gray-800 dark:text-gray-200">Key Risk Factors</h4>
+                <ul className="space-y-2">
+                  {analysis.riskFactors.map((factor: string, index: number) => (
+                    <li key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mr-3"></span>
+                      {factor}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium mb-3 text-gray-800 dark:text-gray-200">Recommendations</h4>
+                <ul className="space-y-2">
+                  {analysis.recommendations.map((rec: string, index: number) => (
+                    <li key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                      <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+      </DashboardCard>
+    </div>
+  );
+};
+
 const FloodPrediction = () => {
   const [activeTab, setActiveTab] = useState("current");
   const [currentRainfall, setCurrentRainfall] = useState<number>(0);
@@ -128,10 +223,10 @@ const FloodPrediction = () => {
         const lat = 12.9716;
         const lon = 77.5946;
 
-        // Use LakeDataService to get rainfall and flood risk
-        const rainfall = await LakeDataService.getCurrentRainfall(lat, lon);
-        const risk = await LakeDataService.getFloodRiskPrediction(lat, lon);
-        const forecast = await LakeDataService.getRainfallForecast(lat, lon);
+        // Use realistic data from HistoricalFloodDataService
+        const rainfall = HistoricalFloodDataService.getCurrentRainfall(lat, lon);
+        const risk = HistoricalFloodDataService.getFloodRiskPrediction({ x: lat, y: lon });
+        const forecast = HistoricalFloodDataService.getRainfallForecast(lat, lon);
 
         setCurrentRainfall(rainfall);
         setFloodRisk(risk);
@@ -173,11 +268,11 @@ const FloodPrediction = () => {
 
   const floodAreas = isLoading || !recentPredictions
     ? [
-        { id: 1, area: "Koramangala", risk: 85, status: "High" },
-        { id: 2, area: "Bellandur", risk: 78, status: "High" },
-        { id: 3, area: "Varthur", risk: 72, status: "Moderate" },
-        { id: 4, area: "HSR Layout", risk: 65, status: "Moderate" },
-        { id: 5, area: "Indiranagar", risk: 45, status: "Low" },
+        { id: 1, area: "Bellandur", risk: 78, status: "High" },
+        { id: 2, area: "Varthur", risk: 72, status: "Moderate" },
+        { id: 3, area: "HSR Layout", risk: 45, status: "Low" },
+        { id: 4, area: "Koramangala", risk: 65, status: "Moderate" },
+        { id: 5, area: "Indiranagar", risk: 25, status: "Low" },
         { id: 6, area: "Whitefield", risk: 40, status: "Low" },
       ]
     : recentPredictions.map((pred, index) => ({
@@ -189,8 +284,8 @@ const FloodPrediction = () => {
         status: pred.risk_level,
       }));
 
-  // Show rain alert only if forecast rainfall is above threshold (e.g., 20mm)
-  const showRainAlert = rainfallForecast > 20;
+  // Only show rain alert if there's actual rainfall forecast
+  const showRainAlert = rainfallForecast > 0;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -339,16 +434,7 @@ const FloodPrediction = () => {
             </TabsContent>
             
             <TabsContent value="history" className="mt-6">
-              <DashboardCard
-                title="Historical Flood Data"
-                description="Analysis of past flooding events in Karnataka"
-              >
-                <div className="text-center py-8">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Historical flood data analysis will be displayed here.
-                  </p>
-                </div>
-              </DashboardCard>
+              <HistoricalData />
             </TabsContent>
 
             <TabsContent value="alerts" className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -364,4 +450,3 @@ const FloodPrediction = () => {
 };
 
 export default FloodPrediction;
-

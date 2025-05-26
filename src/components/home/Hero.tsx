@@ -7,28 +7,24 @@ import { useState, useEffect } from "react";
 const Hero = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // Array of Bangalore landmark images - updated with new images
+  // Updated array of Bangalore landmark images
   const bangaloreImages = [
     "/lovable-uploads/fd1029ed-d989-41e5-8056-0c9b1b9371a0.png", // Vidhana Soudha
     "/lovable-uploads/f50f55d0-55c7-4b10-8b40-b2f23c42d7a9.png", // East Bangalore IT Hub - Whitefield
-    "/lovable-uploads/894a1868-166b-4937-b242-f26ea05ade29.png", // Temple
-    "/lovable-uploads/3383ef19-11f7-4852-8c01-58853788384e.png", // UB City Tower
     "/lovable-uploads/57e517e3-6e4c-4304-b071-14b70aff51ff.png", // Lalbagh Botanical Garden
     "/lovable-uploads/c21d9983-b636-4c0f-9053-0e3adb5caf88.png", // Airport
     "/lovable-uploads/3e1be1e9-4cf2-40e2-8c1d-977fd73ca362.png", // Bannerghatta National Park
-    "/lovable-uploads/0f854bfb-e9ca-4d47-824f-d4160aa38f37.png", // Mysore Palace at night
+    "/lovable-uploads/3383ef19-11f7-4852-8c01-58853788384e.png", // UB City Tower
   ];
 
-  // Image captions/credits - updated with new descriptions
+  // Updated image captions/credits
   const imageCredits = [
     "Vidhana Soudha - Bengaluru's Legislative Building",
-    "Whitefield IT Hub - East Bangalore's Technology Corridor",
-    "Ancient Temple Architecture in Bengaluru",
-    "UB City Tower - Modern Bangalore",
-    "Lalbagh Botanical Garden - 240-acre Heritage Garden",
-    "Kempegowda International Airport",
+    "Whitefield IT Hub - East Bangalore's Technology Corridor", 
+    "Lalbagh Botanical Garden - 240-acre Heritage Garden with 1,800+ Species",
+    "Kempegowda International Airport - Bengaluru's Gateway",
     "Bannerghatta National Park - Wildlife Sanctuary & Zoo",
-    "Mysore Palace - Illuminated at Night"
+    "UB City Tower - Modern Commercial Hub"
   ];
 
   // Auto-cycle through images
