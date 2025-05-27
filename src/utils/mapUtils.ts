@@ -81,55 +81,60 @@ export const generateLocationPopup = (
     : '';
 
   return `
-    <div class="bg-white border border-gray-800 rounded-lg shadow-2xl p-4 max-w-sm" style="font-family: system-ui, -apple-system, sans-serif; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-      <div class="border-b border-gray-800 pb-2 mb-3">
-        <h3 class="font-bold text-gray-900 text-base leading-tight">${locationName}</h3>
-        <p class="text-xs text-gray-700 mt-1 font-medium">📍 ${formatNumber(coordinates[0], 4)}, ${formatNumber(coordinates[1], 4)}</p>
+    <div class="bg-gray-900 border-2 border-cyan-400 rounded-lg shadow-2xl p-4 max-w-sm" style="font-family: system-ui, -apple-system, sans-serif; box-shadow: 0 25px 50px -12px rgba(0, 255, 255, 0.3); background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;">
+      <div class="border-b border-cyan-400 pb-2 mb-3">
+        <h3 class="font-bold text-cyan-100 text-base leading-tight" style="color: #e0f7ff !important;">${locationName}</h3>
+        <p class="text-xs text-cyan-200 mt-1 font-medium" style="color: #a7f3d0 !important;">📍 ${formatNumber(coordinates[0], 4)}, ${formatNumber(coordinates[1], 4)}</p>
       </div>
       
       <div class="space-y-3">
         <!-- Flood Risk Section with HIGH CONTRAST -->
-        <div class="bg-gray-900 rounded-lg p-3 border-2 border-gray-800">
+        <div class="bg-gray-800 rounded-lg p-3 border-2 border-cyan-500" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important; border-color: #06b6d4 !important;">
           <div class="flex justify-between items-center">
-            <span class="text-sm font-semibold text-white">Flood Risk Level</span>
+            <span class="text-sm font-semibold text-cyan-100" style="color: #e0f7ff !important;">Flood Risk Level</span>
             <span class="px-3 py-1 rounded-full text-xs font-bold border-2 ${
-              data.floodRisk === 'Critical' ? 'bg-red-500 text-white border-red-700' :
-              data.floodRisk === 'High' ? 'bg-orange-500 text-white border-orange-700' :
-              data.floodRisk === 'Moderate' ? 'bg-yellow-500 text-black border-yellow-700' : 
-              'bg-green-500 text-white border-green-700'
+              data.floodRisk === 'Critical' ? 'bg-red-600 text-white border-red-400' :
+              data.floodRisk === 'High' ? 'bg-orange-600 text-white border-orange-400' :
+              data.floodRisk === 'Moderate' ? 'bg-yellow-600 text-black border-yellow-400' : 
+              'bg-green-600 text-white border-green-400'
+            }" style="${
+              data.floodRisk === 'Critical' ? 'background: #dc2626 !important; color: white !important; border-color: #f87171 !important;' :
+              data.floodRisk === 'High' ? 'background: #ea580c !important; color: white !important; border-color: #fb923c !important;' :
+              data.floodRisk === 'Moderate' ? 'background: #ca8a04 !important; color: black !important; border-color: #facc15 !important;' : 
+              'background: #16a34a !important; color: white !important; border-color: #4ade80 !important;'
             }">${data.floodRisk || 'Low'}</span>
           </div>
         </div>
         
         <!-- Location Data with HIGH CONTRAST -->
         <div class="grid grid-cols-2 gap-2">
-          <div class="bg-blue-800 border-2 border-blue-900 rounded p-2">
-            <div class="text-xs text-blue-100 font-medium">Elevation</div>
-            <div class="text-sm font-bold text-white">${formatNumber(data.elevationData || 920, 0)}m</div>
+          <div class="bg-blue-700 border-2 border-blue-400 rounded p-2" style="background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%) !important; border-color: #60a5fa !important;">
+            <div class="text-xs text-blue-100 font-medium" style="color: #dbeafe !important;">Elevation</div>
+            <div class="text-sm font-bold text-white" style="color: white !important;">${formatNumber(data.elevationData || 920, 0)}m</div>
           </div>
-          <div class="bg-cyan-800 border-2 border-cyan-900 rounded p-2">
-            <div class="text-xs text-cyan-100 font-medium">Drainage</div>
-            <div class="text-sm font-bold text-white">${formatNumber(data.drainageScore || 75, 0)}/100</div>
+          <div class="bg-cyan-700 border-2 border-cyan-400 rounded p-2" style="background: linear-gradient(135deg, #0e7490 0%, #155e75 100%) !important; border-color: #22d3ee !important;">
+            <div class="text-xs text-cyan-100 font-medium" style="color: #cffafe !important;">Drainage</div>
+            <div class="text-sm font-bold text-white" style="color: white !important;">${formatNumber(data.drainageScore || 75, 0)}/100</div>
           </div>
         </div>
         
         <!-- Weather Info with HIGH CONTRAST -->
-        <div class="bg-gray-800 border-2 border-gray-900 rounded-lg p-3">
-          <div class="text-sm font-semibold text-white mb-2">Current Weather</div>
+        <div class="bg-gray-800 border-2 border-purple-400 rounded-lg p-3" style="background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important; border-color: #a78bfa !important;">
+          <div class="text-sm font-semibold text-purple-100 mb-2" style="color: #e9d5ff !important;">Current Weather</div>
           <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="flex items-center text-white">
+            <div class="flex items-center text-white" style="color: white !important;">
               <span class="mr-1">🌡️</span>
               <span class="font-bold">${formatNumber(data.temperature || 26, 1)}°C</span>
             </div>
-            <div class="flex items-center text-white">
+            <div class="flex items-center text-white" style="color: white !important;">
               <span class="mr-1">💧</span>
               <span class="font-bold">${formatNumber(data.humidity || 65, 0)}%</span>
             </div>
-            <div class="flex items-center text-white">
+            <div class="flex items-center text-white" style="color: white !important;">
               <span class="mr-1">🌧️</span>
               <span class="font-bold">${formatNumber(data.rainfall || 0, 1)}mm</span>
             </div>
-            <div class="flex items-center text-white">
+            <div class="flex items-center text-white" style="color: white !important;">
               <span class="mr-1">💨</span>
               <span class="font-bold">${formatNumber(data.windSpeed || 5, 1)}m/s</span>
             </div>
@@ -137,17 +142,17 @@ export const generateLocationPopup = (
         </div>
         
         <!-- Environment with HIGH CONTRAST -->
-        <div class="bg-green-800 border-2 border-green-900 rounded-lg p-3">
-          <div class="text-sm font-semibold text-white mb-2">Environment</div>
-          <div class="flex justify-between text-xs text-green-100">
-            <span>🌳 Green Cover: <strong class="text-white">${formatNumber(data.greenCover || 35, 0)}%</strong></span>
+        <div class="bg-green-700 border-2 border-green-400 rounded-lg p-3" style="background: linear-gradient(135deg, #15803d 0%, #166534 100%) !important; border-color: #4ade80 !important;">
+          <div class="text-sm font-semibold text-green-100 mb-2" style="color: #dcfce7 !important;">Environment</div>
+          <div class="flex justify-between text-xs text-green-100" style="color: #dcfce7 !important;">
+            <span>🌳 Green Cover: <strong class="text-white" style="color: white !important;">${formatNumber(data.greenCover || 35, 0)}%</strong></span>
           </div>
         </div>
         
         ${data.forecastRainfall && data.forecastRainfall > 0 ? `
-          <div class="bg-blue-800 border-2 border-blue-900 rounded-lg p-3">
-            <div class="text-sm font-semibold text-white">24h Forecast</div>
-            <div class="text-blue-100 font-bold text-sm">${formatNumber(data.forecastRainfall, 1)}mm expected</div>
+          <div class="bg-indigo-700 border-2 border-indigo-400 rounded-lg p-3" style="background: linear-gradient(135deg, #3730a3 0%, #4338ca 100%) !important; border-color: #818cf8 !important;">
+            <div class="text-sm font-semibold text-indigo-100" style="color: #e0e7ff !important;">24h Forecast</div>
+            <div class="text-indigo-100 font-bold text-sm" style="color: #e0e7ff !important;">${formatNumber(data.forecastRainfall, 1)}mm expected</div>
           </div>
         ` : ''}
         

@@ -1,3 +1,4 @@
+
 :root {
     --background: 224 71% 4%;
     --foreground: 213 31% 91%;
@@ -104,4 +105,67 @@
   border-color: hsla(var(--neon-purple), 0.5);
   box-shadow: 0 0 15px hsla(var(--neon-purple), var(--glow-strength));
   outline: none;
+}
+
+/* HIGH CONTRAST POPOVER AND TOOLTIP FIXES */
+.dark [data-radix-popper-content-wrapper] {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;
+  border: 2px solid #06b6d4 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 255, 255, 0.4) !important;
+  z-index: 9999 !important;
+}
+
+.dark [data-radix-popper-content-wrapper] * {
+  color: #e0f7ff !important;
+}
+
+/* Map popup specific styles */
+.mapboxgl-popup-content {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;
+  border: 2px solid #06b6d4 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 255, 255, 0.4) !important;
+  color: #e0f7ff !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+}
+
+.mapboxgl-popup-content * {
+  color: inherit !important;
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: #06b6d4 !important;
+}
+
+/* Enhanced contrast for all popover content */
+.dark .popover-content,
+.dark .tooltip-content,
+.dark .hover-card-content {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;
+  border: 2px solid #06b6d4 !important;
+  color: #e0f7ff !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 255, 255, 0.4) !important;
+  z-index: 9999 !important;
+}
+
+.dark .popover-content *,
+.dark .tooltip-content *,
+.dark .hover-card-content * {
+  color: #e0f7ff !important;
+}
+
+/* Force high contrast for any popup or overlay */
+.dark [role="tooltip"],
+.dark [role="dialog"],
+.dark [data-state="open"] {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;
+  color: #e0f7ff !important;
+  border: 2px solid #06b6d4 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 255, 255, 0.4) !important;
+}
+
+.dark [role="tooltip"] *,
+.dark [role="dialog"] *,
+.dark [data-state="open"] * {
+  color: #e0f7ff !important;
 }
