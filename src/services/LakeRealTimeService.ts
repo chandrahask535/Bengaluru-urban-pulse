@@ -1,4 +1,3 @@
-
 import { API_KEYS } from '@/config/api-keys';
 
 export interface LakeReport {
@@ -77,7 +76,7 @@ class LakeRealTimeService {
         });
 
       // Try to fetch LULC data from Bhuvan API (Land Use Land Cover)
-      const lulcPromise = fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.BHUVAN_API_KEY}`)
+      const lulcPromise = fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.BHUVAN_TOKEN}`)
         .then(res => res.json())
         .catch(error => {
           console.error('Error fetching LULC data:', error);
@@ -311,7 +310,7 @@ class LakeRealTimeService {
   static async getLandCoverData(coordinates: [number, number]): Promise<LandCoverData | null> {
     try {
       const [lat, lng] = coordinates;
-      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.BHUVAN_API_KEY}`);
+      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.BHUVAN_TOKEN}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -334,7 +333,7 @@ class LakeRealTimeService {
   static async getElevationData(coordinates: [number, number]): Promise<number | null> {
     try {
       const [lat, lng] = coordinates;
-      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/geoid?lat=${lat}&lon=${lng}&token=${API_KEYS.BHUVAN_API_KEY}`);
+      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/geoid?lat=${lat}&lon=${lng}&token=${API_KEYS.BHUVAN_TOKEN}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -351,7 +350,7 @@ class LakeRealTimeService {
   static async getLocationDetails(coordinates: [number, number]): Promise<any | null> {
     try {
       const [lat, lng] = coordinates;
-      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/geocode/reverse?lat=${lat}&lon=${lng}&token=${API_KEYS.BHUVAN_API_KEY}`);
+      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/geocode/reverse?lat=${lat}&lon=${lng}&token=${API_KEYS.BHUVAN_TOKEN}`);
       
       if (response.ok) {
         return await response.json();

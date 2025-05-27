@@ -1,4 +1,3 @@
-
 import { formatNumber } from './HistoricalFloodDataService';
 
 interface LakeData {
@@ -28,6 +27,22 @@ interface LakeMonitoringData {
     phosphorus: number;
     heavyMetals: number;
   };
+}
+
+export interface WaterQualityData {
+  ph: number;
+  dissolvedOxygen: number;
+  temperature: number;
+  turbidity: number;
+  pollutionLevel: number;
+  lastUpdated: string;
+}
+
+export interface EncroachmentData {
+  percentage: number;
+  affectedArea: number;
+  hotspots: number;
+  lastSurvey: string;
 }
 
 export class LakeDataService {
@@ -158,38 +173,87 @@ export class LakeDataService {
     };
   }
 
-  getHistoricalData(lakeId: string, days: number = 30): LakeMonitoringData[] {
+  getHistoricalData(lakeId: string, days: number = 30): { success: boolean; data?: any; error?: string } {
+    try {
+      const lake = this.getLakeById(lakeId);
+      if (!lake) {
+        return { success: false, error: `Lake with id ${lakeId} not found` };
+      }
+
+      const data: LakeMonitoringData[] = [];
+      const now = new Date();
+      
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        
+        // Add some seasonal and random variation
+        const seasonalFactor = Math.sin((date.getMonth() / 12) * 2 * Math.PI);
+        const randomFactor = (Math.random() - 0.5) * 0.3;
+        
+        data.push({
+          timestamp: date.toISOString(),
+          waterLevel: formatNumber(lake.currentLevel + seasonalFactor * 10 + randomFactor * 5, 1),
+          temperature: formatNumber(lake.temperature + seasonalFactor * 3 + randomFactor * 2, 1),
+          ph: formatNumber(lake.ph + randomFactor * 0.5, 2),
+          dissolvedOxygen: formatNumber(lake.dissolvedOxygen + randomFactor * 1, 1),
+          turbidity: formatNumber(20 + Math.random() * 30, 1),
+          pollutants: {
+            nitrogen: formatNumber(5 + Math.random() * 10, 2),
+            phosphorus: formatNumber(0.5 + Math.random() * 2, 2),
+            heavyMetals: formatNumber(0.1 + Math.random() * 0.5, 3)
+          }
+        });
+      }
+
+      // Format data for charts
+      const chartData = {
+        dates: data.map(d => d.timestamp.split('T')[0]),
+        ph: data.map(d => d.ph),
+        do: data.map(d => d.dissolvedOxygen),
+        encroachment: data.map(() => lake.pollutionLevel + (Math.random() - 0.5) * 10)
+      };
+      
+      return { success: true, data: chartData };
+    } catch (error) {
+      return { success: false, error: 'Failed to fetch historical data' };
+    }
+  }
+
+  getWaterQuality(lakeId: string): WaterQualityData {
     const lake = this.getLakeById(lakeId);
     if (!lake) {
       throw new Error(`Lake with id ${lakeId} not found`);
     }
 
-    const data: LakeMonitoringData[] = [];
-    const now = new Date();
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      
-      // Add some seasonal and random variation
-      const seasonalFactor = Math.sin((date.getMonth() / 12) * 2 * Math.PI);
-      const randomFactor = (Math.random() - 0.5) * 0.3;
-      
-      data.push({
-        timestamp: date.toISOString(),
-        waterLevel: formatNumber(lake.currentLevel + seasonalFactor * 10 + randomFactor * 5, 1),
-        temperature: formatNumber(lake.temperature + seasonalFactor * 3 + randomFactor * 2, 1),
-        ph: formatNumber(lake.ph + randomFactor * 0.5, 2),
-        dissolvedOxygen: formatNumber(lake.dissolvedOxygen + randomFactor * 1, 1),
-        turbidity: formatNumber(20 + Math.random() * 30, 1),
-        pollutants: {
-          nitrogen: formatNumber(5 + Math.random() * 10, 2),
-          phosphorus: formatNumber(0.5 + Math.random() * 2, 2),
-          heavyMetals: formatNumber(0.1 + Math.random() * 0.5, 3)
-        }
-      });
+    return {
+      ph: lake.ph,
+      dissolvedOxygen: lake.dissolvedOxygen,
+      temperature: lake.temperature,
+      turbidity: 20 + Math.random() * 30,
+      pollutionLevel: lake.pollutionLevel,
+      lastUpdated: lake.lastUpdated
+    };
+  }
+
+  getEncroachmentData(lakeId: string): EncroachmentData {
+    const lake = this.getLakeById(lakeId);
+    if (!lake) {
+      throw new Error(`Lake with id ${lakeId} not found`);
     }
+
+    const encroachmentPercentage = Math.min(50, lake.pollutionLevel * 0.6);
     
-    return data;
+    return {
+      percentage: encroachmentPercentage,
+      affectedArea: (lake.area * encroachmentPercentage) / 100,
+      hotspots: Math.ceil(encroachmentPercentage / 10),
+      lastSurvey: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+    };
+  }
+
+  getCurrentRainfall(lakeId: string): number {
+    // Return mock rainfall data based on lake location
+    return Math.random() * 10; // mm/hr
   }
 
   updateLakeData(lakeId: string, updates: Partial<LakeData>): boolean {

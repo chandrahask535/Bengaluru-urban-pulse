@@ -13,6 +13,18 @@ interface ImageryResponse {
   source: string;
 }
 
+interface WaterBodyChangeData {
+  historical: {
+    area: number;
+    waterQuality: string;
+  };
+  current: {
+    area: number;
+    waterQuality: string;
+    hotspots: number;
+  };
+}
+
 class SatelliteImageryService {
   private static instance: SatelliteImageryService;
 
@@ -85,6 +97,48 @@ class SatelliteImageryService {
         url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         date: date || new Date().toISOString().split('T')[0],
         source: 'OpenStreetMap'
+      };
+    }
+  }
+
+  async getWaterBodyChanges(lat: number, lng: number, historicalDate: string, currentDate: string): Promise<WaterBodyChangeData> {
+    try {
+      // This would typically involve complex satellite image analysis
+      // For now, we'll return mock data with realistic variations
+      const baseArea = 800 + Math.random() * 200;
+      const historicalArea = baseArea;
+      const currentArea = baseArea * (0.8 + Math.random() * 0.4); // ±20% variation
+      
+      // Simulate water quality degradation over time
+      const qualityLevels = ['Excellent', 'Good', 'Moderate', 'Poor'];
+      const historicalQuality = qualityLevels[Math.floor(Math.random() * 2)]; // Better in past
+      const currentQuality = qualityLevels[Math.floor(Math.random() * 4)]; // Could be worse now
+      
+      return {
+        historical: {
+          area: Math.round(historicalArea),
+          waterQuality: historicalQuality
+        },
+        current: {
+          area: Math.round(currentArea),
+          waterQuality: currentQuality,
+          hotspots: Math.floor(Math.random() * 5) + 1
+        }
+      };
+    } catch (error) {
+      console.error('Failed to analyze water body changes:', error);
+      
+      // Return fallback data
+      return {
+        historical: {
+          area: 850,
+          waterQuality: 'Good'
+        },
+        current: {
+          area: 720,
+          waterQuality: 'Moderate',
+          hotspots: 3
+        }
       };
     }
   }

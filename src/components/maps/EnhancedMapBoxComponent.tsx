@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -382,7 +381,7 @@ const EnhancedMapBoxComponent = ({
   return (
     <div>
       <div ref={mapContainer} className={className} />
-      <style jsx global>{`
+      <style>{`
         .mapbox-popup-dark .mapboxgl-popup-content {
           background: #1a1a1a !important;
           color: #ffffff !important;

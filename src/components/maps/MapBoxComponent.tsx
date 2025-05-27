@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -27,6 +26,8 @@ interface MapBoxComponentProps {
   showUrbanZones?: boolean;
   enableLocateControl?: boolean;
   showFloodZones?: boolean;
+  enableHover?: boolean;
+  onHover?: (feature: any) => void;
 }
 
 const MapBoxComponent = ({
@@ -47,7 +48,9 @@ const MapBoxComponent = ({
   showUrbanZones = false,
   enableLocateControl = false,
   showFloodZones = false,
-}: MapBoxComponentProps) => {
+  enableHover = false,
+  onHover,
+}: MapBoxComponentProps & { enableHover?: boolean; onHover?: (feature: any) => void }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markerRefs = useRef<mapboxgl.Marker[]>([]);
@@ -117,6 +120,16 @@ const MapBoxComponent = ({
       if (onMapClick && isInteractive) {
         map.current.on('click', (e) => {
           onMapClick({ lat: e.lngLat.lat, lng: e.lngLat.lng });
+        });
+      }
+
+      // Add hover handler
+      if (enableHover && onHover) {
+        map.current.on('mousemove', (e) => {
+          const features = map.current?.queryRenderedFeatures(e.point);
+          if (features && features.length > 0) {
+            onHover(features[0]);
+          }
         });
       }
 
@@ -402,7 +415,7 @@ const MapBoxComponent = ({
   return (
     <div>
       <div ref={mapContainer} className={className} />
-      <style jsx global>{`
+      <style>{`
         .mapbox-popup-dark .mapboxgl-popup-content {
           background: #1a1a1a !important;
           color: #ffffff !important;
