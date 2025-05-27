@@ -107,27 +107,15 @@
   outline: none;
 }
 
-/* FORCE HIGH CONTRAST FOR ALL OVERLAY COMPONENTS */
-.dark [data-radix-popper-content-wrapper],
-.dark [data-state="open"],
-.dark [role="tooltip"],
-.dark [role="dialog"],
-.dark [role="alertdialog"],
-.dark [data-radix-dialog-content],
-.dark [data-radix-toast-viewport] {
+/* HIGH CONTRAST POPOVER AND TOOLTIP FIXES */
+.dark [data-radix-popper-content-wrapper] {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;
   border: 2px solid #06b6d4 !important;
   box-shadow: 0 25px 50px -12px rgba(0, 255, 255, 0.4) !important;
   z-index: 9999 !important;
 }
 
-.dark [data-radix-popper-content-wrapper] *,
-.dark [data-state="open"] *,
-.dark [role="tooltip"] *,
-.dark [role="dialog"] *,
-.dark [role="alertdialog"] *,
-.dark [data-radix-dialog-content] *,
-.dark [data-radix-toast-viewport] * {
+.dark [data-radix-popper-content-wrapper] * {
   color: #e0f7ff !important;
 }
 
@@ -149,12 +137,10 @@
   border-top-color: #06b6d4 !important;
 }
 
-/* Enhanced contrast for specific component types */
+/* Enhanced contrast for all popover content */
 .dark .popover-content,
 .dark .tooltip-content,
-.dark .hover-card-content,
-.dark .drawer-content,
-.dark .dialog-content {
+.dark .hover-card-content {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;
   border: 2px solid #06b6d4 !important;
   color: #e0f7ff !important;
@@ -164,50 +150,22 @@
 
 .dark .popover-content *,
 .dark .tooltip-content *,
-.dark .hover-card-content *,
-.dark .drawer-content *,
-.dark .dialog-content * {
+.dark .hover-card-content * {
   color: #e0f7ff !important;
 }
 
-/* Force high contrast for any Radix UI overlay */
-.dark [data-radix-portal] {
+/* Force high contrast for any popup or overlay */
+.dark [role="tooltip"],
+.dark [role="dialog"],
+.dark [data-state="open"] {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;
   color: #e0f7ff !important;
   border: 2px solid #06b6d4 !important;
   box-shadow: 0 25px 50px -12px rgba(0, 255, 255, 0.4) !important;
 }
 
-.dark [data-radix-portal] * {
+.dark [role="tooltip"] *,
+.dark [role="dialog"] *,
+.dark [data-state="open"] * {
   color: #e0f7ff !important;
-}
-
-/* Override any white backgrounds */
-.dark [style*="background-color: white"],
-.dark [style*="background: white"],
-.dark [style*="background-color: #fff"],
-.dark [style*="background: #fff"] {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;
-  color: #e0f7ff !important;
-}
-
-/* Vaul drawer specific styles */
-.dark [data-vaul-drawer] {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;
-  border: 2px solid #06b6d4 !important;
-  color: #e0f7ff !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 255, 255, 0.4) !important;
-}
-
-.dark [data-vaul-drawer] * {
-  color: #e0f7ff !important;
-}
-
-/* Additional failsafe for any remaining white text on white background */
-.dark * {
-  background-color: transparent;
-}
-
-.dark *:not([class*="bg-"]):not([style*="background"]) {
-  color: inherit;
 }
