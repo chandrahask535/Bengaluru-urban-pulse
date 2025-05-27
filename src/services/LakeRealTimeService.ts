@@ -1,3 +1,4 @@
+
 import { API_KEYS } from '@/config/api-keys';
 
 export interface LakeReport {
@@ -58,7 +59,7 @@ class LakeRealTimeService {
         console.warn('Backend API unavailable, using fallback data sources', error);
       }
 
-      // Fetch water quality from OpenWeather API
+      // Fetch weather data using the updated API key
       const [lat, lng] = coordinates;
       const weatherPromise = fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${API_KEYS.OPENWEATHER_API_KEY}&units=metric`)
         .then(res => res.json())
@@ -75,8 +76,8 @@ class LakeRealTimeService {
           return null;
         });
 
-      // Try to fetch LULC data from Bhuvan API (Land Use Land Cover)
-      const lulcPromise = fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.BHUVAN_TOKEN}`)
+      // Try to fetch LULC data from Bhuvan API using the specific token
+      const lulcPromise = fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.LULC_STATISTICS_TOKEN}`)
         .then(res => res.json())
         .catch(error => {
           console.error('Error fetching LULC data:', error);
@@ -236,21 +237,21 @@ class LakeRealTimeService {
       
       return {
         waterQuality: {
-          ph: phValue,
-          do: doValue,
-          bod: bodValue,
-          temperature: weatherData ? weatherData.main.temp : 25,
-          turbidity: turbidityValue,
+          ph: Math.round(phValue * 10) / 10,
+          do: Math.round(doValue * 10) / 10,
+          bod: Math.round(bodValue * 10) / 10,
+          temperature: weatherData ? Math.round(weatherData.main.temp * 10) / 10 : 25,
+          turbidity: Math.round(turbidityValue * 10) / 10,
           lastUpdated: new Date().toISOString()
         },
         waterLevel: {
-          current: waterLevels[waterLevels.length - 1],
-          historic: waterLevels,
+          current: Math.round(waterLevels[waterLevels.length - 1] * 10) / 10,
+          historic: waterLevels.map(level => Math.round(level * 10) / 10),
           dates: dates,
           trend: trend
         },
         encroachment: {
-          percentage: encroachmentPercentage,
+          percentage: Math.round(encroachmentPercentage * 10) / 10,
           hotspots: Array.from({ length: Math.ceil(encroachmentPercentage / 10) }, (_, i) => i),
           coordinates: Array.from({ length: Math.ceil(encroachmentPercentage / 10) }, (_, i) => {
             return [
@@ -310,7 +311,7 @@ class LakeRealTimeService {
   static async getLandCoverData(coordinates: [number, number]): Promise<LandCoverData | null> {
     try {
       const [lat, lng] = coordinates;
-      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.BHUVAN_TOKEN}`);
+      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.LULC_STATISTICS_TOKEN}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -333,7 +334,7 @@ class LakeRealTimeService {
   static async getElevationData(coordinates: [number, number]): Promise<number | null> {
     try {
       const [lat, lng] = coordinates;
-      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/geoid?lat=${lat}&lon=${lng}&token=${API_KEYS.BHUVAN_TOKEN}`);
+      const response = await fetch(`https://bhuvan.nrsc.gov.in/api/geoid?lat=${lat}&lon=${lng}&token=${API_KEYS.GEOID_TOKEN}`);
       
       if (response.ok) {
         const data = await response.json();

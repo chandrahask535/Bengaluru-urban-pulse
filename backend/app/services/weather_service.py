@@ -1,4 +1,3 @@
-
 """Weather service for fetching real-time weather data for Karnataka."""
 
 import logging
@@ -17,8 +16,8 @@ class WeatherService:
 
     def __init__(self):
         """Initialize the weather service."""
-        self.api_key = API_KEYS.get("openweathermap")
-        self.api_url = API_ENDPOINTS.get("weather")
+        self.api_key = "31e340cdda515ddd9ae5cc476eeba7b6"  # Updated API key
+        self.api_url = "https://api.openweathermap.org/data/2.5"
         self.cache = {}
         self.cache_expiry = {}
         self.cache_duration = 1800  # 30 minutes in seconds

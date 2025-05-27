@@ -68,7 +68,7 @@ class SatelliteImageryService {
 
   async getBhuvanImagery({ lat, lng, date }: ImageryRequest): Promise<ImageryResponse> {
     try {
-      // Attempt to use ISRO Bhuvan API (may not be publicly accessible)
+      // Use ISRO Bhuvan API with updated token
       const imageDate = date || '2024-01-01';
       const url = `https://bhuvan.nrsc.gov.in/api/imagery?lat=${lat}&lon=${lng}&resolution=high&product=lulc&token=${API_KEYS.BHUVAN_TOKEN}&date=${imageDate}`;
       
@@ -98,6 +98,28 @@ class SatelliteImageryService {
         date: date || new Date().toISOString().split('T')[0],
         source: 'OpenStreetMap'
       };
+    }
+  }
+
+  async getLULCData(lat: number, lng: number): Promise<any> {
+    try {
+      const response = await fetch(
+        `https://bhuvan.nrsc.gov.in/api/lulc-statistics?lat=${lat}&lon=${lng}&radius=1&token=${API_KEYS.LULC_STATISTICS_TOKEN}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${API_KEYS.LULC_STATISTICS_TOKEN}`
+          }
+        }
+      );
+      
+      if (response.ok) {
+        return await response.json();
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching LULC data:', error);
+      return null;
     }
   }
 
