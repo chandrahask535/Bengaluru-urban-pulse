@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,4 +99,31 @@
   50% {
     box-shadow: 0 0 25px hsla(var(--cyber-purple), 0.4);
   }
+}
+
+/* CRITICAL: Force high contrast for ALL overlay components */
+.dark [role="tooltip"],
+.dark [role="dialog"],
+.dark [role="alertdialog"],
+.dark [data-state="open"],
+.dark [data-radix-popper-content-wrapper],
+.dark [data-radix-dialog-content],
+.dark [data-radix-toast-viewport],
+.dark [data-vaul-drawer] {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%) !important;
+  color: #e0f7ff !important;
+  border: 2px solid #06b6d4 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 255, 255, 0.4) !important;
+  z-index: 9999 !important;
+}
+
+.dark [role="tooltip"] *,
+.dark [role="dialog"] *,
+.dark [role="alertdialog"] *,
+.dark [data-state="open"] *,
+.dark [data-radix-popper-content-wrapper] *,
+.dark [data-radix-dialog-content] *,
+.dark [data-radix-toast-viewport] *,
+.dark [data-vaul-drawer] * {
+  color: #e0f7ff !important;
 }

@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 
@@ -41,12 +42,20 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border-2 border-cyan-400",
+        "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-cyan-100",
         className
       )}
+      style={{
+        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%)",
+        color: "#e0f7ff",
+        borderColor: "#06b6d4",
+        boxShadow: "0 25px 50px -12px rgba(0, 255, 255, 0.4)",
+        zIndex: 9999
+      }}
       {...props}
     >
-      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-cyan-400" />
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>
@@ -58,7 +67,7 @@ const DrawerHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
+    className={cn("grid gap-1.5 p-4 text-center sm:text-left text-cyan-100", className)}
     {...props}
   />
 )
@@ -82,7 +91,7 @@ const DrawerTitle = React.forwardRef<
   <DrawerPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      "text-lg font-semibold leading-none tracking-tight text-cyan-100",
       className
     )}
     {...props}
@@ -96,7 +105,7 @@ const DrawerDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-sm text-cyan-200", className)}
     {...props}
   />
 ))
