@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Check, Info, Brain, BarChart3, AlertCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import AIAnalysisService, { AnalysisResponse } from '@/services/AIAnalysisService';
+import { AIAnalysisService, AnalysisResponse } from '@/services/AIAnalysisService';
 
 interface LakeAnalysisCardProps {
   lakeId: string;

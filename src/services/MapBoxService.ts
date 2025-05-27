@@ -30,8 +30,6 @@ export const MapBoxService = {
       const url = `${API_ENDPOINTS.MAPBOX_GEOCODING}/${encodeURIComponent(place)}.json`;
       const params = new URLSearchParams({
         access_token: API_KEYS.MAPBOX_API_KEY,
-        limit: '5',
-        types: 'place,locality,neighborhood'
       });
       
       const response = await fetch(`${url}?${params}`);
@@ -42,22 +40,7 @@ export const MapBoxService = {
       return await response.json();
     } catch (error) {
       console.error('Error geocoding place:', error);
-      // Return fallback data for Bangalore area
-      return {
-        features: [{
-          id: 'fallback',
-          name: place,
-          place_name: `${place}, Bangalore, Karnataka, India`,
-          center: [77.5946, 12.9716],
-          geometry: {
-            type: 'Point',
-            coordinates: [77.5946, 12.9716]
-          },
-          properties: {}
-        }],
-        type: 'FeatureCollection',
-        query: [place]
-      };
+      throw error;
     }
   },
   
@@ -72,7 +55,6 @@ export const MapBoxService = {
       const url = `${API_ENDPOINTS.MAPBOX_GEOCODING}/${lng},${lat}.json`;
       const params = new URLSearchParams({
         access_token: API_KEYS.MAPBOX_API_KEY,
-        limit: '1'
       });
       
       const response = await fetch(`${url}?${params}`);
@@ -83,22 +65,7 @@ export const MapBoxService = {
       return await response.json();
     } catch (error) {
       console.error('Error reverse geocoding:', error);
-      // Return fallback data
-      return {
-        features: [{
-          id: 'fallback',
-          name: 'Unknown Location',
-          place_name: `Unknown Location near ${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-          center: [lng, lat],
-          geometry: {
-            type: 'Point',
-            coordinates: [lng, lat]
-          },
-          properties: {}
-        }],
-        type: 'FeatureCollection',
-        query: [lng.toString(), lat.toString()]
-      };
+      throw error;
     }
   }
 };

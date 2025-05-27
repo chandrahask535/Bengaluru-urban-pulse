@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { MapPin, Mail, Phone, Globe, Linkedin, Github } from "lucide-react";
+import { MapPin, Mail, Phone, Globe } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center">
-              <img src="/favicon.svg" alt="Bengaluru Urban Pulse" className="h-8 w-8" />
+              <img src="/placeholder.svg" alt="Bengaluru Urban Pulse" className="h-8 w-auto" />
               <span className="ml-2 text-lg font-semibold text-gray-900 dark:text-white">Urban Pulse</span>
             </Link>
             <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
@@ -21,12 +21,12 @@ const Footer = () => {
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Modules</h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link to="/prediction" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
+                <Link to="/flood-prediction" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
                   Flood Prediction
                 </Link>
               </li>
               <li>
-                <Link to="/lakes" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
+                <Link to="/lake-monitoring" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
                   Lake Monitoring
                 </Link>
               </li>
@@ -52,9 +52,9 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
-                  About
-                </Link>
+                <a href="#" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
+                  Help Center
+                </a>
               </li>
             </ul>
           </div>
@@ -70,14 +70,14 @@ const Footer = () => {
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 text-gray-400 mr-2" />
-                <a href="mailto:kchandrahas863@gmail.com" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
-                  kchandrahas863@gmail.com
+                <a href="mailto:contact@bengaluruUrbanPulse.gov.in" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
+                  contact@bengaluruUrbanPulse.gov.in
                 </a>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 text-gray-400 mr-2" />
-                <a href="tel:+917090207931" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
-                  +91 70902 07931
+                <a href="tel:+918012345678" className="text-sm text-gray-600 hover:text-karnataka-metro-medium dark:text-gray-400">
+                  +91 80 1234 5678
                 </a>
               </li>
             </ul>
@@ -89,13 +89,17 @@ const Footer = () => {
             &copy; {new Date().getFullYear()} Bengaluru Urban Pulse. All rights reserved.
           </p>
           <div className="mt-4 md:mt-0 flex space-x-6">
-            <a href="https://www.linkedin.com/in/chandrahask535/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-karnataka-metro-medium">
-              <span className="sr-only">LinkedIn</span>
-              <Linkedin className="h-6 w-6" />
+            <a href="#" className="text-gray-400 hover:text-karnataka-metro-medium">
+              <span className="sr-only">Facebook</span>
+              <Globe className="h-6 w-6" />
             </a>
-            <a href="https://github.com/chandrahask535" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-karnataka-metro-medium">
-              <span className="sr-only">GitHub</span>
-              <Github className="h-6 w-6" />
+            <a href="#" className="text-gray-400 hover:text-karnataka-metro-medium">
+              <span className="sr-only">Twitter</span>
+              <Globe className="h-6 w-6" />
+            </a>
+            <a href="#" className="text-gray-400 hover:text-karnataka-metro-medium">
+              <span className="sr-only">Instagram</span>
+              <Globe className="h-6 w-6" />
             </a>
           </div>
         </div>

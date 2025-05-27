@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Target, Lightbulb, Globe, Database, Cloud, Map, Satellite, Shield, Zap, BarChart, Droplet, Code, Server, Layers, Cpu } from "lucide-react";
+import { Users, Target, Lightbulb, Globe, Database, Cloud, Map, Satellite, Shield, Zap, BarChart, Droplet } from "lucide-react";
 
 const About = () => {
   const projectGuides = [
@@ -49,39 +49,6 @@ const About = () => {
       email: "shalini250703@gmail.com",
       mobile: "9148137192", 
       role: "Team Member"
-    }
-  ];
-
-  const techStack = [
-    { 
-      category: "Frontend Technologies", 
-      technologies: [
-        { name: "React", description: "TypeScript Framework", icon: Code },
-        { name: "Tailwind CSS", description: "Responsive Design", icon: Layers },
-        { name: "Leaflet", description: "Interactive Maps", icon: Map }
-      ],
-      color: "from-blue-100 to-cyan-100",
-      darkColor: "dark:from-blue-900/30 dark:to-cyan-900/30"
-    },
-    { 
-      category: "Backend & AI", 
-      technologies: [
-        { name: "Python", description: "Data Processing", icon: Server },
-        { name: "ML Models", description: "Predictive Analytics", icon: Cpu },
-        { name: "PostGIS", description: "Spatial Database", icon: Database }
-      ],
-      color: "from-green-100 to-emerald-100",
-      darkColor: "dark:from-green-900/30 dark:to-emerald-900/30"
-    },
-    { 
-      category: "Data Sources", 
-      technologies: [
-        { name: "NASA MODIS", description: "Satellite Data", icon: Satellite },
-        { name: "IMD", description: "Weather Data", icon: Cloud },
-        { name: "BBMP", description: "Urban Maps", icon: Globe }
-      ],
-      color: "from-purple-100 to-violet-100",
-      darkColor: "dark:from-purple-900/30 dark:to-violet-900/30"
     }
   ];
 
@@ -180,11 +147,7 @@ const About = () => {
           {/* Hero Section */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-green-600 rounded-full mb-6">
-              <img 
-                src="/favicon.svg" 
-                alt="Bengaluru Urban Pulse Logo" 
-                className="h-12 w-12" 
-              />
+              <Globe className="h-10 w-10 text-white" />
             </div>
             <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-6">
               Bengaluru Urban Pulse
@@ -224,67 +187,6 @@ const About = () => {
               ))}
             </div>
           </div>
-
-          {/* Technology Stack */}
-          <Card className="mb-12 border-0 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center text-2xl">
-                <img 
-                  src="/favicon.svg" 
-                  alt="Logo" 
-                  className="h-6 w-6 mr-3" 
-                />
-                Technology Stack & Architecture
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {techStack.map((category, index) => (
-                  <div key={index} className={`bg-gradient-to-br ${category.color} ${category.darkColor} p-6 rounded-xl`}>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{category.category}</h3>
-                    <div className="space-y-3">
-                      {category.technologies.map((tech, techIndex) => (
-                        <div key={techIndex} className="flex items-center">
-                          <tech.icon className="h-5 w-5 text-gray-700 dark:text-gray-300 mr-3" />
-                          <div>
-                            <div className="font-medium text-gray-900 dark:text-white">{tech.name}</div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">{tech.description}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* APIs Used */}
-          <Card className="mb-12 border-0 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center text-2xl">
-                <img 
-                  src="/favicon.svg" 
-                  alt="Logo" 
-                  className="h-6 w-6 mr-3" 
-                />
-                APIs Used
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {apis.map((api, index) => (
-                  <div key={index} className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl">
-                    <div className="flex items-center mb-3">
-                      <api.icon className="h-6 w-6 text-purple-600 mr-3" />
-                      <h4 className="font-semibold text-gray-900 dark:text-white">{api.name}</h4>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{api.purpose}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Project Vision */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
@@ -428,6 +330,29 @@ const About = () => {
                         </div>
                       )}
                     </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* APIs and Technologies */}
+          <Card className="mb-12 border-0 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center text-2xl">
+                <Cloud className="mr-3 h-6 w-6 text-purple-600" />
+                Technology Stack & APIs
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {apis.map((api, index) => (
+                  <div key={index} className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl">
+                    <div className="flex items-center mb-3">
+                      <api.icon className="h-6 w-6 text-purple-600 mr-3" />
+                      <h4 className="font-semibold text-gray-900 dark:text-white">{api.name}</h4>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{api.purpose}</p>
                   </div>
                 ))}
               </div>

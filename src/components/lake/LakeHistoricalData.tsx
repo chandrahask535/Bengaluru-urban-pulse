@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import LakeDataService from '@/services/LakeDataService';
+import { LakeDataService } from '@/services/LakeDataService';
 import LakeRealTimeService from '@/services/LakeRealTimeService';
 import { AlertTriangle, Clock, BarChart3, Droplet, Filter, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 
@@ -23,8 +24,8 @@ const LakeHistoricalData = ({ lakeId, lakeName }: LakeHistoricalDataProps) => {
         setLoading(true);
         setError(null);
         
-        // Fetch historical data from LakeDataService instance
-        const response = LakeDataService.getHistoricalData(lakeId);
+        // Fetch historical data from LakeDataService
+        const response = await LakeDataService.getHistoricalData(lakeId);
         
         if (response.success && response.data) {
           setData(response.data);

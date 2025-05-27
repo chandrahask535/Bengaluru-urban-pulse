@@ -1,301 +1,271 @@
-import { formatNumber } from './HistoricalFloodDataService';
 
-interface LakeData {
-  id: string;
-  name: string;
-  coordinates: [number, number];
-  area: number; // in hectares
-  maxDepth: number; // in meters
-  currentLevel: number; // percentage of capacity
-  waterQuality: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Very Poor';
-  pollutionLevel: number; // 0-100 scale
-  temperature: number; // in Celsius
-  ph: number;
-  dissolvedOxygen: number; // mg/L
-  lastUpdated: string;
+import axios from "axios";
+import { supabase } from "@/integrations/supabase/client";
+
+// Define base API URL for weather and other services
+const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5";
+const API_KEY = import.meta.env.VITE_WEATHER_API_KEY || "default_api_key";
+
+// Service response type
+export interface ServiceResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
 }
 
-interface LakeMonitoringData {
-  timestamp: string;
-  waterLevel: number;
-  temperature: number;
-  ph: number;
-  dissolvedOxygen: number;
-  turbidity: number;
-  pollutants: {
-    nitrogen: number;
-    phosphorus: number;
-    heavyMetals: number;
-  };
-}
-
+// Types for lake data
 export interface WaterQualityData {
   ph: number;
-  dissolvedOxygen: number;
-  temperature: number;
+  do: number;
+  bod: number;
   turbidity: number;
-  pollutionLevel: number;
-  lastUpdated: string;
+  temperature: number;
 }
 
 export interface EncroachmentData {
   percentage: number;
-  affectedArea: number;
   hotspots: number;
-  lastSurvey: string;
+  area_lost: number;
 }
 
-export class LakeDataService {
-  private static instance: LakeDataService;
-  private lakes: LakeData[] = [];
+export interface HistoricalData {
+  dates: string[];
+  ph: number[];
+  do: number[];
+  encroachment: number[];
+}
 
-  public static getInstance(): LakeDataService {
-    if (!LakeDataService.instance) {
-      LakeDataService.instance = new LakeDataService();
-    }
-    return LakeDataService.instance;
-  }
+// Types for weather API responses
+interface WeatherResponse {
+  rain?: {
+    '1h'?: number;
+    '3h'?: number;
+  };
+  main: {
+    temp: number;
+    humidity: number;
+  };
+}
 
-  constructor() {
-    this.initializeLakeData();
-  }
-
-  private initializeLakeData() {
-    this.lakes = [
-      {
-        id: 'bellandur',
-        name: 'Bellandur Lake',
-        coordinates: [12.9373, 77.6402],
-        area: 361,
-        maxDepth: 3.5,
-        currentLevel: 78,
-        waterQuality: 'Poor',
-        pollutionLevel: 75,
-        temperature: 26.5,
-        ph: 7.8,
-        dissolvedOxygen: 4.2,
-        lastUpdated: new Date().toISOString()
-      },
-      {
-        id: 'varthur',
-        name: 'Varthur Lake',
-        coordinates: [12.9417, 77.7341],
-        area: 222,
-        maxDepth: 2.8,
-        currentLevel: 65,
-        waterQuality: 'Fair',
-        pollutionLevel: 60,
-        temperature: 25.8,
-        ph: 7.5,
-        dissolvedOxygen: 5.1,
-        lastUpdated: new Date().toISOString()
-      },
-      {
-        id: 'hebbal',
-        name: 'Hebbal Lake',
-        coordinates: [13.0450, 77.5950],
-        area: 154,
-        maxDepth: 4.2,
-        currentLevel: 82,
-        waterQuality: 'Good',
-        pollutionLevel: 35,
-        temperature: 24.9,
-        ph: 7.2,
-        dissolvedOxygen: 6.8,
-        lastUpdated: new Date().toISOString()
-      },
-      {
-        id: 'ulsoor',
-        name: 'Ulsoor Lake',
-        coordinates: [12.9825, 77.6203],
-        area: 125,
-        maxDepth: 3.1,
-        currentLevel: 71,
-        waterQuality: 'Good',
-        pollutionLevel: 40,
-        temperature: 25.3,
-        ph: 7.1,
-        dissolvedOxygen: 6.2,
-        lastUpdated: new Date().toISOString()
-      },
-      {
-        id: 'sankey',
-        name: 'Sankey Tank',
-        coordinates: [12.9967, 77.5764],
-        area: 15,
-        maxDepth: 2.5,
-        currentLevel: 88,
-        waterQuality: 'Excellent',
-        pollutionLevel: 15,
-        temperature: 24.1,
-        ph: 6.9,
-        dissolvedOxygen: 7.5,
-        lastUpdated: new Date().toISOString()
-      }
-    ];
-  }
-
-  getAllLakes(): LakeData[] {
-    return [...this.lakes];
-  }
-
-  getLakeById(id: string): LakeData | undefined {
-    return this.lakes.find(lake => lake.id === id);
-  }
-
-  getLakesByQuality(quality: LakeData['waterQuality']): LakeData[] {
-    return this.lakes.filter(lake => lake.waterQuality === quality);
-  }
-
-  getRealTimeData(lakeId: string): LakeMonitoringData {
-    const lake = this.getLakeById(lakeId);
-    if (!lake) {
-      throw new Error(`Lake with id ${lakeId} not found`);
-    }
-
-    // Generate realistic real-time data with some variation
-    const baseTemp = lake.temperature;
-    const basePh = lake.ph;
-    const baseDO = lake.dissolvedOxygen;
-    
-    return {
-      timestamp: new Date().toISOString(),
-      waterLevel: formatNumber(lake.currentLevel + (Math.random() - 0.5) * 2, 1),
-      temperature: formatNumber(baseTemp + (Math.random() - 0.5) * 1, 1),
-      ph: formatNumber(basePh + (Math.random() - 0.5) * 0.2, 2),
-      dissolvedOxygen: formatNumber(baseDO + (Math.random() - 0.5) * 0.5, 1),
-      turbidity: formatNumber(20 + Math.random() * 30, 1), // NTU
-      pollutants: {
-        nitrogen: formatNumber(5 + Math.random() * 10, 2), // mg/L
-        phosphorus: formatNumber(0.5 + Math.random() * 2, 2), // mg/L
-        heavyMetals: formatNumber(0.1 + Math.random() * 0.5, 3) // mg/L
-      }
+interface ForecastResponse {
+  list: Array<{
+    rain?: {
+      '3h'?: number;
     };
-  }
+    main: {
+      temp: number;
+      humidity: number;
+    };
+  }>;
+}
 
-  getHistoricalData(lakeId: string, days: number = 30): { success: boolean; data?: any; error?: string } {
+// LakeDataService class for handling lake-related API calls
+export class LakeDataService {
+  // Get water quality data for a specific lake
+  static async getWaterQuality(lakeId: string): Promise<ServiceResponse<WaterQualityData>> {
     try {
-      const lake = this.getLakeById(lakeId);
-      if (!lake) {
-        return { success: false, error: `Lake with id ${lakeId} not found` };
-      }
-
-      const data: LakeMonitoringData[] = [];
-      const now = new Date();
-      
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-        
-        // Add some seasonal and random variation
-        const seasonalFactor = Math.sin((date.getMonth() / 12) * 2 * Math.PI);
-        const randomFactor = (Math.random() - 0.5) * 0.3;
-        
-        data.push({
-          timestamp: date.toISOString(),
-          waterLevel: formatNumber(lake.currentLevel + seasonalFactor * 10 + randomFactor * 5, 1),
-          temperature: formatNumber(lake.temperature + seasonalFactor * 3 + randomFactor * 2, 1),
-          ph: formatNumber(lake.ph + randomFactor * 0.5, 2),
-          dissolvedOxygen: formatNumber(lake.dissolvedOxygen + randomFactor * 1, 1),
-          turbidity: formatNumber(20 + Math.random() * 30, 1),
-          pollutants: {
-            nitrogen: formatNumber(5 + Math.random() * 10, 2),
-            phosphorus: formatNumber(0.5 + Math.random() * 2, 2),
-            heavyMetals: formatNumber(0.1 + Math.random() * 0.5, 3)
-          }
-        });
-      }
-
-      // Format data for charts
-      const chartData = {
-        dates: data.map(d => d.timestamp.split('T')[0]),
-        ph: data.map(d => d.ph),
-        do: data.map(d => d.dissolvedOxygen),
-        encroachment: data.map(() => lake.pollutionLevel + (Math.random() - 0.5) * 10)
+      // In a real app, this would fetch from your backend API
+      // For now, we'll simulate with random data
+      const mockData: WaterQualityData = {
+        ph: 5.5 + Math.random() * 3,
+        do: 2 + Math.random() * 6,
+        bod: 5 + Math.random() * 20,
+        turbidity: 2 + Math.random() * 8,
+        temperature: 22 + Math.random() * 8
       };
       
-      return { success: true, data: chartData };
+      return {
+        success: true,
+        data: mockData
+      };
     } catch (error) {
-      return { success: false, error: 'Failed to fetch historical data' };
+      console.error("Error fetching water quality data:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return {
+        success: false,
+        error: errorMessage,
+        data: {
+          ph: 7,
+          do: 4,
+          bod: 10,
+          turbidity: 5,
+          temperature: 25
+        }
+      };
     }
   }
 
-  getWaterQuality(lakeId: string): WaterQualityData {
-    const lake = this.getLakeById(lakeId);
-    if (!lake) {
-      throw new Error(`Lake with id ${lakeId} not found`);
+  // Get encroachment data for a specific lake
+  static async getEncroachmentData(lakeId: string): Promise<ServiceResponse<EncroachmentData>> {
+    try {
+      // Simulated data
+      const mockData: EncroachmentData = {
+        percentage: Math.floor(Math.random() * 40),
+        hotspots: Math.floor(Math.random() * 5),
+        area_lost: Math.floor(Math.random() * 200)
+      };
+      
+      return {
+        success: true,
+        data: mockData
+      };
+    } catch (error) {
+      console.error("Error fetching encroachment data:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return {
+        success: false,
+        error: errorMessage,
+        data: {
+          percentage: 0,
+          hotspots: 0,
+          area_lost: 0
+        }
+      };
     }
-
-    return {
-      ph: lake.ph,
-      dissolvedOxygen: lake.dissolvedOxygen,
-      temperature: lake.temperature,
-      turbidity: 20 + Math.random() * 30,
-      pollutionLevel: lake.pollutionLevel,
-      lastUpdated: lake.lastUpdated
-    };
   }
 
-  getEncroachmentData(lakeId: string): EncroachmentData {
-    const lake = this.getLakeById(lakeId);
-    if (!lake) {
-      throw new Error(`Lake with id ${lakeId} not found`);
+  // Get historical data for a specific lake
+  static async getHistoricalData(lakeId: string): Promise<ServiceResponse<HistoricalData>> {
+    try {
+      // Simulated data
+      const dates = Array.from({ length: 10 }, (_, i) => {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        return date.toISOString().split('T')[0];
+      }).reverse();
+      
+      const mockData: HistoricalData = {
+        dates,
+        ph: Array.from({ length: 10 }, () => 5.5 + Math.random() * 3),
+        do: Array.from({ length: 10 }, () => 2 + Math.random() * 6),
+        encroachment: Array.from({ length: 10 }, (_, i) => 10 + i * 2 + Math.random() * 5)
+      };
+      
+      return {
+        success: true,
+        data: mockData
+      };
+    } catch (error) {
+      console.error("Error fetching historical data:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return {
+        success: false,
+        error: errorMessage,
+        data: {
+          dates: [],
+          ph: [],
+          do: [],
+          encroachment: []
+        }
+      };
     }
-
-    const encroachmentPercentage = Math.min(50, lake.pollutionLevel * 0.6);
-    
-    return {
-      percentage: encroachmentPercentage,
-      affectedArea: (lake.area * encroachmentPercentage) / 100,
-      hotspots: Math.ceil(encroachmentPercentage / 10),
-      lastSurvey: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
-    };
   }
 
-  getCurrentRainfall(lakeId: string): number {
-    // Return mock rainfall data based on lake location
-    return Math.random() * 10; // mm/hr
-  }
-
-  updateLakeData(lakeId: string, updates: Partial<LakeData>): boolean {
-    const lakeIndex = this.lakes.findIndex(lake => lake.id === lakeId);
-    if (lakeIndex === -1) {
-      return false;
+  // Get current rainfall data for a location
+  static async getCurrentRainfall(lat: number, lon: number): Promise<number> {
+    try {
+      const response = await axios.get(`${WEATHER_API_URL}/weather`, {
+        params: {
+          lat,
+          lon,
+          appid: API_KEY,
+          units: 'metric'
+        }
+      });
+      
+      // Extract rainfall data if available
+      const data = response.data as WeatherResponse;
+      const rainfall = data.rain ? 
+        (data.rain['1h'] || data.rain['3h'] || 0) : 
+        0;
+      
+      return rainfall;
+    } catch (error) {
+      console.error("Error fetching rainfall data:", error);
+      return 0; // Default to 0 mm if there's an error
     }
-    
-    this.lakes[lakeIndex] = {
-      ...this.lakes[lakeIndex],
-      ...updates,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    return true;
   }
 
-  getLakeStatistics() {
-    const totalLakes = this.lakes.length;
-    const averagePollution = formatNumber(
-      this.lakes.reduce((sum, lake) => sum + lake.pollutionLevel, 0) / totalLakes,
-      1
-    );
-    
-    const qualityDistribution = this.lakes.reduce((acc, lake) => {
-      acc[lake.waterQuality] = (acc[lake.waterQuality] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    const averageLevel = formatNumber(
-      this.lakes.reduce((sum, lake) => sum + lake.currentLevel, 0) / totalLakes,
-      1
-    );
-    
-    return {
-      totalLakes,
-      averagePollution,
-      qualityDistribution,
-      averageLevel,
-      lastUpdated: new Date().toISOString()
-    };
+  // Get flood risk prediction for a location
+  static async getFloodRiskPrediction(lat: number, lon: number): Promise<{ risk_level: "Critical" | "High" | "Moderate" | "Low"; probability: number }> {
+    try {
+      // In a real app, this would call your ML model API
+      // For now, we'll use weather data to simulate a risk level
+      const response = await axios.get(`${WEATHER_API_URL}/forecast`, {
+        params: {
+          lat,
+          lon,
+          appid: API_KEY,
+          units: 'metric'
+        }
+      });
+      
+      // Calculate average rainfall from forecast
+      const data = response.data as ForecastResponse;
+      const forecasts = data.list.slice(0, 8); // Next 24 hours
+      const totalRainfall = forecasts.reduce((sum: number, item: any) => {
+        const rain = item.rain ? (item.rain['3h'] || 0) : 0;
+        return sum + rain;
+      }, 0);
+      
+      const avgRainfall = totalRainfall / forecasts.length;
+      
+      // Determine risk level based on rainfall
+      let riskLevel: "Critical" | "High" | "Moderate" | "Low" = "Low";
+      let probability = 0;
+      
+      if (avgRainfall > 15) {
+        riskLevel = "Critical";
+        probability = 80 + Math.random() * 20;
+      } else if (avgRainfall > 10) {
+        riskLevel = "High";
+        probability = 60 + Math.random() * 20;
+      } else if (avgRainfall > 5) {
+        riskLevel = "Moderate";
+        probability = 30 + Math.random() * 30;
+      } else {
+        riskLevel = "Low";
+        probability = Math.random() * 30;
+      }
+      
+      return {
+        risk_level: riskLevel,
+        probability: Math.round(probability)
+      };
+    } catch (error) {
+      console.error("Error predicting flood risk:", error);
+      return {
+        risk_level: "Low",
+        probability: 0
+      };
+    }
+  }
+
+  // Get rainfall forecast (sum of rain for next 24 hours) for a location
+  static async getRainfallForecast(lat: number, lon: number): Promise<number> {
+    try {
+      const response = await axios.get(`${WEATHER_API_URL}/forecast`, {
+        params: {
+          lat,
+          lon,
+          appid: API_KEY,
+          units: 'metric',
+        }
+      });
+
+      const data = response.data as ForecastResponse;
+      // Sum rainfall for next 8 forecast periods (24h since 3h intervals)
+      const forecasts = data.list.slice(0, 8);
+      const totalRainfall = forecasts.reduce((sum: number, item) => {
+        const rain = item.rain ? (item.rain['3h'] || 0) : 0;
+        return sum + rain;
+      }, 0);
+
+      return totalRainfall;
+    } catch (error) {
+      console.error("Error fetching rainfall forecast:", error);
+      return 0;
+    }
   }
 }
 
-export default LakeDataService.getInstance();
