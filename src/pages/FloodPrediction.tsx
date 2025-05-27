@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -225,7 +224,7 @@ const FloodPrediction = () => {
 
         // Use realistic data from HistoricalFloodDataService
         const rainfall = HistoricalFloodDataService.getCurrentRainfall(lat, lon);
-        const risk = HistoricalFloodDataService.getFloodRiskPrediction({ x: lat, y: lon });
+        const risk = HistoricalFloodDataService.getFloodRiskPrediction({ lat: lat, lng: lon });
         const forecast = HistoricalFloodDataService.getRainfallForecast(lat, lon);
 
         setCurrentRainfall(rainfall);

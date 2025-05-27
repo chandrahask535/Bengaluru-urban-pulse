@@ -65,7 +65,7 @@ interface PopupData {
   alerts?: any[];
 }
 
-// Generate enhanced location popup with better contrast and visibility
+// Generate enhanced location popup with HIGH CONTRAST and better visibility
 export const generateLocationPopup = (
   locationName: string, 
   coordinates: [number, number],
@@ -81,73 +81,73 @@ export const generateLocationPopup = (
     : '';
 
   return `
-    <div class="bg-white border border-gray-300 rounded-lg shadow-xl p-4 max-w-sm" style="font-family: system-ui, -apple-system, sans-serif;">
-      <div class="border-b border-gray-200 pb-2 mb-3">
+    <div class="bg-white border border-gray-800 rounded-lg shadow-2xl p-4 max-w-sm" style="font-family: system-ui, -apple-system, sans-serif; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+      <div class="border-b border-gray-800 pb-2 mb-3">
         <h3 class="font-bold text-gray-900 text-base leading-tight">${locationName}</h3>
-        <p class="text-xs text-gray-600 mt-1">📍 ${formatNumber(coordinates[0], 4)}, ${formatNumber(coordinates[1], 4)}</p>
+        <p class="text-xs text-gray-700 mt-1 font-medium">📍 ${formatNumber(coordinates[0], 4)}, ${formatNumber(coordinates[1], 4)}</p>
       </div>
       
       <div class="space-y-3">
-        <!-- Flood Risk Section -->
-        <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+        <!-- Flood Risk Section with HIGH CONTRAST -->
+        <div class="bg-gray-900 rounded-lg p-3 border-2 border-gray-800">
           <div class="flex justify-between items-center">
-            <span class="text-sm font-semibold text-gray-700">Flood Risk Level</span>
-            <span class="px-2 py-1 rounded text-xs font-bold ${
-              data.floodRisk === 'Critical' ? 'bg-red-100 text-red-800 border border-red-200' :
-              data.floodRisk === 'High' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
-              data.floodRisk === 'Moderate' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' : 
-              'bg-green-100 text-green-800 border border-green-200'
+            <span class="text-sm font-semibold text-white">Flood Risk Level</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold border-2 ${
+              data.floodRisk === 'Critical' ? 'bg-red-500 text-white border-red-700' :
+              data.floodRisk === 'High' ? 'bg-orange-500 text-white border-orange-700' :
+              data.floodRisk === 'Moderate' ? 'bg-yellow-500 text-black border-yellow-700' : 
+              'bg-green-500 text-white border-green-700'
             }">${data.floodRisk || 'Low'}</span>
           </div>
         </div>
         
-        <!-- Location Data -->
+        <!-- Location Data with HIGH CONTRAST -->
         <div class="grid grid-cols-2 gap-2">
-          <div class="bg-blue-50 border border-blue-200 rounded p-2">
-            <div class="text-xs text-blue-700 font-medium">Elevation</div>
-            <div class="text-sm font-bold text-blue-900">${formatNumber(data.elevationData || 920, 0)}m</div>
+          <div class="bg-blue-800 border-2 border-blue-900 rounded p-2">
+            <div class="text-xs text-blue-100 font-medium">Elevation</div>
+            <div class="text-sm font-bold text-white">${formatNumber(data.elevationData || 920, 0)}m</div>
           </div>
-          <div class="bg-cyan-50 border border-cyan-200 rounded p-2">
-            <div class="text-xs text-cyan-700 font-medium">Drainage</div>
-            <div class="text-sm font-bold text-cyan-900">${formatNumber(data.drainageScore || 75, 0)}/100</div>
+          <div class="bg-cyan-800 border-2 border-cyan-900 rounded p-2">
+            <div class="text-xs text-cyan-100 font-medium">Drainage</div>
+            <div class="text-sm font-bold text-white">${formatNumber(data.drainageScore || 75, 0)}/100</div>
           </div>
         </div>
         
-        <!-- Weather Info -->
-        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
-          <div class="text-sm font-semibold text-gray-700 mb-2">Current Weather</div>
+        <!-- Weather Info with HIGH CONTRAST -->
+        <div class="bg-gray-800 border-2 border-gray-900 rounded-lg p-3">
+          <div class="text-sm font-semibold text-white mb-2">Current Weather</div>
           <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="flex items-center text-gray-800">
+            <div class="flex items-center text-white">
               <span class="mr-1">🌡️</span>
-              <span class="font-medium">${formatNumber(data.temperature || 26, 1)}°C</span>
+              <span class="font-bold">${formatNumber(data.temperature || 26, 1)}°C</span>
             </div>
-            <div class="flex items-center text-gray-800">
+            <div class="flex items-center text-white">
               <span class="mr-1">💧</span>
-              <span class="font-medium">${formatNumber(data.humidity || 65, 0)}%</span>
+              <span class="font-bold">${formatNumber(data.humidity || 65, 0)}%</span>
             </div>
-            <div class="flex items-center text-gray-800">
+            <div class="flex items-center text-white">
               <span class="mr-1">🌧️</span>
-              <span class="font-medium">${formatNumber(data.rainfall || 0, 1)}mm</span>
+              <span class="font-bold">${formatNumber(data.rainfall || 0, 1)}mm</span>
             </div>
-            <div class="flex items-center text-gray-800">
+            <div class="flex items-center text-white">
               <span class="mr-1">💨</span>
-              <span class="font-medium">${formatNumber(data.windSpeed || 5, 1)}m/s</span>
+              <span class="font-bold">${formatNumber(data.windSpeed || 5, 1)}m/s</span>
             </div>
           </div>
         </div>
         
-        <!-- Environment -->
-        <div class="bg-green-50 border border-green-200 rounded-lg p-3">
-          <div class="text-sm font-semibold text-green-800 mb-2">Environment</div>
-          <div class="flex justify-between text-xs text-green-700">
-            <span>🌳 Green Cover: <strong>${formatNumber(data.greenCover || 35, 0)}%</strong></span>
+        <!-- Environment with HIGH CONTRAST -->
+        <div class="bg-green-800 border-2 border-green-900 rounded-lg p-3">
+          <div class="text-sm font-semibold text-white mb-2">Environment</div>
+          <div class="flex justify-between text-xs text-green-100">
+            <span>🌳 Green Cover: <strong class="text-white">${formatNumber(data.greenCover || 35, 0)}%</strong></span>
           </div>
         </div>
         
         ${data.forecastRainfall && data.forecastRainfall > 0 ? `
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div class="text-sm font-semibold text-blue-800">24h Forecast</div>
-            <div class="text-blue-700 font-bold text-sm">${formatNumber(data.forecastRainfall, 1)}mm expected</div>
+          <div class="bg-blue-800 border-2 border-blue-900 rounded-lg p-3">
+            <div class="text-sm font-semibold text-white">24h Forecast</div>
+            <div class="text-blue-100 font-bold text-sm">${formatNumber(data.forecastRainfall, 1)}mm expected</div>
           </div>
         ` : ''}
         

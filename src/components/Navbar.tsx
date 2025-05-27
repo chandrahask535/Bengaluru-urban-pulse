@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X, Sun, Moon, User } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
 const Navbar = () => {
@@ -60,7 +60,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Theme Toggle and Mobile Menu Button */}
+          {/* Theme Toggle, Auth and Mobile Menu Button */}
           <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
@@ -75,6 +75,18 @@ const Navbar = () => {
                 <Sun className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               )}
             </Button>
+
+            {/* Auth Button */}
+            <Link to="/auth">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden md:flex items-center space-x-2 px-3 py-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <User className="h-4 w-4" />
+                <span>Sign In</span>
+              </Button>
+            </Link>
             
             {/* Mobile menu button */}
             <div className="md:hidden">
@@ -114,6 +126,13 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
+            <Link
+              to="/auth"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              onClick={() => setIsOpen(false)}
+            >
+              Sign In
+            </Link>
           </div>
         </div>
       )}
