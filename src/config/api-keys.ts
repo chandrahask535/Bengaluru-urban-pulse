@@ -1,41 +1,20 @@
 
-// API Keys and Configuration
-
+// API configuration with fallback values for development
 export const API_KEYS = {
-  // Weather Data
-  OPENWEATHER_API_KEY: import.meta.env.VITE_OPENWEATHER_API_KEY || "8ad34abc3b5bd464821c93ba25ac9fd1",
-  
-  // Maps and Geolocation
-  MAPBOX_API_KEY: import.meta.env.VITE_MAPBOX_API_KEY || "pk.eyJ1IjoiY2hhbmRyYWhhc2s1MzUiLCJhIjoiY205NDVvemFnMHdiODJqcjRxZnhyaTBocSJ9.gi8-Fb34Kc5RkeGGPx8qCQ",
-  
-  // Satellite Imagery
-  NASA_EARTH_API_KEY: import.meta.env.VITE_NASA_EARTH_API_KEY || "fQH61FjpO5Uaqh335VOCEVvEaqr1onrHtpPfA3eZ",
-  BHUVAN_API_KEY: import.meta.env.VITE_BHUVAN_API_KEY || "21dee4e5f0d489d5108b8c68a4e0037edc310cff",
+  MAPBOX_API_KEY: import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || 'pk.eyJ1IjoidXJiYW5wdWxzZSIsImEiOiJjbHpkZXh4eHgwMDAwMm1zOGY2eDJkY2M5In0.placeholder_token',
+  OPENWEATHER_API_KEY: import.meta.env.VITE_OPENWEATHER_API_KEY || '8ad34abc3b5bd464821c93ba25ac9fd1',
+  NASA_API_KEY: import.meta.env.VITE_NASA_API_KEY || 'fQH61FjpO5Uaqh335VOCEVvEaqr1onrHtpPfA3eZ',
+  BHUVAN_TOKEN: import.meta.env.VITE_BHUVAN_TOKEN || '21dee4e5f0d489d5108b8c68a4e0037edc310cff'
 };
 
-// API Endpoints
 export const API_ENDPOINTS = {
-  WEATHER: import.meta.env.VITE_API_WEATHER_URL || "https://api.openweathermap.org/data/2.5",
-  MAPBOX: import.meta.env.VITE_API_MAPBOX_URL || "https://api.mapbox.com",
-  NASA_EARTH: import.meta.env.VITE_API_NASA_EARTH_URL || "https://api.nasa.gov/planetary/earth",
-  BHUVAN: import.meta.env.VITE_API_BHUVAN_URL || "https://bhuvan.nrsc.gov.in/api",
-  
-  // New API endpoints for the additional Bhuvan services
-  BHUVAN_LULC: "https://bhuvan.nrsc.gov.in/api/lulc",
-  BHUVAN_LULC_STATISTICS: "https://bhuvan.nrsc.gov.in/api/lulc-statistics",
-  BHUVAN_GEOCODING: "https://bhuvan.nrsc.gov.in/api/geocode",
-  BHUVAN_GEOID: "https://bhuvan.nrsc.gov.in/api/geoid",
-  
-  // Mapbox specific endpoints
-  MAPBOX_GEOCODING: "https://api.mapbox.com/geocoding/v5/mapbox.places",
-  MAPBOX_DIRECTIONS: "https://api.mapbox.com/directions/v5/mapbox",
+  MAPBOX_GEOCODING: 'https://api.mapbox.com/geocoding/v5/mapbox.places',
+  OPENWEATHER_BASE: 'https://api.openweathermap.org/data/2.5',
+  NASA_EARTH: 'https://api.nasa.gov/planetary/earth',
+  BHUVAN_BASE: 'https://bhuvan.nrsc.gov.in/api'
 };
 
-// Configuration
-export const API_CONFIG = {
-  WEATHER_UPDATE_INTERVAL: parseInt(import.meta.env.VITE_WEATHER_UPDATE_INTERVAL || '300000'),
-  FLOOD_PREDICTION_INTERVAL: parseInt(import.meta.env.VITE_FLOOD_PREDICTION_INTERVAL || '900000'),
-  LAKE_MONITORING_INTERVAL: parseInt(import.meta.env.VITE_LAKE_MONITORING_INTERVAL || '1800000'),
-  MAX_RETRIES: parseInt(import.meta.env.VITE_MAX_RETRIES || '3'),
-  TIMEOUT: parseInt(import.meta.env.VITE_REQUEST_TIMEOUT || '10000')
+// Check if we're missing the Mapbox token
+export const isMapboxConfigured = () => {
+  return API_KEYS.MAPBOX_API_KEY !== 'pk.eyJ1IjoidXJiYW5wdWxzZSIsImEiOiJjbHpkZXh4eHgwMDAwMm1zOGY2eDJkY2M5In0.placeholder_token';
 };

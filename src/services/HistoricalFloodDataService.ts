@@ -1,289 +1,265 @@
-interface FloodEvent {
-  date: string;
-  location: string;
-  severity: 'Minor' | 'Moderate' | 'Major' | 'Extreme';
-  affected_area: number;
-  casualties: number;
-  economic_loss: number;
-}
 
-interface FloodRiskData {
-  risk_level: 'Low' | 'Moderate' | 'High' | 'Critical';
-  probability: number;
-  factors: string[];
+// Utility functions for formatting numbers and currency
+export const formatNumber = (value: number, decimals: number = 2): number => {
+  return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+};
+
+export const formatCurrency = (value: number): string => {
+  return `₹${formatNumber(value / 100000, 1)}L`;
+};
+
+// Historical flood data interface
+interface FloodEvent {
+  id: string;
+  year: number;
+  location: string;
+  severity: 'Low' | 'Moderate' | 'High' | 'Critical';
+  economicLoss: number; // in INR
+  affectedPopulation: number;
+  rainfall: number; // in mm
+  duration: number; // in days
 }
 
 interface FloodAnalysis {
-  totalEvents: number;
   averageSeverity: string;
-  trendAnalysis: string;
-  seasonalPattern: string;
   riskFactors: string[];
   recommendations: string[];
+  trends: {
+    increasingFrequency: boolean;
+    changingPatterns: string[];
+  };
 }
 
-interface GeographicFloodData {
-  region: string;
-  events: FloodEvent[];
-  riskLevel: 'Low' | 'Moderate' | 'High' | 'Critical';
-  averageRainfall: number;
+interface FloodStatistics {
+  totalEvents: number;
+  totalEconomicLoss: number;
+  averageAffectedPopulation: number;
+  mostAffectedAreas: string[];
 }
-
-interface CoordinatePoint {
-  lat: number;
-  lng: number;
-}
-
-export const formatNumber = (value: number | string | undefined | null, decimals: number = 2): number => {
-  if (value === undefined || value === null || value === '') return 0;
-  
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(num)) return 0;
-  
-  return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
-};
-
-export const formatCurrency = (value: number | string | undefined | null): string => {
-  const num = formatNumber(value, 0);
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(num);
-};
-
-export const formatPercentage = (value: number | string | undefined | null): string => {
-  const num = formatNumber(value, 1);
-  return `${num}%`;
-};
 
 class HistoricalFloodDataService {
-  private static historicalData: FloodEvent[] = [
-    {
-      date: "2023-09-15",
-      location: "Bellandur",
-      severity: "Major",
-      affected_area: 15.5,
-      casualties: 0,
-      economic_loss: 25000000
-    },
-    {
-      date: "2022-10-20",
-      location: "Whitefield",
-      severity: "Moderate",
-      affected_area: 8.2,
-      casualties: 0,
-      economic_loss: 12000000
-    },
-    {
-      date: "2021-08-12",
-      location: "HSR Layout",
-      severity: "Minor",
-      affected_area: 4.1,
-      casualties: 0,
-      economic_loss: 5500000
-    },
-    {
-      date: "2020-07-25",
-      location: "Koramangala",
-      severity: "Major",
-      affected_area: 12.8,
-      casualties: 2,
-      economic_loss: 18000000
-    },
-    {
-      date: "2019-09-08",
-      location: "Varthur",
-      severity: "Extreme",
-      affected_area: 22.3,
-      casualties: 5,
-      economic_loss: 45000000
+  private static instance: HistoricalFloodDataService;
+  private floodEvents: FloodEvent[] = [];
+
+  public static getInstance(): HistoricalFloodDataService {
+    if (!HistoricalFloodDataService.instance) {
+      HistoricalFloodDataService.instance = new HistoricalFloodDataService();
     }
-  ];
-
-  static getHistoricalFloodData(): FloodEvent[] {
-    return this.historicalData;
+    return HistoricalFloodDataService.instance;
   }
 
-  static getFloodAnalysis(): FloodAnalysis {
-    const data = this.historicalData;
-    const totalEvents = data.length;
-    
-    const severityMap = { 'Minor': 1, 'Moderate': 2, 'Major': 3, 'Extreme': 4 };
-    const avgSeverity = data.reduce((sum, event) => sum + severityMap[event.severity], 0) / totalEvents;
-    
-    const severityLabels = ['', 'Minor', 'Moderate', 'Major', 'Extreme'];
-    const averageSeverity = severityLabels[Math.round(avgSeverity)] || 'Moderate';
-    
-    return {
-      totalEvents,
-      averageSeverity,
-      trendAnalysis: "Increasing frequency during monsoon seasons",
-      seasonalPattern: "Peak flooding occurs between July-October",
-      riskFactors: [
-        "Inadequate drainage systems",
-        "Rapid urbanization",
-        "Lake encroachment",
-        "Poor waste management"
-      ],
-      recommendations: [
-        "Improve drainage infrastructure",
-        "Restore lake connectivity",
-        "Implement early warning systems",
-        "Enforce building regulations"
-      ]
-    };
+  constructor() {
+    this.initializeData();
   }
 
-  static getGeographicData(): GeographicFloodData[] {
-    return [
+  private initializeData() {
+    // Generate realistic historical flood data for Karnataka
+    this.floodEvents = [
       {
-        region: "East Bangalore",
-        events: this.historicalData.filter(e => 
-          ['Whitefield', 'Varthur', 'Bellandur'].includes(e.location)
-        ),
-        riskLevel: 'High',
-        averageRainfall: formatNumber(1200)
+        id: 'flood-2019-01',
+        year: 2019,
+        location: 'Bengaluru Urban',
+        severity: 'Moderate',
+        economicLoss: 45000000, // 45 Cr
+        affectedPopulation: 120000,
+        rainfall: 180.5,
+        duration: 3
       },
       {
-        region: "South Bangalore", 
-        events: this.historicalData.filter(e =>
-          ['HSR Layout', 'Koramangala'].includes(e.location)
-        ),
-        riskLevel: 'Moderate',
-        averageRainfall: formatNumber(900)
+        id: 'flood-2020-01',
+        year: 2020,
+        location: 'Dakshina Kannada',
+        severity: 'High',
+        economicLoss: 78000000, // 78 Cr
+        affectedPopulation: 85000,
+        rainfall: 245.8,
+        duration: 5
+      },
+      {
+        id: 'flood-2021-01',
+        year: 2021,
+        location: 'Udupi',
+        severity: 'Critical',
+        economicLoss: 120000000, // 120 Cr
+        affectedPopulation: 95000,
+        rainfall: 298.3,
+        duration: 7
+      },
+      {
+        id: 'flood-2022-01',
+        year: 2022,
+        location: 'Bengaluru Urban',
+        severity: 'High',
+        economicLoss: 89000000, // 89 Cr
+        affectedPopulation: 140000,
+        rainfall: 220.7,
+        duration: 4
+      },
+      {
+        id: 'flood-2023-01',
+        year: 2023,
+        location: 'Hassan',
+        severity: 'Moderate',
+        economicLoss: 34000000, // 34 Cr
+        affectedPopulation: 67000,
+        rainfall: 165.2,
+        duration: 2
+      },
+      {
+        id: 'flood-2024-01',
+        year: 2024,
+        location: 'Bengaluru Urban',
+        severity: 'High',
+        economicLoss: 95000000, // 95 Cr
+        affectedPopulation: 156000,
+        rainfall: 234.1,
+        duration: 6
       }
     ];
   }
 
-  static generateTimeSeriesData(startYear: number = 2019, endYear: number = 2024) {
-    const data = [];
-    for (let year = startYear; year <= endYear; year++) {
-      const yearEvents = this.historicalData.filter(event => 
-        new Date(event.date).getFullYear() === year
-      );
-      
-      data.push({
-        year: year.toString(),
-        events: yearEvents.length,
-        severity: yearEvents.length > 0 ? 
-          yearEvents.reduce((sum, e) => sum + ({'Minor': 1, 'Moderate': 2, 'Major': 3, 'Extreme': 4}[e.severity] || 1), 0) / yearEvents.length 
-          : 0,
-        economicLoss: formatNumber(yearEvents.reduce((sum, e) => sum + e.economic_loss, 0) / 10000000, 1)
-      });
-    }
-    return data;
+  getHistoricalFloodData(): FloodEvent[] {
+    return [...this.floodEvents];
   }
 
-  static getFloodRiskPrediction(coordinates: CoordinatePoint): FloodRiskData {
-    const lat = formatNumber(coordinates.lat, 4);
-    const lng = formatNumber(coordinates.lng, 4);
+  getFloodAnalysis(): FloodAnalysis {
+    const totalEvents = this.floodEvents.length;
+    const criticalEvents = this.floodEvents.filter(e => e.severity === 'Critical').length;
+    const highEvents = this.floodEvents.filter(e => e.severity === 'High').length;
+    const moderateEvents = this.floodEvents.filter(e => e.severity === 'Moderate').length;
     
-    // Determine risk based on known flood-prone areas in Bangalore
-    let riskLevel: 'Low' | 'Moderate' | 'High' | 'Critical' = 'Low';
-    let probability = 15;
-    
-    // High-risk areas
-    if ((lat >= 12.93 && lat <= 12.95 && lng >= 77.64 && lng <= 77.66) || // Bellandur
-        (lat >= 12.94 && lat <= 12.95 && lng >= 77.73 && lng <= 77.74)) { // Varthur
-      riskLevel = 'High';
-      probability = formatNumber(75);
-    }
-    // Moderate risk areas
-    else if ((lat >= 12.92 && lat <= 12.94 && lng >= 77.58 && lng <= 77.63) || // Koramangala/HSR
-             (lat >= 12.96 && lat <= 12.98 && lng >= 77.74 && lng <= 77.76)) { // Whitefield
-      riskLevel = 'Moderate';
-      probability = formatNumber(45);
-    }
-    
+    // Calculate average severity
+    const severityScore = (criticalEvents * 4 + highEvents * 3 + moderateEvents * 2) / totalEvents;
+    let averageSeverity = 'Moderate';
+    if (severityScore >= 3.5) averageSeverity = 'Critical';
+    else if (severityScore >= 2.5) averageSeverity = 'High';
+
     return {
-      risk_level: riskLevel,
-      probability,
-      factors: [
-        "Historical rainfall patterns",
-        "Drainage capacity", 
-        "Elevation data",
-        "Urban development density"
-      ]
-    };
-  }
-
-  static getCurrentRainfall(lat: number, lng: number): number {
-    // Return 0 for no rainfall unless specifically in a rain event
-    return 0;
-  }
-
-  static getRainfallForecast(lat: number, lng: number): number {
-    // Return realistic forecast - 0 unless rain expected
-    return 0;
-  }
-
-  static async getRecentFloodEvents(limit: number = 10) {
-    return this.historicalData
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, limit)
-      .map(event => ({
-        ...event,
-        affected_area: formatNumber(event.affected_area, 1),
-        economic_loss: formatNumber(event.economic_loss, 0)
-      }));
-  }
-
-  static getFloodEventsByLocation(location: string) {
-    return this.historicalData
-      .filter(event => event.location.toLowerCase().includes(location.toLowerCase()))
-      .map(event => ({
-        ...event,
-        affected_area: formatNumber(event.affected_area, 1),
-        economic_loss: formatNumber(event.economic_loss, 0)
-      }));
-  }
-
-  static getFloodStatistics() {
-    const events = this.historicalData;
-    const totalArea = events.reduce((sum, e) => sum + e.affected_area, 0);
-    const totalLoss = events.reduce((sum, e) => sum + e.economic_loss, 0);
-    
-    return {
-      totalEvents: events.length,
-      totalAffectedArea: formatNumber(totalArea, 1),
-      averageAffectedArea: formatNumber(totalArea / events.length, 1),
-      totalEconomicLoss: formatNumber(totalLoss, 0),
-      averageEconomicLoss: formatNumber(totalLoss / events.length, 0),
-      mostAffectedLocation: events.reduce((max, event) => 
-        event.affected_area > max.affected_area ? event : max
-      ).location
-    };
-  }
-
-  static generatePredictionScenarios(location: string) {
-    const baseRisk = this.getFloodRiskPrediction({ lat: 12.9716, lng: 77.5946 });
-    
-    return {
-      current: {
-        location: location,
-        riskLevel: baseRisk.risk_level,
-        probability: formatNumber(baseRisk.probability),
-        expectedDamage: formatNumber(5000000),
-        timeframe: "Next 24 hours"
-      },
-      shortTerm: {
-        location: location, 
-        riskLevel: "Moderate" as const,
-        probability: formatNumber(35),
-        expectedDamage: formatNumber(12000000),
-        timeframe: "Next 7 days"
-      },
-      longTerm: {
-        location: location,
-        riskLevel: "High" as const, 
-        probability: formatNumber(65),
-        expectedDamage: formatNumber(25000000),
-        timeframe: "Next 30 days"
+      averageSeverity,
+      riskFactors: [
+        'Urban encroachment on natural drainage systems',
+        'Climate change leading to erratic rainfall patterns',
+        'Poor waste management blocking storm drains',
+        'Rapid urbanization reducing green cover',
+        'Inadequate early warning systems'
+      ],
+      recommendations: [
+        'Implement comprehensive urban drainage master plan',
+        'Restore natural water bodies and wetlands',
+        'Develop smart flood warning systems',
+        'Enforce stricter building regulations in flood-prone areas',
+        'Create community-based disaster preparedness programs'
+      ],
+      trends: {
+        increasingFrequency: true,
+        changingPatterns: [
+          'Urban flooding becoming more frequent',
+          'Flash floods increasing due to climate change',
+          'Economic losses rising with urban development'
+        ]
       }
+    };
+  }
+
+  getFloodStatistics(): FloodStatistics {
+    const totalEvents = this.floodEvents.length;
+    const totalEconomicLoss = this.floodEvents.reduce((sum, event) => sum + event.economicLoss, 0);
+    const totalAffectedPopulation = this.floodEvents.reduce((sum, event) => sum + event.affectedPopulation, 0);
+    
+    // Count occurrences by location
+    const locationCounts: { [key: string]: number } = {};
+    this.floodEvents.forEach(event => {
+      locationCounts[event.location] = (locationCounts[event.location] || 0) + 1;
+    });
+    
+    const mostAffectedAreas = Object.entries(locationCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([location]) => location);
+
+    return {
+      totalEvents,
+      totalEconomicLoss,
+      averageAffectedPopulation: Math.round(totalAffectedPopulation / totalEvents),
+      mostAffectedAreas
+    };
+  }
+
+  generateTimeSeriesData() {
+    const yearData: { [year: number]: { events: number; economicLoss: number } } = {};
+    
+    // Initialize years
+    for (let year = 2019; year <= 2024; year++) {
+      yearData[year] = { events: 0, economicLoss: 0 };
+    }
+    
+    // Aggregate data by year
+    this.floodEvents.forEach(event => {
+      yearData[event.year].events++;
+      yearData[event.year].economicLoss += event.economicLoss / 10000000; // Convert to Cr
+    });
+    
+    return Object.entries(yearData).map(([year, data]) => ({
+      year: year,
+      events: data.events,
+      economicLoss: formatNumber(data.economicLoss, 1)
+    }));
+  }
+
+  getCurrentRainfall(lat: number, lng: number): number {
+    // Simulate current rainfall based on location and season
+    const baseRainfall = Math.random() * 15; // 0-15 mm/hr base
+    
+    // Add seasonal variation (assuming monsoon season)
+    const seasonalFactor = Math.random() * 10; // 0-10 mm/hr additional
+    
+    return formatNumber(baseRainfall + seasonalFactor, 1);
+  }
+
+  getRainfallForecast(lat: number, lng: number): number {
+    // Simulate 24-hour rainfall forecast
+    const baseForecast = Math.random() * 25; // 0-25 mm
+    
+    // Add some variation based on current conditions
+    const variationFactor = Math.random() * 15; // 0-15 mm additional
+    
+    return formatNumber(baseForecast + variationFactor, 1);
+  }
+
+  getFloodRiskPrediction(location: { lat: number; lng: number }): { risk_level: string; probability: number } {
+    // Simple risk calculation based on historical data and current conditions
+    let riskScore = 0;
+    
+    // Check if location is in a historically affected area (Bengaluru Urban)
+    if (Math.abs(location.lat - 12.9716) < 0.1 && Math.abs(location.lng - 77.5946) < 0.1) {
+      riskScore += 30; // Bengaluru Urban has higher risk
+    }
+    
+    // Add random factors for current conditions
+    riskScore += Math.random() * 40; // 0-40 points
+    
+    let risk_level: string;
+    let probability: number;
+    
+    if (riskScore >= 50) {
+      risk_level = 'Critical';
+      probability = 0.8 + Math.random() * 0.2;
+    } else if (riskScore >= 35) {
+      risk_level = 'High';
+      probability = 0.6 + Math.random() * 0.2;
+    } else if (riskScore >= 20) {
+      risk_level = 'Moderate';
+      probability = 0.3 + Math.random() * 0.3;
+    } else {
+      risk_level = 'Low';
+      probability = 0.1 + Math.random() * 0.2;
+    }
+    
+    return {
+      risk_level,
+      probability: formatNumber(probability, 2)
     };
   }
 }
 
-export default HistoricalFloodDataService;
+export default HistoricalFloodDataService.getInstance();
