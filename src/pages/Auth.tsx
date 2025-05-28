@@ -87,10 +87,10 @@ const Auth = () => {
         <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Welcome to KarnatakaGIS
+              Welcome to Bengaluru Urban Pulse
             </h1>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Access advanced geospatial intelligence for Karnataka
+              Access advanced urban planning intelligence for Bengaluru
             </p>
           </div>
 
@@ -152,7 +152,7 @@ const Auth = () => {
                 <CardHeader className="space-y-1">
                   <CardTitle className="text-xl text-center">Create your account</CardTitle>
                   <CardDescription className="text-center">
-                    Join KarnatakaGIS to access comprehensive geospatial data and analysis tools
+                    Join Bengaluru Urban Pulse to access comprehensive urban planning data and analysis tools
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

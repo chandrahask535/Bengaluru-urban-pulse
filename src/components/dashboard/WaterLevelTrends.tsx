@@ -14,28 +14,24 @@ const WaterLevelTrends = () => {
   // Sample data with proper decimal formatting
   const waterLevelData = {
     bellandur: [
-      { date: "2024-01", level: 12.45, capacity: 85.2, trend: "up" },
-      { date: "2024-02", level: 11.89, capacity: 79.5, trend: "down" },
-      { date: "2024-03", level: 13.12, capacity: 91.3, trend: "up" },
-      { date: "2024-04", level: 10.67, capacity: 73.8, trend: "down" },
-      { date: "2024-05", level: 14.23, capacity: 96.7, trend: "up" },
+      { date: "2024-01", level: 12.5, capacity: 85, trend: "up" },
+      { date: "2024-02", level: 11.9, capacity: 80, trend: "down" },
+      { date: "2024-03", level: 13.1, capacity: 91, trend: "up" },
+      { date: "2024-04", level: 10.7, capacity: 74, trend: "down" },
+      { date: "2024-05", level: 14.2, capacity: 97, trend: "up" },
     ],
     ulsoor: [
-      { date: "2024-01", level: 8.34, capacity: 82.1, trend: "up" },
-      { date: "2024-02", level: 7.92, capacity: 78.9, trend: "down" },
-      { date: "2024-03", level: 9.15, capacity: 89.2, trend: "up" },
-      { date: "2024-04", level: 7.43, capacity: 74.6, trend: "down" },
-      { date: "2024-05", level: 10.12, capacity: 94.3, trend: "up" },
+      { date: "2024-01", level: 8.3, capacity: 82, trend: "up" },
+      { date: "2024-02", level: 7.9, capacity: 79, trend: "down" },
+      { date: "2024-03", level: 9.2, capacity: 89, trend: "up" },
+      { date: "2024-04", level: 7.4, capacity: 75, trend: "down" },
+      { date: "2024-05", level: 10.1, capacity: 94, trend: "up" },
     ]
   };
 
   const currentLevels = {
-    bellandur: { current: 14.23, danger: 16.0, warning: 14.5 },
-    ulsoor: { current: 10.12, danger: 12.0, warning: 11.0 }
-  };
-
-  const formatDecimal = (value: number, decimals: number = 1): string => {
-    return Number(value).toFixed(decimals);
+    bellandur: { current: 14.2, danger: 16.0, warning: 14.5 },
+    ulsoor: { current: 10.1, danger: 12.0, warning: 11.0 }
   };
 
   const getLevelStatus = (current: number, warning: number, danger: number) => {
@@ -46,7 +42,7 @@ const WaterLevelTrends = () => {
 
   const currentLevel = currentLevels[selectedLake as keyof typeof currentLevels];
   const levelStatus = getLevelStatus(currentLevel.current, currentLevel.warning, currentLevel.danger);
-  const capacityPercentage = (currentLevel.current / currentLevel.danger) * 100;
+  const capacityPercentage = Math.round((currentLevel.current / currentLevel.danger) * 100);
 
   return (
     <Card className="w-full">
@@ -92,30 +88,30 @@ const WaterLevelTrends = () => {
                   <Badge className={levelStatus.color}>{levelStatus.status}</Badge>
                 </div>
                 <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                  {formatDecimal(currentLevel.current)}m
+                  {currentLevel.current}m
                 </div>
                 <div className="text-sm text-blue-600 dark:text-blue-300">
-                  Capacity: {formatDecimal(capacityPercentage)}%
+                  Capacity: {capacityPercentage}%
                 </div>
               </div>
 
               <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
                 <span className="text-sm font-medium text-orange-800 dark:text-orange-200">Warning Level</span>
                 <div className="text-2xl font-bold text-orange-900 dark:text-orange-100">
-                  {formatDecimal(currentLevel.warning)}m
+                  {currentLevel.warning}m
                 </div>
                 <div className="text-sm text-orange-600 dark:text-orange-300">
-                  {formatDecimal(currentLevel.warning - currentLevel.current, 2)}m below
+                  {(currentLevel.warning - currentLevel.current).toFixed(1)}m below
                 </div>
               </div>
 
               <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
                 <span className="text-sm font-medium text-red-800 dark:text-red-200">Danger Level</span>
                 <div className="text-2xl font-bold text-red-900 dark:text-red-100">
-                  {formatDecimal(currentLevel.danger)}m
+                  {currentLevel.danger}m
                 </div>
                 <div className="text-sm text-red-600 dark:text-red-300">
-                  {formatDecimal(currentLevel.danger - currentLevel.current, 2)}m below
+                  {(currentLevel.danger - currentLevel.current).toFixed(1)}m below
                 </div>
               </div>
             </div>
@@ -124,7 +120,7 @@ const WaterLevelTrends = () => {
               <h4 className="font-medium mb-2">Recent Changes</h4>
               <div className="flex items-center gap-2 text-sm">
                 <TrendingUp className="h-4 w-4 text-green-500" />
-                <span>+{formatDecimal(0.34)}m increase in last 24 hours</span>
+                <span>+0.3m increase in last 24 hours</span>
               </div>
               <div className="flex items-center gap-2 text-sm mt-1">
                 <Calendar className="h-4 w-4 text-blue-500" />
@@ -141,10 +137,9 @@ const WaterLevelTrends = () => {
                   <XAxis dataKey="date" />
                   <YAxis 
                     domain={['dataMin - 1', 'dataMax + 1']}
-                    tickFormatter={(value) => formatDecimal(value)}
                   />
                   <Tooltip 
-                    formatter={(value: number) => [formatDecimal(value) + 'm', 'Water Level']}
+                    formatter={(value: number) => [value + 'm', 'Water Level']}
                     labelFormatter={(label) => `Month: ${label}`}
                   />
                   <Legend />
