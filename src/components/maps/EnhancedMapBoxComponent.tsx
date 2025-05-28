@@ -1,353 +1,279 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { API_KEYS } from '@/config/api-keys';
 
-interface Marker {
-  position: [number, number];
-  popup: string;
-  color: string;
-}
-
-interface HeatmapPoint {
-  lat: number;
-  lng: number;
-  intensity: number;
-}
-
-interface EnhancedMapBoxProps {
+interface EnhancedMapBoxComponentProps {
   center: [number, number];
   zoom?: number;
-  markers?: Marker[];
-  className?: string;
-  showBuildings?: boolean;
-  showTraffic?: boolean;
-  style?: string;
-  showHeatmap?: boolean;
-  heatmapData?: HeatmapPoint[];
-  showRainLayer?: boolean;
-  showTerrain?: boolean;
-  showWaterBodies?: boolean;
-  showUrbanZones?: boolean;
+  markers?: Array<{
+    position: [number, number];
+    popup?: string;
+    color?: string;
+  }>;
   onMapClick?: (latlng: { lat: number; lng: number }) => void;
-  enableHover?: boolean;
-  onHover?: (feature: any) => void;
+  className?: string;
+  showTraffic?: boolean;
+  showBuildings?: boolean;
+  showTerrain?: boolean;
+  showRainLayer?: boolean;
+  showUrbanZones?: boolean;
+  showFloodZones?: boolean;
+  heatmapData?: Array<{ lat: number; lng: number; intensity?: number }>;
 }
 
-const EnhancedMapBoxComponent: React.FC<EnhancedMapBoxProps> = ({
+const EnhancedMapBoxComponent = ({
   center,
-  zoom = 11,
+  zoom = 13,
   markers = [],
-  className = 'h-96',
-  showBuildings = false,
-  showTraffic = false,
-  style = 'mapbox://styles/mapbox/streets-v11',
-  showHeatmap = false,
-  heatmapData = [],
-  showRainLayer = false,
-  showTerrain = false,
-  showWaterBodies = false,
-  showUrbanZones = false,
   onMapClick,
-  enableHover = false,
-  onHover
-}) => {
+  className = 'h-[400px] w-full rounded-lg',
+  showTraffic = false,
+  showBuildings = false,
+  showTerrain = false,
+  showRainLayer = false,
+  showUrbanZones = false,
+  showFloodZones = false,
+  heatmapData = [],
+}: EnhancedMapBoxComponentProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const markerRefs = useRef<mapboxgl.Marker[]>([]);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Initialize map
   useEffect(() => {
-    if (!mapContainer.current) return;
-
+    if (!mapContainer.current || map.current) return;
+    
     // Set Mapbox access token
-    mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNtNWhyaGdyczB1aHcyanB4aWZlNGh1enkifQ.PgeyMH5jL9fz9v0sUls-Ag';
-
+    mapboxgl.accessToken = API_KEYS.MAPBOX_API_KEY;
+    
+    // Initialize map
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: style,
-      center: [center[1], center[0]], // Mapbox uses [lng, lat]
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [center[1], center[0]], // MapBox uses [lng, lat] order
       zoom: zoom,
-      antialias: true
+      pitch: showBuildings ? 45 : 0,
     });
 
     // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
 
-    // Add geolocate control
-    map.current.addControl(
-      new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true
-        },
-        trackUserLocation: true,
-        showUserHeading: true
-      }),
-      'top-right'
-    );
-
-    map.current.on('load', () => {
-      setIsMapLoaded(true);
-    });
-
-    // Click handler
+    // Add click handler
     if (onMapClick) {
       map.current.on('click', (e) => {
         onMapClick({ lat: e.lngLat.lat, lng: e.lngLat.lng });
       });
     }
 
+    map.current.on('load', () => {
+      setMapLoaded(true);
+      
+      const mapInstance = map.current;
+      if (!mapInstance) return;
+
+      // Add heatmap if data is provided
+      if (heatmapData.length > 0) {
+        const geojsonData = {
+          type: 'FeatureCollection',
+          features: heatmapData.map(point => ({
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [point.lng, point.lat]
+            },
+            properties: {
+              intensity: point.intensity || 1
+            }
+          }))
+        };
+
+        mapInstance.addSource('heatmap-data', {
+          type: 'geojson',
+          data: geojsonData as any
+        });
+
+        mapInstance.addLayer({
+          id: 'heatmap-layer',
+          type: 'heatmap',
+          source: 'heatmap-data',
+          paint: {
+            'heatmap-weight': [
+              'interpolate', ['linear'], ['get', 'intensity'],
+              0, 0,
+              1, 1
+            ],
+            'heatmap-intensity': 1,
+            'heatmap-color': [
+              'interpolate', ['linear'], ['heatmap-density'],
+              0, 'rgba(0,0,255,0)',
+              0.2, 'rgb(0,0,255)',
+              0.4, 'rgb(0,255,255)',
+              0.6, 'rgb(0,255,0)',
+              0.8, 'rgb(255,255,0)',
+              1, 'rgb(255,0,0)'
+            ],
+            'heatmap-radius': 20,
+            'heatmap-opacity': 0.7
+          }
+        });
+      }
+
+      // Add flood zones if requested
+      if (showFloodZones) {
+        const floodZonesGeoJSON = {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              properties: {
+                name: 'High Risk Zone',
+                risk: 'High'
+              },
+              geometry: {
+                type: 'Polygon',
+                coordinates: [[
+                  [center[1] - 0.02, center[0] - 0.01],
+                  [center[1] + 0.02, center[0] - 0.01],
+                  [center[1] + 0.02, center[0] + 0.01],
+                  [center[1] - 0.02, center[0] + 0.01],
+                  [center[1] - 0.02, center[0] - 0.01]
+                ]]
+              }
+            }
+          ]
+        };
+        
+        mapInstance.addSource('flood-zones', {
+          type: 'geojson',
+          data: floodZonesGeoJSON as any
+        });
+        
+        mapInstance.addLayer({
+          id: 'flood-zones-fill',
+          type: 'fill',
+          source: 'flood-zones',
+          paint: {
+            'fill-color': '#ff4444',
+            'fill-opacity': 0.4
+          }
+        });
+      }
+
+      // Add urban zones if requested
+      if (showUrbanZones) {
+        const urbanZonesGeoJSON = {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              properties: {
+                name: 'Urban Zone',
+                type: 'Residential'
+              },
+              geometry: {
+                type: 'Polygon',
+                coordinates: [[
+                  [center[1] - 0.03, center[0] - 0.02],
+                  [center[1] + 0.03, center[0] - 0.02],
+                  [center[1] + 0.03, center[0] + 0.02],
+                  [center[1] - 0.03, center[0] + 0.02],
+                  [center[1] - 0.03, center[0] - 0.02]
+                ]]
+              }
+            }
+          ]
+        };
+        
+        mapInstance.addSource('urban-zones', {
+          type: 'geojson',
+          data: urbanZonesGeoJSON as any
+        });
+        
+        mapInstance.addLayer({
+          id: 'urban-zones-fill',
+          type: 'fill',
+          source: 'urban-zones',
+          paint: {
+            'fill-color': '#82ca9d',
+            'fill-opacity': 0.5
+          }
+        });
+      }
+
+      // Add rain layer if requested
+      if (showRainLayer) {
+        mapInstance.addLayer({
+          id: 'rainfall',
+          type: 'raster',
+          source: {
+            type: 'raster',
+            tiles: [
+              `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${API_KEYS.OPENWEATHER_API_KEY}`
+            ],
+            tileSize: 256
+          },
+          paint: {
+            'raster-opacity': 0.6
+          }
+        });
+      }
+    });
+
+    // Cleanup
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
   }, []);
 
-  // Update map center and zoom
+  // Update markers
   useEffect(() => {
-    if (map.current && isMapLoaded) {
-      map.current.flyTo({
-        center: [center[1], center[0]],
-        zoom: zoom,
-        essential: true
-      });
-    }
-  }, [center, zoom, isMapLoaded]);
-
-  // Update map style
-  useEffect(() => {
-    if (map.current && isMapLoaded) {
-      map.current.setStyle(style);
-    }
-  }, [style, isMapLoaded]);
-
-  // Handle 3D buildings
-  useEffect(() => {
-    if (!map.current || !isMapLoaded) return;
-
-    if (showBuildings) {
-      map.current.addLayer({
-        id: '3d-buildings',
-        source: 'composite',
-        'source-layer': 'building',
-        filter: ['==', 'extrude', 'true'],
-        type: 'fill-extrusion',
-        minzoom: 15,
-        paint: {
-          'fill-extrusion-color': '#aaa',
-          'fill-extrusion-height': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            15,
-            0,
-            15.05,
-            ['get', 'height']
-          ],
-          'fill-extrusion-base': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            15,
-            0,
-            15.05,
-            ['get', 'min_height']
-          ],
-          'fill-extrusion-opacity': 0.6
-        }
-      });
-    } else {
-      if (map.current.getLayer('3d-buildings')) {
-        map.current.removeLayer('3d-buildings');
-      }
-    }
-  }, [showBuildings, isMapLoaded]);
-
-  // Handle traffic layer
-  useEffect(() => {
-    if (!map.current || !isMapLoaded) return;
-
-    if (showTraffic) {
-      map.current.addSource('mapbox-traffic', {
-        type: 'vector',
-        url: 'mapbox://mapbox.mapbox-traffic-v1'
-      });
-
-      map.current.addLayer({
-        id: 'traffic',
-        type: 'line',
-        source: 'mapbox-traffic',
-        'source-layer': 'traffic',
-        paint: {
-          'line-width': 2,
-          'line-color': [
-            'case',
-            ['==', ['get', 'congestion'], 'low'],
-            '#5cb85c',
-            ['==', ['get', 'congestion'], 'moderate'],
-            '#f0ad4e',
-            ['==', ['get', 'congestion'], 'heavy'],
-            '#d9534f',
-            ['==', ['get', 'congestion'], 'severe'],
-            '#d9534f',
-            '#3bb2d0'
-          ]
-        }
-      });
-    } else {
-      if (map.current.getLayer('traffic')) {
-        map.current.removeLayer('traffic');
-      }
-      if (map.current.getSource('mapbox-traffic')) {
-        map.current.removeSource('mapbox-traffic');
-      }
-    }
-  }, [showTraffic, isMapLoaded]);
-
-  // Handle flood zones
-  useEffect(() => {
-    if (!map.current || !isMapLoaded) return;
-
-    if (showUrbanZones) {
-      // Create proper GeoJSON FeatureCollection
-      const floodZonesGeoJSON: GeoJSON.FeatureCollection = {
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            geometry: {
-              type: "Polygon",
-              coordinates: [[
-                [77.5946, 12.9716],
-                [77.6046, 12.9716],
-                [77.6046, 12.9816],
-                [77.5946, 12.9816],
-                [77.5946, 12.9716]
-              ]]
-            },
-            properties: {
-              name: "High Risk Zone",
-              risk: "High"
-            }
-          }
-        ]
-      };
-
-      map.current.addSource('flood-zones', {
-        type: 'geojson',
-        data: floodZonesGeoJSON
-      });
-
-      map.current.addLayer({
-        id: 'flood-zones-fill',
-        type: 'fill',
-        source: 'flood-zones',
-        paint: {
-          'fill-color': '#ff0000',
-          'fill-opacity': 0.3
-        }
-      });
-    } else {
-      if (map.current.getLayer('flood-zones-fill')) {
-        map.current.removeLayer('flood-zones-fill');
-      }
-      if (map.current.getSource('flood-zones')) {
-        map.current.removeSource('flood-zones');
-      }
-    }
-  }, [showUrbanZones, isMapLoaded]);
-
-  // Handle markers
-  useEffect(() => {
-    if (!map.current || !isMapLoaded) return;
+    const mapInstance = map.current;
+    if (!mapInstance || !mapLoaded) return;
 
     // Clear existing markers
-    const existingMarkers = document.querySelectorAll('.mapboxgl-marker');
-    existingMarkers.forEach(marker => marker.remove());
+    markerRefs.current.forEach(marker => marker.remove());
+    markerRefs.current = [];
 
     // Add new markers
-    markers.forEach((marker, index) => {
-      const el = document.createElement('div');
-      el.className = 'marker';
-      el.style.backgroundColor = marker.color;
-      el.style.width = '20px';
-      el.style.height = '20px';
-      el.style.borderRadius = '50%';
-      el.style.border = '2px solid white';
-
-      const popup = new mapboxgl.Popup({ offset: 25 })
-        .setHTML(marker.popup);
-
-      new mapboxgl.Marker(el)
-        .setLngLat([marker.position[1], marker.position[0]])
-        .setPopup(popup)
-        .addTo(map.current!);
+    markers.forEach(({ position, popup, color }) => {
+      let markerElement;
+      if (color) {
+        markerElement = document.createElement('div');
+        markerElement.className = 'custom-marker';
+        markerElement.style.width = '20px';
+        markerElement.style.height = '20px';
+        markerElement.style.borderRadius = '50%';
+        markerElement.style.backgroundColor = color;
+        markerElement.style.border = '2px solid white';
+        markerElement.style.boxShadow = '0 0 4px rgba(0,0,0,0.5)';
+      }
+      
+      const marker = new mapboxgl.Marker(markerElement)
+        .setLngLat([position[1], position[0]])
+        .addTo(mapInstance);
+      
+      if (popup) {
+        marker.setPopup(new mapboxgl.Popup().setHTML(popup));
+      }
+      
+      markerRefs.current.push(marker);
     });
-  }, [markers, isMapLoaded]);
+  }, [markers, mapLoaded]);
 
-  // Handle heatmap
+  // Update center and zoom
   useEffect(() => {
-    if (!map.current || !isMapLoaded) return;
+    if (!map.current) return;
+    map.current.setCenter([center[1], center[0]]);
+    map.current.setZoom(zoom);
+  }, [center, zoom]);
 
-    if (showHeatmap && heatmapData.length > 0) {
-      const features = heatmapData.map(point => ({
-        type: 'Feature' as const,
-        geometry: {
-          type: 'Point' as const,
-          coordinates: [point.lng, point.lat]
-        },
-        properties: {
-          intensity: point.intensity
-        }
-      }));
-
-      const heatmapGeoJSON: GeoJSON.FeatureCollection = {
-        type: 'FeatureCollection',
-        features: features
-      };
-
-      map.current.addSource('heatmap-data', {
-        type: 'geojson',
-        data: heatmapGeoJSON
-      });
-
-      map.current.addLayer({
-        id: 'heatmap-layer',
-        type: 'heatmap',
-        source: 'heatmap-data',
-        maxzoom: 15,
-        paint: {
-          'heatmap-weight': ['get', 'intensity'],
-          'heatmap-intensity': 1,
-          'heatmap-color': [
-            'interpolate',
-            ['linear'],
-            ['heatmap-density'],
-            0, 'rgba(0,0,255,0)',
-            0.2, 'rgb(0,0,255)',
-            0.4, 'rgb(0,255,255)',
-            0.6, 'rgb(0,255,0)',
-            0.8, 'rgb(255,255,0)',
-            1, 'rgb(255,0,0)'
-          ],
-          'heatmap-radius': 30,
-          'heatmap-opacity': 0.8
-        }
-      });
-    } else {
-      if (map.current.getLayer('heatmap-layer')) {
-        map.current.removeLayer('heatmap-layer');
-      }
-      if (map.current.getSource('heatmap-data')) {
-        map.current.removeSource('heatmap-data');
-      }
-    }
-  }, [showHeatmap, heatmapData, isMapLoaded]);
-
-  return (
-    <div className={`relative ${className}`}>
-      <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
-    </div>
-  );
+  return <div ref={mapContainer} className={className} />;
 };
 
 export default EnhancedMapBoxComponent;

@@ -62,11 +62,13 @@ const Auth = () => {
       if (error) throw error;
       
       toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
+        title: "Sign in successful",
+        description: "Welcome back!",
       });
       
-      navigate("/");
+      if (data.user) {
+        navigate("/");
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -81,44 +83,55 @@ const Auth = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-grow flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12">
-        <div className="w-full max-w-md px-4">
+      <main className="flex-grow pt-16 pb-12 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Welcome to KarnatakaGIS
+            </h1>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Access advanced geospatial intelligence for Karnataka
+            </p>
+          </div>
+
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
               <Card>
-                <CardHeader>
-                  <CardTitle>Welcome Back</CardTitle>
-                  <CardDescription>
-                    Sign in to your Bangalore Urban Pulse account
+                <CardHeader className="space-y-1">
+                  <CardTitle className="text-xl text-center">Sign in to your account</CardTitle>
+                  <CardDescription className="text-center">
+                    Enter your credentials to access the platform
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <form onSubmit={handleSignIn} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input 
-                        id="email" 
-                        type="email" 
-                        placeholder="you@example.com" 
+                      <Label htmlFor="signin-email">Email</Label>
+                      <Input
+                        id="signin-email"
+                        type="email"
+                        placeholder="Enter your email address"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        className="w-full"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <Input 
-                        id="password" 
-                        type="password" 
-                        placeholder="••••••••" 
+                      <Label htmlFor="signin-password">Password</Label>
+                      <Input
+                        id="signin-password"
+                        type="password"
+                        placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        className="w-full"
                       />
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
@@ -126,9 +139,9 @@ const Auth = () => {
                     </Button>
                   </form>
                 </CardContent>
-                <CardFooter className="flex justify-center">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Don't have an account? Switch to Sign Up
+                <CardFooter className="text-center">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Don't have an account? Switch to Sign Up tab
                   </p>
                 </CardFooter>
               </Card>
@@ -136,34 +149,36 @@ const Auth = () => {
             
             <TabsContent value="signup">
               <Card>
-                <CardHeader>
-                  <CardTitle>Create Account</CardTitle>
-                  <CardDescription>
-                    Join Bangalore Urban Pulse to report issues and track urban development
+                <CardHeader className="space-y-1">
+                  <CardTitle className="text-xl text-center">Create your account</CardTitle>
+                  <CardDescription className="text-center">
+                    Join KarnatakaGIS to access comprehensive geospatial data and analysis tools
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <form onSubmit={handleSignUp} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email-signup">Email</Label>
-                      <Input 
-                        id="email-signup" 
-                        type="email" 
-                        placeholder="you@example.com" 
+                      <Label htmlFor="signup-email">Email Address</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="Enter your email address"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        className="w-full"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="password-signup">Password</Label>
-                      <Input 
-                        id="password-signup" 
-                        type="password" 
-                        placeholder="••••••••" 
+                      <Label htmlFor="signup-password">Password</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        placeholder="Create a secure password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        className="w-full"
                       />
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         Password must be at least 6 characters long
@@ -174,9 +189,9 @@ const Auth = () => {
                     </Button>
                   </form>
                 </CardContent>
-                <CardFooter className="flex justify-center">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Already have an account? Switch to Sign In
+                <CardFooter className="text-center">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Already have an account? Switch to Sign In tab
                   </p>
                 </CardFooter>
               </Card>
