@@ -20,29 +20,53 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Missing fields",
+        description: "Please enter both email and password"
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Invalid password",
+        description: "Password must be at least 6 characters long"
+      });
+      return;
+    }
+    
+    setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("already registered")) {
+          throw new Error("This email is already registered. Please sign in instead.");
+        }
+        throw error;
+      }
       
       toast({
-        title: "Sign up successful",
-        description: "Please check your email for verification link.",
+        title: "Welcome aboard! 🎉",
+        description: "Please check your email to verify your account.",
       });
       
-      if (data.user) {
-        navigate("/");
-      }
+      // Clear the form
+      setEmail("");
+      setPassword("");
+      
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error signing up",
-        description: error.message,
+        title: "Sign up failed",
+        description: error.message || "An error occurred during sign up"
       });
     } finally {
       setLoading(false);
@@ -51,29 +75,40 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Missing fields",
+        description: "Please enter both email and password"
+      });
+      return;
+    }
     
+    setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("Invalid login")) {
+          throw new Error("Incorrect email or password");
+        }
+        throw error;
+      }
       
       toast({
-        title: "Sign in successful",
-        description: "Welcome back!",
+        title: "Welcome back! 👋",
+        description: "Successfully signed in",
       });
       
-      if (data.user) {
-        navigate("/");
-      }
+      navigate("/");
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error signing in",
-        description: error.message,
+        title: "Sign in failed",
+        description: error.message || "Please check your credentials and try again"
       });
     } finally {
       setLoading(false);

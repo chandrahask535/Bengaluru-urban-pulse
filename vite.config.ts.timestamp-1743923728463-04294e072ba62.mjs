@@ -1,8 +1,8 @@
 // vite.config.ts
-import { defineConfig } from "file:///C:/Users/ASUS/Desktop/kscst/karnataka-urban-pulse/node_modules/vite/dist/node/index.js";
 import react from "file:///C:/Users/ASUS/Desktop/kscst/karnataka-urban-pulse/node_modules/@vitejs/plugin-react-swc/index.mjs";
-import path from "path";
 import { componentTagger } from "file:///C:/Users/ASUS/Desktop/kscst/karnataka-urban-pulse/node_modules/lovable-tagger/dist/index.js";
+import { defineConfig } from "file:///C:/Users/ASUS/Desktop/kscst/karnataka-urban-pulse/node_modules/vite/dist/node/index.js";
+import path from "path";
 var __vite_injected_original_dirname = "C:\\Users\\ASUS\\Desktop\\kscst\\karnataka-urban-pulse";
 var vite_config_default = defineConfig(({ mode }) => ({
   server: {

@@ -5,8 +5,8 @@ import numpy as np
 from shapely.geometry import shape, Point, mapping
 from shapely.ops import unary_union
 
-from app.models import UrbanZone
-from app.schemas import Region, UrbanInsightsResponse, UrbanInsights
+from ..models import UrbanZone
+from ..schemas import Region, UrbanInsightsResponse, UrbanInsights
 
 # Constants for analysis
 ZONE_TYPES = {
@@ -18,117 +18,117 @@ ZONE_TYPES = {
 }
 
 # Calculate green cover percentage for a region
-def calculate_green_cover(db: Session, region: Region) -> float:
-    # Create a circle around the point with given radius
-    center = Point(region.lng, region.lat)
-    
-    # Query green spaces within the region
-    green_zones = db.query(UrbanZone).filter(
-        UrbanZone.zone_type == "green_space"
-    ).all()
-    
-    # Calculate total area and green area
-    total_area = np.pi * (region.radius ** 2)  # km²
-    green_area = sum(
-        shape(zone.boundary).intersection(center.buffer(region.radius)).area
-        for zone in green_zones
-    )
-    
-    return (green_area / total_area) * 100
+def calculate_green_cover(region_geometry: Dict[str, Any], zones: List[UrbanZone]) -> float:
+    try:
+        region_shape = shape(region_geometry)
+        green_zones = [zone for zone in zones if zone.zone_type == "green_space"]
+        
+        if not green_zones:
+            return 0.0
+        
+        green_area = sum(shape(zone.geometry).area for zone in green_zones)
+        total_area = region_shape.area
+        
+        return (green_area / total_area) * 100 if total_area > 0 else 0.0
+    except Exception as e:
+        print(f"Error calculating green cover: {str(e)}")
+        return 0.0
 
-# Assess drainage efficiency
-def assess_drainage(db: Session, region: Region) -> str:
-    # In production, this would use actual drainage infrastructure data
-    # For now, we'll use a simplified assessment
-    
-    # Mock parameters (0-100 scale)
-    drainage_coverage = np.random.normal(70, 10)  # Normal distribution around 70
-    maintenance_score = np.random.normal(65, 15)  # Normal distribution around 65
-    flood_history = np.random.normal(75, 10)  # Normal distribution around 75
-    
-    # Calculate overall score
-    efficiency_score = (
-        drainage_coverage * 0.4 +
-        maintenance_score * 0.3 +
-        flood_history * 0.3
-    )
-    
-    # Determine efficiency level
-    if efficiency_score >= 80:
-        return "High"
-    elif efficiency_score >= 60:
-        return "Medium"
-    else:
-        return "Low"
+# Calculate zone distribution
+def calculate_zone_distribution(region_geometry: Dict[str, Any], zones: List[UrbanZone]) -> Dict[str, float]:
+    try:
+        region_shape = shape(region_geometry)
+        distribution = {zone_type: 0.0 for zone_type in ZONE_TYPES.keys()}
+        
+        total_area = region_shape.area
+        if total_area <= 0:
+            return distribution
+        
+        for zone in zones:
+            zone_area = shape(zone.geometry).area
+            zone_percentage = (zone_area / total_area) * 100
+            distribution[zone.zone_type] = zone_percentage
+        
+        return distribution
+    except Exception as e:
+        print(f"Error calculating zone distribution: {str(e)}")
+        return {zone_type: 0.0 for zone_type in ZONE_TYPES.keys()}
 
-# Identify flood-prone zones
-def identify_flood_zones(db: Session, region: Region) -> int:
-    # Query zones with high flood risk
-    flood_prone_zones = db.query(UrbanZone).filter(
-        UrbanZone.flood_risk_score >= 0.7
-    ).all()
-    
-    # Create a circle around the point with given radius
-    center = Point(region.lng, region.lat)
-    search_area = center.buffer(region.radius)
-    
-    # Count zones that intersect with the search area
-    return sum(
-        1 for zone in flood_prone_zones
-        if shape(zone.boundary).intersects(search_area)
-    )
+# Analyze urban density
+def analyze_urban_density(region_geometry: Dict[str, Any], zones: List[UrbanZone]) -> str:
+    try:
+        built_up_types = ["residential", "commercial", "industrial"]
+        region_shape = shape(region_geometry)
+        
+        built_up_zones = [zone for zone in zones if zone.zone_type in built_up_types]
+        if not built_up_zones:
+            return "Low"
+        
+        built_up_area = sum(shape(zone.geometry).area for zone in built_up_zones)
+        density_ratio = built_up_area / region_shape.area
+        
+        if density_ratio > 0.7:
+            return "High"
+        elif density_ratio > 0.4:
+            return "Medium"
+        else:
+            return "Low"
+    except Exception as e:
+        print(f"Error analyzing urban density: {str(e)}")
+        return "Unknown"
 
-# Generate improvement suggestions
-def generate_improvements(green_cover: float, drainage_efficiency: str, flood_zones: int) -> List[str]:
-    suggestions = []
-    
-    # Green cover suggestions
-    if green_cover < 20:
-        suggestions.extend([
-            "Increase urban forest cover through planned plantation",
-            "Develop new parks and green spaces",
-            "Implement mandatory green space in new developments"
-        ])
-    
-    # Drainage suggestions
-    if drainage_efficiency == "Low":
-        suggestions.extend([
-            "Upgrade stormwater drainage infrastructure",
-            "Implement regular drain maintenance program",
-            "Install rain gardens and bioswales"
-        ])
-    
-    # Flood zone suggestions
-    if flood_zones > 0:
-        suggestions.extend([
-            "Develop flood mitigation strategies for identified zones",
-            "Restrict development in flood-prone areas",
-            "Create water retention areas"
-        ])
-    
-    return suggestions[:5]  # Return top 5 suggestions
-
-# Main insights function
+# Generate urban planning insights
 async def get_insights(db: Session, region: Region) -> UrbanInsightsResponse:
-    # Calculate metrics
-    green_cover = calculate_green_cover(db, region)
-    drainage_efficiency = assess_drainage(db, region)
-    flood_prone_zones = identify_flood_zones(db, region)
-    
-    # Generate improvement suggestions
-    suggested_improvements = generate_improvements(
-        green_cover,
-        drainage_efficiency,
-        flood_prone_zones
-    )
-    
-    # Prepare response
-    return UrbanInsightsResponse(
-        insights=UrbanInsights(
-            green_cover_percentage=round(green_cover, 2),
-            drainage_efficiency=drainage_efficiency,
-            flood_prone_zones=flood_prone_zones,
-            suggested_improvements=suggested_improvements
-        ),
-        timestamp=datetime.utcnow().isoformat()
-    )
+    try:
+        # Get zones within the region
+        zones = db.query(UrbanZone).all()
+        
+        # Calculate metrics
+        green_cover = calculate_green_cover(region.geometry, zones)
+        zone_distribution = calculate_zone_distribution(region.geometry, zones)
+        urban_density = analyze_urban_density(region.geometry, zones)
+        
+        # Generate recommendations based on analysis
+        recommendations = []
+        
+        # Green cover recommendations
+        if green_cover < 15:
+            recommendations.extend([
+                "Increase green spaces and urban forests",
+                "Implement rooftop gardens in new developments",
+                "Create pocket parks in dense areas"
+            ])
+        
+        # Density-based recommendations
+        if urban_density == "High":
+            recommendations.extend([
+                "Improve public transportation infrastructure",
+                "Create more open spaces and recreational areas",
+                "Implement traffic management solutions"
+            ])
+        
+        # Zone balance recommendations
+        if zone_distribution["residential"] > 70:
+            recommendations.append("Diversify land use with mixed-development zones")
+        
+        if zone_distribution["industrial"] > 30:
+            recommendations.extend([
+                "Establish buffer zones between industrial and residential areas",
+                "Implement stricter environmental monitoring"
+            ])
+        
+        return UrbanInsightsResponse(
+            region=region,
+            insights=UrbanInsights(
+                green_cover_percentage=round(green_cover, 2),
+                zone_distribution={
+                    ZONE_TYPES[k]: round(v, 2) for k, v in zone_distribution.items()
+                },
+                urban_density=urban_density,
+                recommendations=recommendations
+            ),
+            timestamp=datetime.utcnow().isoformat()
+        )
+    except Exception as e:
+        print(f"Error generating urban insights: {str(e)}")
+        raise

@@ -23,9 +23,6 @@ from . import models
 from . import schemas
 from . import services
 
-# Create database tables if they don't exist
-Base.metadata.create_all(bind=engine)
-
 # Log application startup
 logger = logging.getLogger(__name__)
 logger.info("Karnataka Urban Pulse backend initialized")
