@@ -6,7 +6,7 @@ Tracking floods, monitoring lakes, and predicting the future of urban chaos — 
 ---
 
 ![Bengaluru Urban Pulse](https://img.shields.io/badge/Status-Active-brightgreen)  
-![License](https://github.com/chandrahask535/Bengaluru-urban-pulse/blob/main/LICENSE)
+
 
 ## 🚀 What is Urban Pulse?
 
